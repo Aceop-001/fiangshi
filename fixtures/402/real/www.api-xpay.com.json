@@ -1,0 +1,144 @@
+{
+  "url": "https://www.api-xpay.com/x402/quote",
+  "status": 402,
+  "headers": {
+    "access-control-expose-headers": "PAYMENT-REQUIRED,PAYMENT-RESPONSE,X-PAYMENT-RESPONSE",
+    "content-length": "1511",
+    "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+    "content-type": "application/json; charset=utf-8",
+    "cross-origin-opener-policy": "same-origin",
+    "cross-origin-resource-policy": "cross-origin",
+    "date": "Sun, 08 Nov 2026 15:42:57 GMT",
+    "etag": "W/\"5e7-0UkehlvYidMddxgTXodWDgAkFlk\"",
+    "origin-agent-cluster": "?1",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQQVlNRU5ULVNJR05BVFVSRSBoZWFkZXIgaXMgcmVxdWlyZWQiLCJyZXNvdXJjZSI6eyJ1cmwiOiJodHRwczovL3d3dy5hcGkteHBheS5jb20veDQwMi9xdW90ZSIsImRlc2NyaXB0aW9uIjoiUGF5bWVudCBxdW90ZSB3aXRoIGFtb3VudCwgYXNzZXQsIGFuZCBtZXJjaGFudCB3YWxsZXQiLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJzZXJ2aWNlTmFtZSI6IlggUGF5IiwiaWNvblVybCI6Imh0dHBzOi8vd3d3LmFwaS14cGF5LmNvbS9sb2dvLnBuZyIsInRhZ3MiOlsicGF5bWVudCIsInF1b3RlIiwicHJpY2luZyIsIm1lcmNoYW50IiwiaW52b2ljZSJdfSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMiLCJhbW91bnQiOiI1MDAwIiwiYXNzZXQiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJwYXlUbyI6IjB4NTg5YTIzMTRhMkUwNUY0NWU0MEM0ODIzRGEzQmE1OEQ0MjFkQjNkOCIsIm1heFRpbWVvdXRTZWNvbmRzIjo2MCwicmVzb3VyY2UiOiJodHRwczovL3d3dy5hcGkteHBheS5jb20veDQwMi9xdW90ZSIsImV4dHJhIjp7Im5hbWUiOiJVU0QgQ29pbiIsInZlcnNpb24iOiIyIn19XSwiZXh0ZW5zaW9ucyI6eyJiYXphYXIiOnsiaW5mbyI6eyJpbnB1dCI6eyJ0eXBlIjoiaHR0cCIsIm1ldGhvZCI6IkdFVCJ9LCJvdXRwdXQiOnsidHlwZSI6Impzb24iLCJleGFtcGxlIjp7InN1Y2Nlc3MiOnRydWUsInNlcnZpY2UiOiJYIFBheSIsInF1b3RlIjp7ImFtb3VudCI6IjAuMDA1IiwiYXNzZXQiOiJVU0RDIiwibmV0d29yayI6ImJhc2UiLCJwYXlUbyI6IjB4NTg5YTIzMTRhMkUwNUY0NWU0MEM0ODIzRGEzQmE1OEQ0MjFkQjNkOCIsInByb3RvY29sIjoieDQwMiIsInJlcXVlc3RJZCI6InJlcV9hYmMxMjMifX19fSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImlucHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyIsImNvbnN0IjoiaHR0cCJ9LCJtZXRob2QiOnsidHlwZSI6InN0cmluZyIsImVudW0iOlsiR0VUIiwiSEVBRCIsIkRFTEVURSJdfSwicXVlcnlQYXJhbXMiOnsidHlwZSI6Im9iamVjdCIsImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjp7InR5cGUiOiJzdHJpbmcifX0sImhlYWRlcnMiOnsidHlwZSI6Im9iamVjdCIsImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjp7InR5cGUiOiJzdHJpbmcifX19LCJyZXF1aXJlZCI6WyJ0eXBlIiwibWV0aG9kIl0sImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjpmYWxzZX0sIm91dHB1dCI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJ0eXBlIjp7InR5cGUiOiJzdHJpbmcifSwiZXhhbXBsZSI6eyJ0eXBlIjoib2JqZWN0In19LCJyZXF1aXJlZCI6WyJ0eXBlIl19fSwicmVxdWlyZWQiOlsiaW5wdXQiXX19fX0=",
+    "referrer-policy": "no-referrer",
+    "server": "railway-hikari",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "vary": "Origin, accept-encoding",
+    "x-content-type-options": "nosniff",
+    "x-dns-prefetch-control": "off",
+    "x-download-options": "noopen",
+    "x-frame-options": "SAMEORIGIN",
+    "x-hikari-trace": "sin1.462z",
+    "x-permitted-cross-domain-policies": "none",
+    "x-railway-edge": "sin1",
+    "x-railway-request-id": "xT8TyZHtS1yhxjgyoB_USg",
+    "x-xss-protection": "0"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "PAYMENT-SIGNATURE header is required",
+    "resource": {
+      "url": "https://www.api-xpay.com/x402/quote",
+      "description": "Payment quote with amount, asset, and merchant wallet",
+      "mimeType": "application/json",
+      "serviceName": "X Pay",
+      "iconUrl": "https://www.api-xpay.com/logo.png",
+      "tags": [
+        "payment",
+        "quote",
+        "pricing",
+        "merchant",
+        "invoice"
+      ]
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "5000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "payTo": "0x589a2314a2E05F45e40C4823Da3Ba58D421dB3d8",
+        "maxTimeoutSeconds": 60,
+        "resource": "https://www.api-xpay.com/x402/quote",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "method": "GET"
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "success": true,
+              "service": "X Pay",
+              "quote": {
+                "amount": "0.005",
+                "asset": "USDC",
+                "network": "base",
+                "payTo": "0x589a2314a2E05F45e40C4823Da3Ba58D421dB3d8",
+                "protocol": "x402",
+                "requestId": "req_abc123"
+              }
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "HEAD",
+                    "DELETE"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "headers": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    }
+  }
+}

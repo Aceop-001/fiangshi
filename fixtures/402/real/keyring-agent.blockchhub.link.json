@@ -1,0 +1,22 @@
+{
+  "url": "https://keyring-agent.blockchhub.link/api/send-native",
+  "status": 402,
+  "headers": {
+    "access-control-allow-headers": "Content-Type, X-PAYMENT, PAYMENT-SIGNATURE",
+    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE",
+    "access-control-max-age": "86400",
+    "alt-svc": "h3=\":443\"; ma=86400",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a575b1419df2f912-SIN",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 15:43:16 GMT",
+    "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9rZXlyaW5nLWFnZW50LmJsb2NrY2hodWIubGluay9hcGkvc2VuZC1uYXRpdmUiLCJkZXNjcmlwdGlvbiI6IlBheSB0aGUgc2VuZC1uYXRpdmUgZXhlY3V0aW9uIGZlZSAobmF0aXZlIGNvaW4gdHJhbnNmZXIpIiwibWltZVR5cGUiOiIifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMiLCJhbW91bnQiOiI1MDAwMCIsImFzc2V0IjoiMHg4MzM1ODlmQ0Q2ZURiNkUwOGY0YzdDMzJENGY3MWI1NGJkQTAyOTEzIiwicGF5VG8iOiIweDE3Y2Q1M0MwNEQ3MDdlRjBEZDYxNUVGNTZjNjMzZjAyOTE1YTc5MDUiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzYwMCwiZXh0cmEiOnsibmFtZSI6IlVTRCBDb2luIiwidmVyc2lvbiI6IjIifX1dLCJleHRlbnNpb25zIjp7ImVpcDI2MTJHYXNTcG9uc29yaW5nIjp7fSwiZXJjMjBBcHByb3ZhbEdhc1Nwb25zb3JpbmciOnt9LCJiYXphYXIiOnsiaW5mbyI6eyJpbnB1dCI6eyJ0eXBlIjoiaHR0cCIsInF1ZXJ5UGFyYW1zIjp7fSwibWV0aG9kIjoiR0VUIn0sIm91dHB1dCI6eyJ0eXBlIjoianNvbiIsImV4YW1wbGUiOnsic3RhdHVzIjoib2sifX19LCJzY2hlbWEiOnsiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiaW5wdXQiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidHlwZSI6eyJ0eXBlIjoic3RyaW5nIiwiY29uc3QiOiJodHRwIn0sIm1ldGhvZCI6eyJ0eXBlIjoic3RyaW5nIiwiZW51bSI6WyJHRVQiXX0sInF1ZXJ5UGFyYW1zIjp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7fSwicmVxdWlyZWQiOltdLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2V9fSwicmVxdWlyZWQiOlsidHlwZSIsIm1ldGhvZCJdLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2V9LCJvdXRwdXQiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidHlwZSI6eyJ0eXBlIjoic3RyaW5nIn0sImV4YW1wbGUiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsic3RhdHVzIjp7InR5cGUiOiJzdHJpbmciLCJlbnVtIjpbIm9rIl0sImRlc2NyaXB0aW9uIjoib2sgb25jZSB0aGUgZXhlY3V0aW9uIGZlZSBpcyBzZXR0bGVkIn19LCJyZXF1aXJlZCI6WyJzdGF0dXMiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfX0sInJlcXVpcmVkIjpbInR5cGUiXX19LCJyZXF1aXJlZCI6WyJpbnB1dCJdfX19fQ==",
+    "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=kprlSjYXgCnaC0gQXXT7d%2F8UN%2FOXQRzi7mUinJ%2F93%2B8x4OZ30LONlHSvrP9OlqlrccM1%2FtJdKg4b4vmGMjC2EqNLUTpeDW%2FY1x0Ls2UmtaALD1fseL5ppnZrHnQswupvgOR%2BKkrAhk2lCrtnlRxnSUmr7YKT%2B73I0EBkBQ%3D%3D\"}]}",
+    "server": "cloudflare",
+    "vary": "Origin, rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+  },
+  "body": {}
+}

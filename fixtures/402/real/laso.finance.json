@@ -1,0 +1,260 @@
+{
+  "url": "https://laso.finance/auth",
+  "status": 402,
+  "headers": {
+    "accept-ranges": "bytes",
+    "access-control-expose-headers": "X-Laso-Docs-Version, X-Laso-Docs-Manifest, X-Laso-Api-Version, Deprecation, Sunset, Link, WWW-Authenticate, RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset, RateLimit-Policy, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After",
+    "alt-svc": "h3=\":443\";ma=86400,h3-29=\":443\";ma=86400,h3-27=\":443\";ma=86400",
+    "cache-control": "no-store",
+    "content-length": "3011",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 08 Nov 2026 15:43:04 GMT",
+    "etag": "W/\"bc3-NFrEO3p+2GZjscB7dVbVdM/t/08\"",
+    "link": "<https://laso.finance/.well-known/api-catalog>; rel=\"api-catalog\"; type=\"application/linkset+json\", <https://laso.finance/.well-known/ai-catalog.json>; rel=\"ai-catalog\"; type=\"application/json\"; title=\"Agentic Resource Discovery manifest\", <https://laso.finance/.well-known/ard.json>; rel=\"ard\"; type=\"application/json\", <https://laso.finance/openapi.json>; rel=\"service-desc\"; type=\"application/json\"; title=\"Laso Finance x402 API (OpenAPI 3.1)\", <https://laso.finance/for-llms>; rel=\"service-doc\"; type=\"text/html\"; title=\"API documentation\", <https://laso.finance/SKILL.md>; rel=\"describedby\"; type=\"text/markdown\"; title=\"Agent skill\", <https://laso.finance/llms.txt>; rel=\"describedby\"; type=\"text/plain\", <https://laso.finance/.well-known/docs-version.json>; rel=\"service-meta\"; type=\"application/json\"; title=\"Docs version beacon\", <https://laso.finance/user-agreement>; rel=\"terms-of-service\"; type=\"text/html\", <https://laso.finance/agent-terms.md>; rel=\"terms-of-service\"; type=\"text/markdown\"; title=\"Agent Terms\"",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9sYXNvLmZpbmFuY2UvYXV0aCIsImRlc2NyaXB0aW9uIjoiR2V0IGEgRmlyZWJhc2UgSUQgdG9rZW4gZm9yIGF1dGhlbnRpY2F0aW5nIHdpdGggdGhlIGNhbGxhYmxlIEFQSXMiLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJzZXJ2aWNlTmFtZSI6Ikxhc28gRmluYW5jZSIsInRhZ3MiOlsiYXV0aCIsInNpZ24taW4iLCJ3YWxsZXQiXSwiaWNvblVybCI6Imh0dHBzOi8vbGFzby5maW5hbmNlL2FuZHJvaWQtY2hyb21lLTUxMng1MTIucG5nIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYW1vdW50IjoiMTAwMCIsImFzc2V0IjoiMHg4MzM1ODlmQ0Q2ZURiNkUwOGY0YzdDMzJENGY3MWI1NGJkQTAyOTEzIiwicGF5VG8iOiIweDMyOTFlOTZiM2JmZjdlZDU2ZTNjYTgzNjQyNzNjNWI0NjU0YjJiMzciLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAwLCJleHRyYSI6eyJuYW1lIjoiVVNEIENvaW4iLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6InNvbGFuYTo1ZXlrdDRVc0Z2OFA4TkpkVFJFcFkxdnpxS3FaS3ZkcCIsImFtb3VudCI6IjEwMDAiLCJhc3NldCI6IkVQakZXZGQ1QXVmcVNTcWVNMnFOMXh6eWJhcEM4RzR3RUdHa1p3eVREdDF2IiwicGF5VG8iOiIzTVpWazk3eDlTZVJ4YllwYzNqaHpSZlUyZnlBM2VtWXV0bnFmbjlrTmZZWCIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7ImZlZVBheWVyIjoiQkVOckxvVWJuZHhvTk1VUzVKWEFwR010TnlrTGpGWFhpeE10cER3RFI5U1AifX1dLCJleHRlbnNpb25zIjp7InNpZ24taW4td2l0aC14Ijp7ImluZm8iOnsiZG9tYWluIjoibGFzby5maW5hbmNlIiwidXJpIjoiaHR0cHM6Ly9sYXNvLmZpbmFuY2UvYXV0aCIsInZlcnNpb24iOiIxIiwibm9uY2UiOiJjMjNmOTljYTY4MGZiMDZlNjM0ODg3ZTE1OGUxNTEwNyIsImlzc3VlZEF0IjoiMjAyNi0xMS0wOFQxNTo0MzowNC4zOThaIiwicmVzb3VyY2VzIjpbImh0dHBzOi8vbGFzby5maW5hbmNlL2F1dGgiXSwiZXhwaXJhdGlvblRpbWUiOiIyMDI2LTExLTA4VDE1OjQ4OjA0LjM5OFoiLCJzdGF0ZW1lbnQiOiJTaWduIGluIHRvIExhc28gRmluYW5jZSJ9LCJzdXBwb3J0ZWRDaGFpbnMiOlt7ImNoYWluSWQiOiJlaXAxNTU6ODQ1MyIsInR5cGUiOiJlaXAxOTEifSx7ImNoYWluSWQiOiJzb2xhbmE6NWV5a3Q0VXNGdjhQOE5KZFRSRXBZMXZ6cUtxWkt2ZHAiLCJ0eXBlIjoiZWQyNTUxOSJ9XSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImRvbWFpbiI6eyJ0eXBlIjoic3RyaW5nIn0sImFkZHJlc3MiOnsidHlwZSI6InN0cmluZyJ9LCJzdGF0ZW1lbnQiOnsidHlwZSI6InN0cmluZyJ9LCJ1cmkiOnsidHlwZSI6InN0cmluZyIsImZvcm1hdCI6InVyaSJ9LCJ2ZXJzaW9uIjp7InR5cGUiOiJzdHJpbmcifSwiY2hhaW5JZCI6eyJ0eXBlIjoic3RyaW5nIn0sInR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJub25jZSI6eyJ0eXBlIjoic3RyaW5nIn0sImlzc3VlZEF0Ijp7InR5cGUiOiJzdHJpbmciLCJmb3JtYXQiOiJkYXRlLXRpbWUifSwiZXhwaXJhdGlvblRpbWUiOnsidHlwZSI6InN0cmluZyIsImZvcm1hdCI6ImRhdGUtdGltZSJ9LCJub3RCZWZvcmUiOnsidHlwZSI6InN0cmluZyIsImZvcm1hdCI6ImRhdGUtdGltZSJ9LCJyZXF1ZXN0SWQiOnsidHlwZSI6InN0cmluZyJ9LCJyZXNvdXJjZXMiOnsidHlwZSI6ImFycmF5IiwiaXRlbXMiOnsidHlwZSI6InN0cmluZyIsImZvcm1hdCI6InVyaSJ9fSwic2lnbmF0dXJlIjp7InR5cGUiOiJzdHJpbmcifX0sInJlcXVpcmVkIjpbImRvbWFpbiIsImFkZHJlc3MiLCJ1cmkiLCJ2ZXJzaW9uIiwiY2hhaW5JZCIsInR5cGUiLCJub25jZSIsImlzc3VlZEF0Iiwic2lnbmF0dXJlIl19fSwiYmF6YWFyIjp7ImluZm8iOnsiaW5wdXQiOnsidHlwZSI6Imh0dHAiLCJxdWVyeVBhcmFtcyI6e30sIm1ldGhvZCI6IkdFVCJ9LCJvdXRwdXQiOnsidHlwZSI6Impzb24iLCJleGFtcGxlIjp7ImF1dGgiOnsiaWRfdG9rZW4iOiJleUouLi4iLCJyZWZyZXNoX3Rva2VuIjoiQU1mLi4uIiwiZXhwaXJlc19pbiI6IjM2MDAifSwidXNlcl9pZCI6IjB4YWJjLi4uIiwiY2FsbGFibGVfYmFzZV91cmwiOiJodHRwczovL2xhc28uZmluYW5jZSJ9fX0sInNjaGVtYSI6eyIkc2NoZW1hIjoiaHR0cHM6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQvMjAyMC0xMi9zY2hlbWEiLCJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJpbnB1dCI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJ0eXBlIjp7InR5cGUiOiJzdHJpbmciLCJjb25zdCI6Imh0dHAifSwibWV0aG9kIjp7InR5cGUiOiJzdHJpbmciLCJlbnVtIjpbIkdFVCJdfSwicXVlcnlQYXJhbXMiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnt9fX0sInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfSwib3V0cHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJleGFtcGxlIjp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImF1dGgiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiaWRfdG9rZW4iOnsidHlwZSI6InN0cmluZyIsImRlc2NyaXB0aW9uIjoiRmlyZWJhc2UgSUQgdG9rZW4gZm9yIHRoZSBjYWxsYWJsZSBBUElzIn0sInJlZnJlc2hfdG9rZW4iOnsidHlwZSI6InN0cmluZyJ9LCJleHBpcmVzX2luIjp7InR5cGUiOiJzdHJpbmcifX19LCJ1c2VyX2lkIjp7InR5cGUiOiJzdHJpbmcifSwiY2FsbGFibGVfYmFzZV91cmwiOnsidHlwZSI6InN0cmluZyJ9fX19LCJyZXF1aXJlZCI6WyJ0eXBlIl19fSwicmVxdWlyZWQiOlsiaW5wdXQiXX19fX0=",
+    "ratelimit-limit": "120",
+    "ratelimit-policy": "120;w=60",
+    "ratelimit-remaining": "120",
+    "ratelimit-reset": "60",
+    "server": "Google Frontend",
+    "vary": "Origin, x-fh-requested-host, accept-encoding",
+    "www-authenticate": "Payment id=\"TMA8mi_YrjinicmQA6N3uHj3W9floNsZ1lCJRUHWJRU\", realm=\"laso.finance\", method=\"evm\", intent=\"charge\", request=\"eyJhbW91bnQiOiIxMDAwIiwiY3VycmVuY3kiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJtZXRob2REZXRhaWxzIjp7ImNoYWluSWQiOjg0NTMsImNyZWRlbnRpYWxUeXBlcyI6WyJhdXRob3JpemF0aW9uIl0sImRlY2ltYWxzIjo2fSwicmVjaXBpZW50IjoiMHgzMjkxRTk2YjNiZmY3ZUQ1NmUzY2E4MzY0MjczQzViNDY1NGIyQjM3In0\", description=\"Get a Firebase ID token for authenticating with the callable APIs\", expires=\"2026-11-08T15:48:04.398Z\", opaque=\"eyJfbXBweF9zY29wZSI6Imh0dHBzOi8vbGFzby5maW5hbmNlL2F1dGgifQ\"",
+    "x-cache": "MISS",
+    "x-cache-hits": "0",
+    "x-cloud-trace-context": "84e29160d8786a0d7e4d9c073956ef16",
+    "x-laso-api-version": "1.0.0",
+    "x-laso-docs-manifest": "https://laso.finance/.well-known/docs-version.json",
+    "x-laso-docs-version": "d9fdf399c2b0",
+    "x-powered-by": "Express",
+    "x-ratelimit-limit": "120",
+    "x-ratelimit-remaining": "120",
+    "x-ratelimit-reset": "60",
+    "x-served-by": "cache-maa10222-MAA",
+    "x-timer": "S1794152584.235089,VS0,VE308"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "Payment required",
+    "resource": {
+      "url": "https://laso.finance/auth",
+      "description": "Get a Firebase ID token for authenticating with the callable APIs",
+      "mimeType": "application/json",
+      "serviceName": "Laso Finance",
+      "tags": [
+        "auth",
+        "sign-in",
+        "wallet"
+      ],
+      "iconUrl": "https://laso.finance/android-chrome-512x512.png"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "payTo": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "amount": "1000",
+        "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "payTo": "3MZVk97x9SeRxbYpc3jhzRfU2fyA3emYutnqfn9kNfYX",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "feePayer": "BENrLoUbndxoNMUS5JXApGMtNykLjFXXixMtpDwDR9SP"
+        }
+      }
+    ],
+    "extensions": {
+      "sign-in-with-x": {
+        "info": {
+          "domain": "laso.finance",
+          "uri": "https://laso.finance/auth",
+          "version": "1",
+          "nonce": "c23f99ca680fb06e634887e158e15107",
+          "issuedAt": "2026-11-08T15:43:04.398Z",
+          "resources": [
+            "https://laso.finance/auth"
+          ],
+          "expirationTime": "2026-11-08T15:48:04.398Z",
+          "statement": "Sign in to Laso Finance"
+        },
+        "supportedChains": [
+          {
+            "chainId": "eip155:8453",
+            "type": "eip191"
+          },
+          {
+            "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+            "type": "ed25519"
+          }
+        ],
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "domain": {
+              "type": "string"
+            },
+            "address": {
+              "type": "string"
+            },
+            "statement": {
+              "type": "string"
+            },
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "version": {
+              "type": "string"
+            },
+            "chainId": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "nonce": {
+              "type": "string"
+            },
+            "issuedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expirationTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "notBefore": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "resources": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "signature": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "domain",
+            "address",
+            "uri",
+            "version",
+            "chainId",
+            "type",
+            "nonce",
+            "issuedAt",
+            "signature"
+          ]
+        }
+      },
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "queryParams": {},
+            "method": "GET"
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "auth": {
+                "id_token": "eyJ...",
+                "refresh_token": "AMf...",
+                "expires_in": "3600"
+              },
+              "user_id": "0xabc...",
+              "callable_base_url": "https://laso.finance"
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object",
+                  "properties": {
+                    "auth": {
+                      "type": "object",
+                      "properties": {
+                        "id_token": {
+                          "type": "string",
+                          "description": "Firebase ID token for the callable APIs"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "expires_in": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "callable_base_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    }
+  }
+}

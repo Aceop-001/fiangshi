@@ -1,8 +1,8 @@
 /**
  * Probe: unpaid GET, parse the 402, terms_hash = sha256(canonical terms).
- * Parses x402 v1 PaymentRequirements in the JSON body (`accepts[]`).
- * TODO(api-wiring): confirm against real recorded 402s; if live responses carry requirements in headers,
- * record them into fixtures/402 first and extend the parser with a test — never special-case.
+ * Parses x402 PaymentRequirements: v1 (`maxAmountRequired`, short network) and v2 (`amount`, CAIP-2 network),
+ * from the JSON body `accepts[]` or, for v2, the base64 `payment-required` header.
+ * Verified against 12 real responses recorded in fixtures/402/real (2026-11-08).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,17 +17,35 @@ export const ASSETS: Record<string, { symbol: string; decimals: number }> = {
   "base-sepolia:0x036cbd53842c5426634e7929541ec2318f3dcf7e": { symbol: "USDC", decimals: 6 },
 };
 
+/** CAIP-2 (x402 v2) -> short network names used as ASSETS keys. */
+export const CAIP2: Record<string, string> = { "eip155:8453": "base", "eip155:84532": "base-sepolia" };
+export const normalizeNetwork = (n: string) => CAIP2[n] ?? n;
+
+// v1 uses maxAmountRequired; v2 uses amount. Accept either, both must be atomic-unit integer strings.
 const Requirement = z
   .object({
     scheme: z.string(),
     network: z.string().min(1),
-    maxAmountRequired: z.string().regex(/^\d+$/),
+    maxAmountRequired: z.string().regex(/^\d+$/).optional(),
+    amount: z.string().regex(/^\d+$/).optional(),
     payTo: z.string().min(1),
     asset: z.string().min(1),
     resource: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((r) => r.amount !== undefined || r.maxAmountRequired !== undefined, "amount or maxAmountRequired required");
 const Body402 = z.object({ x402Version: z.number(), accepts: z.array(Requirement).min(1) }).passthrough();
+
+/** v2 servers send requirements base64-encoded in the `payment-required` header (body may be empty). */
+function fromHeader(headers: Record<string, string>): unknown {
+  const h = Object.entries(headers).find(([k]) => k.toLowerCase() === "payment-required")?.[1];
+  if (!h) return undefined;
+  try {
+    return JSON.parse(Buffer.from(h, "base64").toString("utf8"));
+  } catch {
+    return undefined;
+  }
+}
 
 export type ProbeResult = { ok: true; terms: Terms; raw: RawResponse } | { ok: false; error: string; raw: RawResponse | null };
 
@@ -48,17 +66,20 @@ export function parse402(raw: RawResponse): ProbeResult {
     try {
       body = JSON.parse(body);
     } catch {
-      return { ok: false, error: "402 body is not JSON", raw };
+      body = undefined;
     }
   }
-  const parsed = Body402.safeParse(body);
-  if (!parsed.success) return { ok: false, error: "402 body has no valid x402 accepts[]", raw };
+  // Body first (v1 and many v2 servers), then the v2 `payment-required` header.
+  let parsed = Body402.safeParse(body);
+  if (!parsed.success) parsed = Body402.safeParse(fromHeader(raw.headers));
+  if (!parsed.success) return { ok: false, error: "402 has no valid x402 accepts[] in body or payment-required header", raw };
   const req = parsed.data.accepts.find((a) => a.scheme === "exact") ?? parsed.data.accepts[0]!;
+  const network = normalizeNetwork(req.network);
   const base = {
     url: raw.url,
-    price: priceUsd(req.network, req.asset, req.maxAmountRequired),
+    price: priceUsd(network, req.asset, (req.amount ?? req.maxAmountRequired)!),
     asset: req.asset.toLowerCase(),
-    network: req.network,
+    network,
     payee: req.payTo.toLowerCase(),
   };
   return { ok: true, terms: { ...base, terms_hash: termsHash(base) }, raw };

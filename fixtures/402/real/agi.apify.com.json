@@ -1,0 +1,192 @@
+{
+  "url": "https://agi.apify.com/protocols/x402/prepaid-tokens",
+  "status": 402,
+  "headers": {
+    "content-length": "3071",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 08 Nov 2026 15:43:06 GMT",
+    "etag": "W/\"bff-0NdFmb4gQSywvQi17Oyy7AArXrY\"",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQQVlNRU5ULVNJR05BVFVSRSBoZWFkZXIgaXMgcmVxdWlyZWQuIiwicmVzb3VyY2UiOnsiZGVzY3JpcHRpb24iOiJBcGlmeSBpcyB0aGUgbGFyZ2VzdCBhbmQgbW9zdCB0cnVzdGVkIG1hcmtldHBsYWNlIG9mIHRvb2xzIGZvciB3ZWIgc2NyYXBpbmcsIGNyYXdsaW5nLCBkYXRhIGV4dHJhY3Rpb24sIGFuZCBhdXRvbWF0aW9uLiBVc2UgdGhlc2UgdG9vbHMsIGNhbGxlZCBBY3RvcnMsIHRvIGV4dHJhY3Qgc3RydWN0dXJlZCBkYXRhIGZyb20gc29jaWFsIG1lZGlhLCBlLWNvbW1lcmNlIHNpdGVzLCBzZWFyY2ggZW5naW5lcywgbWFwcywgdHJhdmVsIHNpdGVzLCBvciBhbnkgb3RoZXIgd2Vic2l0ZS4gVHVybiB0aGUgb3BlbiB3ZWIgaW50byBhIHJlYWwtdGltZSBkYXRhIHNvdXJjZSBmb3IgeW91ciByZXNlYXJjaCwgbGVhZCBnZW5lcmF0aW9uLCBhbmQgbW9uaXRvcmluZy4iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJzZXJ2aWNlTmFtZSI6IkFwaWZ5IiwidGFncyI6WyJhdXRvbWF0aW9uIiwid2ViLWRhdGEiLCJjcmF3bGluZyIsImNvbnRleHQiLCJzY3JhcGluZyJdLCJpY29uVXJsIjoiaHR0cHM6Ly9hcGlmeS5jb20vaWNvbjYucG5nIiwidXJsIjoiaHR0cHM6Ly9hZ2kuYXBpZnkuY29tL3Byb3RvY29scy94NDAyL3ByZXBhaWQtdG9rZW5zIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYXNzZXQiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJhbW91bnQiOiIxMDAwMDAwIiwicGF5VG8iOiIweDRhQWJFMTdDMjM5ZUY3MWMzQTI2YkE3QzJiM2UwQWVCYmZDMURGMjYiLCJtYXhUaW1lb3V0U2Vjb25kcyI6NjAsImV4dHJhIjp7Im5hbWUiOiJVU0QgQ29pbiIsInZlcnNpb24iOiIyIn19LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoic29sYW5hOjVleWt0NFVzRnY4UDhOSmRUUkVwWTF2enFLcVpLdmRwIiwiYXNzZXQiOiJFUGpGV2RkNUF1ZnFTU3FlTTJxTjF4enliYXBDOEc0d0VHR2tad3lURHQxdiIsImFtb3VudCI6IjEwMDAwMDAiLCJwYXlUbyI6IkVDVVBrcTZEUDhWVVNFdWVMNHFOem55TkRKTHd1NlBRaG5NUTVjdVpzVExIIiwibWF4VGltZW91dFNlY29uZHMiOjYwLCJleHRyYSI6eyJmZWVQYXllciI6IkJFTnJMb1VibmR4b05NVVM1SlhBcEdNdE55a0xqRlhYaXhNdHBEd0RSOVNQIn19LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoic29sYW5hOjVleWt0NFVzRnY4UDhOSmRUUkVwWTF2enFLcVpLdmRwIiwiYXNzZXQiOiJFczl2TUZyemFDRVJtSmZyRjRIMkZZRDRLQ29Oa1kxMU1jQ2U4QmVud05ZQiIsImFtb3VudCI6IjEwMDAwMDAiLCJwYXlUbyI6IkVDVVBrcTZEUDhWVVNFdWVMNHFOem55TkRKTHd1NlBRaG5NUTVjdVpzVExIIiwibWF4VGltZW91dFNlY29uZHMiOjYwLCJleHRyYSI6eyJmZWVQYXllciI6IkJFTnJMb1VibmR4b05NVVM1SlhBcEdNdE55a0xqRlhYaXhNdHBEd0RSOVNQIn19XSwiZXh0ZW5zaW9ucyI6eyJiYXphYXIiOnsiZGlzY292ZXJhYmxlIjp0cnVlLCJjYXRlZ29yeSI6IkRhdGEiLCJ0YWdzIjpbImF1dG9tYXRpb24iLCJ3ZWItZGF0YSIsImNyYXdsaW5nIiwiY29udGV4dCIsInNjcmFwaW5nIl0sImluZm8iOnsiaW5wdXQiOnsidHlwZSI6Imh0dHAiLCJtZXRob2QiOiJHRVQiLCJxdWVyeVBhcmFtcyI6eyJhbW91bnQiOiIyIiwiY3VycmVuY3kiOiJ1c2QifX0sIm91dHB1dCI6eyJ0eXBlIjoianNvbiIsImV4YW1wbGUiOnsidG9rZW4iOiJhcGlmeV9hcGlfeHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4IiwicmVtYWluaW5nQmFsYW5jZVVzZCI6MiwiZXhwaXJlc0F0IjoiMjAyNy0wMS0wMVQwMDowMDowMC4wMDBaIn19fSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImlucHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyIsImNvbnN0IjoiaHR0cCJ9LCJtZXRob2QiOnsidHlwZSI6InN0cmluZyIsImVudW0iOlsiR0VUIiwiSEVBRCIsIkRFTEVURSJdfSwicXVlcnlQYXJhbXMiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiYW1vdW50Ijp7InR5cGUiOiJzdHJpbmciLCJwYXR0ZXJuIjoiXlxcZCsoXFwuXFxkezEsMn0pPyQiLCJkZXNjcmlwdGlvbiI6IlByZXBhaWQgYW1vdW50IGluIFVTRCAoZS5nLiBcIjVcIiBvciBcIjEuNTBcIikuIE1pbmltdW0gJDEuIn0sImN1cnJlbmN5Ijp7InR5cGUiOiJzdHJpbmciLCJlbnVtIjpbInVzZCJdLCJkZXNjcmlwdGlvbiI6IlBheW1lbnQgY3VycmVuY3kuIE9ubHkgXCJ1c2RcIiBpcyBzdXBwb3J0ZWQuIn19LCJyZXF1aXJlZCI6WyJhbW91bnQiLCJjdXJyZW5jeSJdLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2V9LCJoZWFkZXJzIjp7InR5cGUiOiJvYmplY3QiLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6eyJ0eXBlIjoic3RyaW5nIn19fSwicmVxdWlyZWQiOlsidHlwZSIsIm1ldGhvZCJdLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2V9LCJvdXRwdXQiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidHlwZSI6eyJ0eXBlIjoic3RyaW5nIiwiY29uc3QiOiJqc29uIn0sImV4YW1wbGUiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidG9rZW4iOnsidHlwZSI6InN0cmluZyIsImRlc2NyaXB0aW9uIjoiQXBpZnkgQVBJIHRva2VuOyB1c2UgYXMgQXV0aG9yaXphdGlvbjogQmVhcmVyIDx0b2tlbj4uIn0sInJlbWFpbmluZ0JhbGFuY2VVc2QiOnsidHlwZSI6Im51bWJlciJ9LCJleHBpcmVzQXQiOnsidHlwZSI6InN0cmluZyIsImZvcm1hdCI6ImRhdGUtdGltZSJ9fSwicmVxdWlyZWQiOlsidG9rZW4iLCJyZW1haW5pbmdCYWxhbmNlVXNkIiwiZXhwaXJlc0F0Il0sImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjpmYWxzZX19LCJyZXF1aXJlZCI6WyJ0eXBlIiwiZXhhbXBsZSJdLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2V9fSwicmVxdWlyZWQiOlsiaW5wdXQiXX19fX0=",
+    "x-powered-by": "Express"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "PAYMENT-SIGNATURE header is required.",
+    "resource": {
+      "description": "Apify is the largest and most trusted marketplace of tools for web scraping, crawling, data extraction, and automation. Use these tools, called Actors, to extract structured data from social media, e-commerce sites, search engines, maps, travel sites, or any other website. Turn the open web into a real-time data source for your research, lead generation, and monitoring.",
+      "mimeType": "application/json",
+      "serviceName": "Apify",
+      "tags": [
+        "automation",
+        "web-data",
+        "crawling",
+        "context",
+        "scraping"
+      ],
+      "iconUrl": "https://apify.com/icon6.png",
+      "url": "https://agi.apify.com/protocols/x402/prepaid-tokens"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": "1000000",
+        "payTo": "0x4aAbE17C239eF71c3A26bA7C2b3e0AeBbfC1DF26",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "amount": "1000000",
+        "payTo": "ECUPkq6DP8VUSEueL4qNznyNDJLwu6PQhnMQ5cuZsTLH",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "feePayer": "BENrLoUbndxoNMUS5JXApGMtNykLjFXXixMtpDwDR9SP"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "asset": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "amount": "1000000",
+        "payTo": "ECUPkq6DP8VUSEueL4qNznyNDJLwu6PQhnMQ5cuZsTLH",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "feePayer": "BENrLoUbndxoNMUS5JXApGMtNykLjFXXixMtpDwDR9SP"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "discoverable": true,
+        "category": "Data",
+        "tags": [
+          "automation",
+          "web-data",
+          "crawling",
+          "context",
+          "scraping"
+        ],
+        "info": {
+          "input": {
+            "type": "http",
+            "method": "GET",
+            "queryParams": {
+              "amount": "2",
+              "currency": "usd"
+            }
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "token": "apify_api_xxxxxxxxxxxxxxxxxxxxxxxx",
+              "remainingBalanceUsd": 2,
+              "expiresAt": "2027-01-01T00:00:00.000Z"
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "HEAD",
+                    "DELETE"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "string",
+                      "pattern": "^\\d+(\\.\\d{1,2})?$",
+                      "description": "Prepaid amount in USD (e.g. \"5\" or \"1.50\"). Minimum $1."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "usd"
+                      ],
+                      "description": "Payment currency. Only \"usd\" is supported."
+                    }
+                  },
+                  "required": [
+                    "amount",
+                    "currency"
+                  ],
+                  "additionalProperties": false
+                },
+                "headers": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "json"
+                },
+                "example": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "Apify API token; use as Authorization: Bearer <token>."
+                    },
+                    "remainingBalanceUsd": {
+                      "type": "number"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "remainingBalanceUsd",
+                    "expiresAt"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "type",
+                "example"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    }
+  }
+}

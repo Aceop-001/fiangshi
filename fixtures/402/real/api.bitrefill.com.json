@@ -1,0 +1,257 @@
+{
+  "url": "https://api.bitrefill.com/x402/gift-cards/search",
+  "status": 402,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=86400",
+    "cache-control": "no-store",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a575b1098a60a92b-MAA",
+    "content-encoding": "br",
+    "content-type": "application/json; charset=utf-8",
+    "date": "Sun, 08 Nov 2026 15:43:08 GMT",
+    "etag": "W/\"115f-AF8t0QwCS3PfBkfkCRqOwWJnb/A\"",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuYml0cmVmaWxsLmNvbS94NDAyL2dpZnQtY2FyZHMvc2VhcmNoIiwiZGVzY3JpcHRpb24iOiJTZWFyY2ggMTAsMDAwKyBnaWZ0IGNhcmQgJiB2b3VjaGVyIGJyYW5kcyBhY3Jvc3MgMTgwKyBjb3VudHJpZXMgYnkgbmFtZSBhbmQgY291bnRyeS4gUGF5IGluIFVTREMgdmlhIHg0MDIsIG5vIGFjY291bnQuIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIiwic2VydmljZU5hbWUiOiJCaXRyZWZpbGwiLCJ0YWdzIjpbImdpZnQtY2FyZHMiLCJ2b3VjaGVycyIsInNlYXJjaCIsInVzZGMiLCJiYXNlIiwic29sYW5hIl0sImljb25VcmwiOiJodHRwczovL3d3dy5iaXRyZWZpbGwuY29tL2FuZHJvaWQtY2hyb21lLTUxMng1MTIucG5nIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYW1vdW50IjoiMjAwMCIsImFzc2V0IjoiMHg4MzM1ODlmQ0Q2ZURiNkUwOGY0YzdDMzJENGY3MWI1NGJkQTAyOTEzIiwicGF5VG8iOiIweDQ4MENENDZFNmZhRGU2NTFhMDQzN0RlYWRkQTUzRDVjOGU3RDg0NkEiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAwLCJleHRyYSI6eyJuYW1lIjoiVVNEIENvaW4iLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo0MjE2MSIsImFtb3VudCI6IjIwMDAiLCJhc3NldCI6IjB4YWY4OGQwNjVlNzdjOGNDMjIzOTMyN0M1RURiM0E0MzIyNjhlNTgzMSIsInBheVRvIjoiMHg0ODBDRDQ2RTZmYURlNjUxYTA0MzdEZWFkZEE1M0Q1YzhlN0Q4NDZBIiwibWF4VGltZW91dFNlY29uZHMiOjMwMCwiZXh0cmEiOnsibmFtZSI6IlVTRCBDb2luIiwidmVyc2lvbiI6IjIifX0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6NDIxNjEiLCJhbW91bnQiOiIyMDAwIiwiYXNzZXQiOiIweEZkMDg2YkM3Q0Q1QzQ4MURDQzlDODVlYkU0NzhBMUMwYjY5RkNiYjkiLCJwYXlUbyI6IjB4NDgwQ0Q0NkU2ZmFEZTY1MWEwNDM3RGVhZGRBNTNENWM4ZTdEODQ2QSIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7Im5hbWUiOiJVU0Tigq4wIiwidmVyc2lvbiI6IjEifX0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6MTM3IiwiYW1vdW50IjoiMjAwMCIsImFzc2V0IjoiMHgzYzQ5OWM1NDJjZWY1ZTM4MTFlMTE5MmNlNzBkOGNjMDNkNWMzMzU5IiwicGF5VG8iOiIweDQ4MENENDZFNmZhRGU2NTFhMDQzN0RlYWRkQTUzRDVjOGU3RDg0NkEiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAwLCJleHRyYSI6eyJuYW1lIjoiVVNEIENvaW4iLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6InNvbGFuYTo1ZXlrdDRVc0Z2OFA4TkpkVFJFcFkxdnpxS3FaS3ZkcCIsImFtb3VudCI6IjIwMDAiLCJhc3NldCI6IkVQakZXZGQ1QXVmcVNTcWVNMnFOMXh6eWJhcEM4RzR3RUdHa1p3eVREdDF2IiwicGF5VG8iOiI1eUFTTGp0TnNzR1hEdjZiUjllNzFXWEt4UnltRGlVemJna0dQcWtRTmdSbiIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7ImZlZVBheWVyIjoiQkVOckxvVWJuZHhvTk1VUzVKWEFwR010TnlrTGpGWFhpeE10cER3RFI5U1AifX0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJzb2xhbmE6NWV5a3Q0VXNGdjhQOE5KZFRSRXBZMXZ6cUtxWkt2ZHAiLCJhbW91bnQiOiIyMDAwIiwiYXNzZXQiOiJFczl2TUZyemFDRVJtSmZyRjRIMkZZRDRLQ29Oa1kxMU1jQ2U4QmVud05ZQiIsInBheVRvIjoiNXlBU0xqdE5zc0dYRHY2YlI5ZTcxV1hLeFJ5bURpVXpiZ2tHUHFrUU5nUm4iLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAwLCJleHRyYSI6eyJmZWVQYXllciI6IkJFTnJMb1VibmR4b05NVVM1SlhBcEdNdE55a0xqRlhYaXhNdHBEd0RSOVNQIn19LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoibG5idGM6MDAwMDAwMDAwMDE5ZDY2ODljMDg1YWUxNjU4MzFlOTMiLCJhbW91bnQiOiIzMDAwIiwiYXNzZXQiOiJCVEMiLCJwYXlUbyI6IjAzYzkxM2QwNjFkZmUwYWRiZmQ4N2MwZTk4ZTY2MDMzYmUwZGJiYjI0MTNkZTI2YmQzNjNjNjM5NzA0ODBhOWE4MCIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7ImFzc2V0VHJhbnNmZXJNZXRob2QiOiJib2x0MTEiLCJwYXltZW50RmxvdyI6InVwZnJvbnQiLCJyZXF1ZXN0SGFzaCI6IjhjYmY4MDM5YjcyYjRiOTk2ODBmZmE5YTdmYWExMmZlMDk0ZDI0ZGFjM2Y0MDQwMzViYjM5YWYxYmI0MWZiZTEiLCJyZXF1ZXN0QmluZGluZ1Byb2ZpbGUiOiJodHRwOjEiLCJyZXF1ZXN0QmluZGluZ1BhcmFtcyI6eyJoZWFkZXJzIjpbXX0sImludm9pY2UiOiJsbmJjMzBuMXA0MHB4eXZwcDV3NTJ6ajA3YzZuaHg3ZmpqMG1qeHhyNXJ3Y2E3MnV6c2dwdTQ2OXVmN3V6ZTlmMm1jdTJxaHA1M2psY3F3ZGg5ZDllajZxMGwyZDhsMnNqbGN5NTZmeDZjMDZxZ3E2bWt3ZDBydzZwbDBzc2NxenhneHF6ZnZzcDVsMDN0cmM0M3lqejQ1bHVrcTN0Z21jaGp2Z2t2dTNlZDZkN3ZjOWVhNWhxcGY5d3o5NmNxOXF4cHF5c2dxbW1sY3h4bG04eGwzMmVzazB3Mm1lN3ZqcjhudmxmM3NhN3ltNWx2bm12Znlybng4bHpxazQyNmhhYWN5dzNlNXRtdzJhOGRhbWMzeXM1YXlnaHI0aHhxZ3g5OXI1M21wMmhxbWVscXFmZXZzejYifX1dLCJleHRlbnNpb25zIjp7ImJhemFhciI6eyJpbmZvIjp7ImlucHV0Ijp7InR5cGUiOiJodHRwIiwibWV0aG9kIjoiR0VUIiwicXVlcnlQYXJhbXMiOnsicSI6ImFtYXpvbiIsImNvdW50cnkiOiJVUyJ9fSwib3V0cHV0Ijp7InR5cGUiOiJqc29uIiwiZXhhbXBsZSI6eyJwcm9kdWN0cyI6W3sic2x1ZyI6ImFtYXpvbi11cyIsIm5hbWUiOiJBbWF6b24iLCJjb3VudHJ5IjoiVVMiLCJyZWNpcGllbnRfdHlwZSI6Im5vbmUiLCJpbl9zdG9jayI6dHJ1ZX0seyJzbHVnIjoic3RlYW0iLCJuYW1lIjoiU3RlYW0iLCJjb3VudHJ5IjoiVVMiLCJyZWNpcGllbnRfdHlwZSI6Im5vbmUiLCJpbl9zdG9jayI6dHJ1ZX1dLCJuZXh0X3N0ZXAiOnsidXJsIjoiL3g0MDIvcHJvZHVjdHMvZGV0YWlsIiwiYm9keSI6eyJzbHVnIjoiPHByb2R1Y3Qgc2x1ZyBmcm9tIHJlc3VsdHM+In19fX19LCJzY2hlbWEiOnsiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiaW5wdXQiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidHlwZSI6eyJ0eXBlIjoic3RyaW5nIiwiY29uc3QiOiJodHRwIn0sIm1ldGhvZCI6eyJ0eXBlIjoic3RyaW5nIiwiZW51bSI6WyJHRVQiXX0sInF1ZXJ5UGFyYW1zIjp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InEiOnsidHlwZSI6InN0cmluZyIsImRlc2NyaXB0aW9uIjoiU2VhcmNoIHF1ZXJ5IChicmFuZCBvciBwcm9kdWN0IG5hbWUpLiBBIG5hbWUgc2VhcmNoIGFsc28gcmV0dXJucyBvdXQtb2Ytc3RvY2sgbWF0Y2hlcywgbWFya2VkIGluX3N0b2NrOiBmYWxzZTsgYW1vbmcgZXF1YWxseSBnb29kIG1hdGNoZXMsIGluLXN0b2NrIHByb2R1Y3RzIGNvbWUgZmlyc3QuIE91dC1vZi1zdG9jayBwcm9kdWN0cyBjYW5ub3QgYmUgYm91Z2h0IG5vdy4ifSwiY291bnRyeSI6eyJ0eXBlIjoic3RyaW5nIiwiZGVzY3JpcHRpb24iOiJPcHRpb25hbCBJU08gMzE2Ni0xIGFscGhhLTIgY291bnRyeSBjb2RlIGZpbHRlcjsgb21pdCBmb3IgYWxsIGNvdW50cmllcyAoZ2xvYmFsIHJlc3VsdHMpIn19fX0sInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfSwib3V0cHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJleGFtcGxlIjp7InR5cGUiOiJvYmplY3QifX0sInJlcXVpcmVkIjpbInR5cGUiXX19LCJyZXF1aXJlZCI6WyJpbnB1dCJdfX0sImJ1aWxkZXItY29kZSI6eyJpbmZvIjp7ImEiOiJiY19zdWlsOGJkaiJ9LCJzY2hlbWEiOnsiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiYSI6eyJ0eXBlIjoic3RyaW5nIiwicGF0dGVybiI6Il5bYS16MC05X117MSwzMn0kIiwiZGVzY3JpcHRpb24iOiJBcHAgYnVpbGRlciBjb2RlIn0sInciOnsidHlwZSI6InN0cmluZyIsInBhdHRlcm4iOiJeW2EtejAtOV9dezEsMzJ9JCIsImRlc2NyaXB0aW9uIjoiV2FsbGV0IGJ1aWxkZXIgY29kZSJ9LCJzIjp7InR5cGUiOiJhcnJheSIsIm1heEl0ZW1zIjoxMSwiaXRlbXMiOnsidHlwZSI6InN0cmluZyIsInBhdHRlcm4iOiJeW2EtejAtOV9dezEsMzJ9JCJ9LCJkZXNjcmlwdGlvbiI6IlNlcnZpY2UgYnVpbGRlciBjb2RlcyJ9fSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfX19fQ==",
+    "server": "cloudflare",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-robots-tag": "noindex"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "Payment required",
+    "resource": {
+      "url": "https://api.bitrefill.com/x402/gift-cards/search",
+      "description": "Search 10,000+ gift card & voucher brands across 180+ countries by name and country. Pay in USDC via x402, no account.",
+      "mimeType": "application/json",
+      "serviceName": "Bitrefill",
+      "tags": [
+        "gift-cards",
+        "vouchers",
+        "search",
+        "usdc",
+        "base",
+        "solana"
+      ],
+      "iconUrl": "https://www.bitrefill.com/android-chrome-512x512.png"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "2000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "payTo": "0x480CD46E6faDe651a0437DeaddA53D5c8e7D846A",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "eip155:42161",
+        "amount": "2000",
+        "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "payTo": "0x480CD46E6faDe651a0437DeaddA53D5c8e7D846A",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "eip155:42161",
+        "amount": "2000",
+        "asset": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        "payTo": "0x480CD46E6faDe651a0437DeaddA53D5c8e7D846A",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD₮0",
+          "version": "1"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "eip155:137",
+        "amount": "2000",
+        "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+        "payTo": "0x480CD46E6faDe651a0437DeaddA53D5c8e7D846A",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "amount": "2000",
+        "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "payTo": "5yASLjtNssGXDv6bR9e71WXKxRymDiUzbgkGPqkQNgRn",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "feePayer": "BENrLoUbndxoNMUS5JXApGMtNykLjFXXixMtpDwDR9SP"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "amount": "2000",
+        "asset": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "payTo": "5yASLjtNssGXDv6bR9e71WXKxRymDiUzbgkGPqkQNgRn",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "feePayer": "BENrLoUbndxoNMUS5JXApGMtNykLjFXXixMtpDwDR9SP"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "lnbtc:000000000019d6689c085ae165831e93",
+        "amount": "3000",
+        "asset": "BTC",
+        "payTo": "03c913d061dfe0adbfd87c0e98e66033be0dbbb2413de26bd363c63970480a9a80",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "assetTransferMethod": "bolt11",
+          "paymentFlow": "upfront",
+          "requestHash": "8cbf8039b72b4b99680ffa9a7faa12fe094d24dac3f404035bb39af1bb41fbe1",
+          "requestBindingProfile": "http:1",
+          "requestBindingParams": {
+            "headers": []
+          },
+          "invoice": "lnbc30n1p40pxyvpp5w52zj07c6nhx7fjj0mjxxr5rwca72uzsgpu469uf7uze9f2mcu2qhp53jlcqwdh9d9ej6q0l2d8l2sjlcy56fx6c06qgq6mkwd0rw6pl0sscqzxgxqzfvsp5l03trc43yjz45lukq3tgmchjvgkvu3ed6d7vc9ea5hqpf9wz96cq9qxpqysgqmmlcxxlm8xl32esk0w2me7vjr8nvlf3sa7ym5lvnmvfyrnx8lzqk426haacyw3e5tmw2a8damc3ys5ayghr4hxqgx99r53mp2hqmelqqfevsz6"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "method": "GET",
+            "queryParams": {
+              "q": "amazon",
+              "country": "US"
+            }
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "products": [
+                {
+                  "slug": "amazon-us",
+                  "name": "Amazon",
+                  "country": "US",
+                  "recipient_type": "none",
+                  "in_stock": true
+                },
+                {
+                  "slug": "steam",
+                  "name": "Steam",
+                  "country": "US",
+                  "recipient_type": "none",
+                  "in_stock": true
+                }
+              ],
+              "next_step": {
+                "url": "/x402/products/detail",
+                "body": {
+                  "slug": "<product slug from results>"
+                }
+              }
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {
+                    "q": {
+                      "type": "string",
+                      "description": "Search query (brand or product name). A name search also returns out-of-stock matches, marked in_stock: false; among equally good matches, in-stock products come first. Out-of-stock products cannot be bought now."
+                    },
+                    "country": {
+                      "type": "string",
+                      "description": "Optional ISO 3166-1 alpha-2 country code filter; omit for all countries (global results)"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      },
+      "builder-code": {
+        "info": {
+          "a": "bc_suil8bdj"
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{1,32}$",
+              "description": "App builder code"
+            },
+            "w": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{1,32}$",
+              "description": "Wallet builder code"
+            },
+            "s": {
+              "type": "array",
+              "maxItems": 11,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,32}$"
+              },
+              "description": "Service builder codes"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}

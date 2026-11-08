@@ -1,0 +1,102 @@
+{
+  "url": "https://twitter.use.x402atlas.com/search",
+  "status": 402,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000",
+    "cache-control": "no-store",
+    "content-length": "2105",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 15:43:10 GMT",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly90d2l0dGVyLnVzZS54NDAyYXRsYXMuY29tL3NlYXJjaCIsImRlc2NyaXB0aW9uIjoiU2VhcmNoIFR3aXR0ZXIvWCB3aXRoIHN0cnVjdHVyZWQgZmlsdGVycyBvciByYXcgYWR2YW5jZWQtc2VhcmNoIHN5bnRheC4gUmV0dXJucyB1cCB0byAyMCBub3JtYWxpemVkIHR3ZWV0cyB3aXRoIGZ1bGwgdGV4dCwgYXV0aG9yIGRldGFpbHMsIGVuZ2FnZW1lbnQgbWV0cmljcyBhbmQgYSBwYWdpbmF0aW9uIGN1cnNvci4iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJzZXJ2aWNlTmFtZSI6IlR3aXR0ZXIvWCBBUEkiLCJ0YWdzIjpbInR3aXR0ZXIiLCJ4IiwidHdlZXQtc2VhcmNoIiwidHdpdHRlci1zY3JhcGVyIiwic29jaWFsLW1lZGlhIiwiYWR2YW5jZWQtc2VhcmNoIiwidHdlZXRzIiwic29jaWFsLWxpc3RlbmluZyIsInR3aXR0ZXItYXBpIiwieC1zZWFyY2giXX0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYXNzZXQiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJhbW91bnQiOiI1MDAwIiwicGF5VG8iOiIweDUxRDU3N0M4Q0JCOGIzZkIxQkEwQ0UzMWM3OTIzY0MyN2EwN0Y3OEIiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAwLCJleHRyYSI6eyJtZXJjaGFudCI6Ing0MDJBdGxhcyIsIm5hbWUiOiJVU0QgQ29pbiIsInRpZXIiOiJzdGFuZGFyZCIsInZlcnNpb24iOiIyIn19LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1OjEzNyIsImFzc2V0IjoiMHgzYzQ5OWM1NDJjRUY1RTM4MTFlMTE5MmNlNzBkOGNDMDNkNWMzMzU5IiwiYW1vdW50IjoiNTAwMCIsInBheVRvIjoiMHg1MUQ1NzdDOENCQjhiM2ZCMUJBMENFMzFjNzkyM2NDMjdhMDdGNzhCIiwibWF4VGltZW91dFNlY29uZHMiOjMwMCwiZXh0cmEiOnsibWVyY2hhbnQiOiJ4NDAyQXRsYXMiLCJuYW1lIjoiVVNEIENvaW4iLCJ0aWVyIjoic3RhbmRhcmQiLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo0MjE2MSIsImFzc2V0IjoiMHhhZjg4ZDA2NWU3N2M4Y0MyMjM5MzI3QzVFRGIzQTQzMjI2OGU1ODMxIiwiYW1vdW50IjoiNTAwMCIsInBheVRvIjoiMHg1MUQ1NzdDOENCQjhiM2ZCMUJBMENFMzFjNzkyM2NDMjdhMDdGNzhCIiwibWF4VGltZW91dFNlY29uZHMiOjMwMCwiZXh0cmEiOnsibWVyY2hhbnQiOiJ4NDAyQXRsYXMiLCJuYW1lIjoiVVNEIENvaW4iLCJ0aWVyIjoic3RhbmRhcmQiLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6InNvbGFuYTo1ZXlrdDRVc0Z2OFA4TkpkVFJFcFkxdnpxS3FaS3ZkcCIsImFzc2V0IjoiRVBqRldkZDVBdWZxU1NxZU0ycU4xeHp5YmFwQzhHNHdFR0drWnd5VER0MXYiLCJhbW91bnQiOiI1MDAwIiwicGF5VG8iOiIzblhzQ2hjWkdrZTZ4ZWJEUG1uZE5NQ3Q4TDN5aTZ4eU40UGQ2cTVjUXJndiIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7ImZlZVBheWVyIjoiSGMzc2RFQXNDR1FjcGdmaXZ5d29nOXV3dGs4Z1VCVVpnc3hkTUUxRUp5ODgiLCJtZXJjaGFudCI6Ing0MDJBdGxhcyIsInRpZXIiOiJzdGFuZGFyZCJ9fV0sImV4dGVuc2lvbnMiOnsiYmF6YWFyIjp7ImNhdGVnb3J5Ijoic2VhcmNoIiwiaW5mbyI6eyJpbnB1dCI6eyJtZXRob2QiOiJHRVQiLCJxdWVyeVBhcmFtcyI6eyJ3b3JkcyI6ImJpdGNvaW4ifSwidHlwZSI6Imh0dHAifSwib3V0cHV0Ijp7ImV4YW1wbGUiOnsiY3Vyc29yIjoiREFBQ0NnQUNITWUxRkNhQUp4QUtBQU1jeDdVVeKApiIsInF1ZXJpZWRfYXQiOiIyMDI2LTA3LTA1VDEyOjAwOjAwWiIsInF1ZXJ5IjoiZnJvbTpAUGFuY2FrZVN3YXAgZmlsdGVyOnJlcGxpZXMiLCJ0d2VldF9jb3VudCI6MSwidHdlZXRzIjpbeyJhdXRob3IiOnsiYXZhdGFyIjoiaHR0cHM6Ly9wYnMudHdpbWcuY29tL3Byb2ZpbGVfaW1hZ2VzLzIwMDQ5MTA5Mzk5NTk5Njc3NDQvd3I3LXpwVmhfbm9ybWFsLmpwZyIsImRlc2NyaXB0aW9uIjoiRXZlcnlvbmUncyBmYXZvcml0ZSBERVguIFN3YXAsIHRyYWRlLCBhbmQgZWFybiBhY3Jvc3MgMTArIGNoYWlucy4iLCJmb2xsb3dlcnMiOjIxMzI4MjUsImlkIjoiMTMwNTM0OTI3NzQyMjQ3NzMxMyIsIm5hbWUiOiJQYW5jYWtlU3dhcCIsInNjcmVlbl9uYW1lIjoiUGFuY2FrZVN3YXAiLCJ2ZXJpZmllZCI6dHJ1ZX0sImJvb2ttYXJrcyI6MCwiY29udmVyc2F0aW9uX2lkIjoiMjA3MTk2NTY2NzQ5MTAwMDM4MSIsImNyZWF0ZWRfYXQiOiIyMDI2LTA2LTMwVDE0OjM0OjQ1WiIsImlkIjoiMjA3MTk2NTY3MTAwMTYwODY2NSIsImlzX3F1b3RlIjpmYWxzZSwibGFuZyI6ImVuIiwibGlrZXMiOjE2LCJxdW90ZXMiOjAsInJlcGxpZXMiOjEsInJldHdlZXRzIjoyLCJ0ZXh0IjoiU3RhY2sgeW91ciB0b2tlbml6ZWQgYXNzZXRzIOKsh++4j1xuaHR0cHM6Ly90LmNvL3Blb2hvS2lNeVEiLCJ1cmxzIjpbImh0dHBzOi8vcGFuY2FrZXN3YXAuZmluYW5jZS9zdG9ja3MiXSwidmlld3MiOjM1MzR9XSwidHlwZSI6InRvcCJ9LCJ0eXBlIjoianNvbiJ9fSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInByb3BlcnRpZXMiOnsiaW5wdXQiOnsiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlLCJwcm9wZXJ0aWVzIjp7Im1ldGhvZCI6eyJlbnVtIjpbIkdFVCJdLCJ0eXBlIjoic3RyaW5nIn0sInF1ZXJ5UGFyYW1zIjp7InByb3BlcnRpZXMiOnsiYW55X3dvcmRzIjp7ImRlc2NyaXB0aW9uIjoiQW55IG9mIHRoZXNlIHdvcmRzIiwiZXhhbXBsZSI6ImJ0YyxldGgiLCJ0eXBlIjoic3RyaW5nIn0sImN1cnNvciI6eyJkZXNjcmlwdGlvbiI6IlBhZ2luYXRpb24gY3Vyc29yIiwibWF4TGVuZ3RoIjoyMDQ4LCJ0eXBlIjoic3RyaW5nIn0sImZpbHRlciI6eyJkZXNjcmlwdGlvbiI6IkNvbnRlbnQgZmlsdGVyczogcmVwbGllcywgbGlua3MsIHF1b3RlLCBtZWRpYSwgaW1hZ2VzLCB2aWRlb3MiLCJleGFtcGxlIjoibWVkaWEsaW1hZ2VzIiwicGF0dGVybiI6Il4ocmVwbGllc3xsaW5rc3xxdW90ZXxtZWRpYXxpbWFnZXN8dmlkZW9zKShbLFxcc10rKHJlcGxpZXN8bGlua3N8cXVvdGV8bWVkaWF8aW1hZ2VzfHZpZGVvcykpKiQiLCJ0eXBlIjoic3RyaW5nIn0sImZyb20iOnsiZGVzY3JpcHRpb24iOiJUd2VldHMgZnJvbSB0aGlzIHVzZXJuYW1lIiwiZXhhbXBsZSI6ImVsb25tdXNrIiwidHlwZSI6InN0cmluZyJ9LCJoYXNodGFncyI6eyJkZXNjcmlwdGlvbiI6IkZpbHRlciBieSBoYXNodGFncyIsImV4YW1wbGUiOiJiaXRjb2luLGV0aCIsInR5cGUiOiJzdHJpbmcifSwibWF4X2lkIjp7ImRlc2NyaXB0aW9uIjoiVHdlZXRzIGF0IG9yIGJlZm9yZSB0aGlzIHR3ZWV0IElEIiwicGF0dGVybiI6Il5bMC05XSskIiwidHlwZSI6InN0cmluZyJ9LCJtZW50aW9uaW5nIjp7ImRlc2NyaXB0aW9uIjoiVHdlZXRzIG1lbnRpb25pbmcgdGhpcyB1c2VybmFtZSIsInR5cGUiOiJzdHJpbmcifSwibWluX2xpa2VzIjp7ImRlc2NyaXB0aW9uIjoiTWluaW11bSBsaWtlIGNvdW50IiwidHlwZSI6ImludGVnZXIifSwibWluX3JlcGxpZXMiOnsiZGVzY3JpcHRpb24iOiJNaW5pbXVtIHJlcGx5IGNvdW50IiwidHlwZSI6ImludGVnZXIifSwibWluX3JldHdlZXRzIjp7ImRlc2NyaXB0aW9uIjoiTWluaW11bSByZXR3ZWV0IGNvdW50IiwidHlwZSI6ImludGVnZXIifSwibmVhciI6eyJkZXNjcmlwdGlvbiI6IlR3ZWV0cyBuZWFyIHRoaXMgbG9jYXRpb24iLCJ0eXBlIjoic3RyaW5nIn0sIm5vbmVfd29yZHMiOnsiZGVzY3JpcHRpb24iOiJFeGNsdWRlIHRoZXNlIHdvcmRzIiwiZXhhbXBsZSI6ImFpcmRyb3AsZ2l2ZWF3YXkiLCJ0eXBlIjoic3RyaW5nIn0sInBocmFzZSI6eyJkZXNjcmlwdGlvbiI6IkV4YWN0IHBocmFzZSBtYXRjaCIsInR5cGUiOiJzdHJpbmcifSwicSI6eyJkZXNjcmlwdGlvbiI6IlNob3J0IGFsaWFzIG9mIHNlYXJjaF9xdWVyeSIsIm1heExlbmd0aCI6NTEyLCJ0eXBlIjoic3RyaW5nIn0sInF1ZXJ5Ijp7ImRlc2NyaXB0aW9uIjoiQWxpYXMgb2Ygc2VhcmNoX3F1ZXJ5IiwibWF4TGVuZ3RoIjo1MTIsInR5cGUiOiJzdHJpbmcifSwic2VhcmNoX3F1ZXJ5Ijp7ImRlc2NyaXB0aW9uIjoiUmF3IFggYWR2YW5jZWQgc2VhcmNoIHF1ZXJ5IiwibWF4TGVuZ3RoIjo1MTIsInR5cGUiOiJzdHJpbmcifSwic2luY2UiOnsiZGVzY3JpcHRpb24iOiJTdGFydCBkYXRlIChZWVlZLU1NLUREKSIsInBhdHRlcm4iOiJeWzAtOV17NH0tWzAtOV17Mn0tWzAtOV17Mn0kIiwidHlwZSI6InN0cmluZyJ9LCJzaW5jZV9pZCI6eyJkZXNjcmlwdGlvbiI6IlR3ZWV0cyBhZnRlciB0aGlzIHR3ZWV0IElEIiwicGF0dGVybiI6Il5bMC05XSskIiwidHlwZSI6InN0cmluZyJ9LCJ0byI6eyJkZXNjcmlwdGlvbiI6IlR3ZWV0cyByZXBseWluZyB0byB0aGlzIHVzZXJuYW1lIiwidHlwZSI6InN0cmluZyJ9LCJ0eXBlIjp7ImRlZmF1bHQiOiJ0b3AiLCJkZXNjcmlwdGlvbiI6IlJlc3VsdCBtb2RlOiB0b3AsIGxhdGVzdCBvciBtZWRpYSIsImVudW0iOlsidG9wIiwibGF0ZXN0IiwibWVkaWEiXSwidHlwZSI6InN0cmluZyJ9LCJ1bnRpbCI6eyJkZXNjcmlwdGlvbiI6IkVuZCBkYXRlIChZWVlZLU1NLUREKSIsInBhdHRlcm4iOiJeWzAtOV17NH0tWzAtOV17Mn0tWzAtOV17Mn0kIiwidHlwZSI6InN0cmluZyJ9LCJ3aXRoaW5fdGltZSI6eyJkZXNjcmlwdGlvbiI6IlJlY2VudCB0aW1lIHdpbmRvdzogZGlnaXRzIHBsdXMgcywgbSwgaCBvciBkIiwicGF0dGVybiI6Il5bMC05XStbc21oZF0kIiwidHlwZSI6InN0cmluZyJ9LCJ3b3JkcyI6eyJkZXNjcmlwdGlvbiI6IkFsbCB0aGVzZSB3b3JkcyBtdXN0IGFwcGVhciIsImV4YW1wbGUiOiJiaXRjb2luIiwidHlwZSI6InN0cmluZyJ9fSwidHlwZSI6Im9iamVjdCJ9LCJ0eXBlIjp7ImNvbnN0IjoiaHR0cCIsInR5cGUiOiJzdHJpbmcifX0sInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiXSwidHlwZSI6Im9iamVjdCJ9LCJvdXRwdXQiOnsicHJvcGVydGllcyI6eyJleGFtcGxlIjp7InByb3BlcnRpZXMiOnsiY3Vyc29yIjp7ImRlc2NyaXB0aW9uIjoiUGFnaW5hdGlvbiBjdXJzb3IgZm9yIHRoZSBuZXh0IHBhZ2UsIGlmIGFueSIsInR5cGUiOiJzdHJpbmcifSwicXVlcmllZF9hdCI6eyJkZXNjcmlwdGlvbiI6IlVUQyB0aW1lc3RhbXAgd2hlbiB0aGlzIHNlcnZpY2UgcmFuIHRoZSBzZWFyY2giLCJmb3JtYXQiOiJkYXRlLXRpbWUiLCJ0eXBlIjoic3RyaW5nIn0sInF1ZXJ5Ijp7ImRlc2NyaXB0aW9uIjoiVGhlIGFzc2VtYmxlZCBYIGFkdmFuY2VkLXNlYXJjaCBxdWVyeSBzdHJpbmcgc2VudCB1cHN0cmVhbSIsInR5cGUiOiJzdHJpbmcifSwidHdlZXRfY291bnQiOnsiZGVzY3JpcHRpb24iOiJOdW1iZXIgb2YgdHdlZXRzIGluIHRoaXMgcGFnZSIsInR5cGUiOiJpbnRlZ2VyIn0sInR3ZWV0cyI6eyJpdGVtcyI6eyJwcm9wZXJ0aWVzIjp7ImF1dGhvciI6eyJwcm9wZXJ0aWVzIjp7ImF2YXRhciI6eyJ0eXBlIjoic3RyaW5nIn0sImRlc2NyaXB0aW9uIjp7InR5cGUiOiJzdHJpbmcifSwiZm9sbG93ZXJzIjp7InR5cGUiOiJpbnRlZ2VyIn0sImlkIjp7InR5cGUiOiJzdHJpbmcifSwibmFtZSI6eyJ0eXBlIjoic3RyaW5nIn0sInNjcmVlbl9uYW1lIjp7InR5cGUiOiJzdHJpbmcifSwidmVyaWZpZWQiOnsiZGVzY3JpcHRpb24iOiJCbHVlLWNoZWNrIHZlcmlmaWNhdGlvbiBzdGF0dXMiLCJ0eXBlIjoiYm9vbGVhbiJ9fSwidHlwZSI6Im9iamVjdCJ9LCJib29rbWFya3MiOnsidHlwZSI6ImludGVnZXIifSwiY29udmVyc2F0aW9uX2lkIjp7InR5cGUiOiJzdHJpbmcifSwiY3JlYXRlZF9hdCI6eyJmb3JtYXQiOiJkYXRlLXRpbWUiLCJ0eXBlIjoic3RyaW5nIn0sImlkIjp7ImRlc2NyaXB0aW9uIjoiVHdlZXQgSUQiLCJ0eXBlIjoic3RyaW5nIn0sImluX3JlcGx5X3RvX2lkIjp7ImRlc2NyaXB0aW9uIjoiUGFyZW50IHR3ZWV0IElELCBpZiB0aGlzIGlzIGEgcmVwbHkiLCJ0eXBlIjoic3RyaW5nIn0sImluX3JlcGx5X3RvX3VzZXIiOnsiZGVzY3JpcHRpb24iOiJQYXJlbnQgdHdlZXQncyBhdXRob3Igc2NyZWVuIG5hbWUsIGlmIHRoaXMgaXMgYSByZXBseSIsInR5cGUiOiJzdHJpbmcifSwiaXNfcXVvdGUiOnsidHlwZSI6ImJvb2xlYW4ifSwibGFuZyI6eyJkZXNjcmlwdGlvbiI6IkJDUC00NyBsYW5ndWFnZSBjb2RlIiwidHlwZSI6InN0cmluZyJ9LCJsaWtlcyI6eyJ0eXBlIjoiaW50ZWdlciJ9LCJxdW90ZXMiOnsidHlwZSI6ImludGVnZXIifSwicmVwbGllcyI6eyJ0eXBlIjoiaW50ZWdlciJ9LCJyZXR3ZWV0cyI6eyJ0eXBlIjoiaW50ZWdlciJ9LCJ0ZXh0Ijp7InR5cGUiOiJzdHJpbmcifSwidXJscyI6eyJkZXNjcmlwdGlvbiI6IkV4cGFuZGVkIFVSTHMgbGlua2VkIGluIHRoZSB0d2VldCIsIml0ZW1zIjp7InR5cGUiOiJzdHJpbmcifSwidHlwZSI6ImFycmF5In0sInZpZXdzIjp7InR5cGUiOiJpbnRlZ2VyIn19LCJ0eXBlIjoib2JqZWN0In0sInR5cGUiOiJhcnJheSJ9LCJ0eXBlIjp7ImRlc2NyaXB0aW9uIjoiUmVzdWx0IHJhbmtpbmcgdXNlZCBmb3IgdGhpcyBwYWdlIiwiZW51bSI6WyJ0b3AiLCJsYXRlc3QiLCJtZWRpYSJdLCJ0eXBlIjoic3RyaW5nIn19LCJ0eXBlIjoib2JqZWN0In0sInR5cGUiOnsidHlwZSI6InN0cmluZyJ9fSwicmVxdWlyZWQiOlsidHlwZSJdLCJ0eXBlIjoib2JqZWN0In19LCJyZXF1aXJlZCI6WyJpbnB1dCJdLCJ0eXBlIjoib2JqZWN0In0sInRhZ3MiOlsidHdpdHRlciIsIngiLCJ0d2VldC1zZWFyY2giLCJ0d2l0dGVyLXNjcmFwZXIiLCJzb2NpYWwtbWVkaWEiLCJhZHZhbmNlZC1zZWFyY2giLCJ0d2VldHMiLCJzb2NpYWwtbGlzdGVuaW5nIiwidHdpdHRlci1hcGkiLCJ4LXNlYXJjaCJdfX19",
+    "via": "1.1 Caddy",
+    "x-request-id": "a68eb6d8-1d5a-43cd-b16c-9413a0cb1f02"
+  },
+  "body": {
+    "error": "payment_required",
+    "hint": "This endpoint requires x402 payment. The price and payment options are in the PAYMENT-REQUIRED response header (x402 v2). Pay with an x402 client, then retry to receive the data.",
+    "price": "0.005 per call",
+    "method": "GET",
+    "resource": {
+      "url": "https://twitter.use.x402atlas.com/search",
+      "description": "Search Twitter/X with structured filters or raw advanced-search syntax. Returns up to 20 normalized tweets with full text, author details, engagement metrics and a pagination cursor.",
+      "mimeType": "application/json",
+      "serviceName": "Twitter/X API",
+      "tags": [
+        "twitter",
+        "x",
+        "tweet-search",
+        "twitter-scraper",
+        "social-media",
+        "advanced-search",
+        "tweets",
+        "social-listening",
+        "twitter-api",
+        "x-search"
+      ]
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": "5000",
+        "payTo": "0x51D577C8CBB8b3fB1BA0CE31c7923cC27a07F78B",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "merchant": "x402Atlas",
+          "name": "USD Coin",
+          "tier": "standard",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "eip155:137",
+        "asset": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+        "amount": "5000",
+        "payTo": "0x51D577C8CBB8b3fB1BA0CE31c7923cC27a07F78B",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "merchant": "x402Atlas",
+          "name": "USD Coin",
+          "tier": "standard",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "eip155:42161",
+        "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "amount": "5000",
+        "payTo": "0x51D577C8CBB8b3fB1BA0CE31c7923cC27a07F78B",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "merchant": "x402Atlas",
+          "name": "USD Coin",
+          "tier": "standard",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "amount": "5000",
+        "payTo": "3nXsChcZGke6xebDPmndNMCt8L3yi6xyN4Pd6q5cQrgv",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88",
+          "merchant": "x402Atlas",
+          "tier": "standard"
+        }
+      }
+    ],
+    "documentation": "https://twitter.use.x402atlas.com/docs",
+    "llms": "https://twitter.use.x402atlas.com/llms.txt",
+    "openapi": "https://twitter.use.x402atlas.com/openapi.json",
+    "contact": {
+      "email": "support@x402atlas.com"
+    },
+    "x402Version": 2
+  }
+}

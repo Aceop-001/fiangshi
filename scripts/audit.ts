@@ -232,7 +232,9 @@ async function runAudit(sample: Sample, samplePath: string, batchSize: number, g
     if (!cp.funders_done && funders.length) {
       console.log(`funders: ${funders.length}`);
       const rows: SurfPayeeRow[] = [];
-      for (let i = 0; i < funders.length; i += batchSize) rows.push(...((await sqlPass(funders.slice(i, i + batchSize), ["payee-outbound"])).rows as unknown as SurfPayeeRow[]));
+      // Funder outbound is one light aggregate: chunk at 300 so a 200-payee free-tier run needs ONE call (29 credits total, fits 30/day).
+      const fChunk = Math.max(batchSize, 300);
+      for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlPass(funders.slice(i, i + fChunk), ["payee-outbound"])).rows as unknown as SurfPayeeRow[]));
       cp.funder_rows = rows;
       cp.funders_done = true;
       save();

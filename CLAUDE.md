@@ -100,3 +100,6 @@ Freeze types before logic. One phase = one commit, never commit red. Never block
 - Kinship ignores funders labelled CEX (an exchange hot wallet funding many sellers is normal).
 - Invalid numbers (negative, NaN, future timestamps, self-funding) are sanitized to "missing" → silence → REVIEW. Data errors never BLOCK.
 - Receipts are hash-chained (sha256 + prev_hash), NOT cryptographically signed. Decided 2026-11-08: no signature field, no signing key. "Signed" in the mission means tamper-evident via the chain. Do not add signing without asking.
+
+## TOOLING
+surf is installed at `C:\Users\aceop\.local\bin\surf.exe` via the official install.sh (checksum-verified, `surf install --local`). Never search for it. Never reinstall without asking. See notes/INSTALL.md.

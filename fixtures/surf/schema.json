@@ -1,0 +1,6664 @@
+{
+  "$schema": "https://api.asksurf.ai/schemas/DataResponseOnchainSchemaTable.json",
+  "data": [
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "successful_tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_senders",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_receivers",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_gas_used",
+          "type": "UInt64"
+        },
+        {
+          "name": "avg_gas_price_gwei",
+          "type": "Float64"
+        },
+        {
+          "name": "total_native_transferred",
+          "type": "Float64"
+        },
+        {
+          "name": "contract_deployments",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_chain_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_erc20"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "Int64"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price_usd",
+          "type": "Float64"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_tvl_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_tvl_pool_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "pool_meta",
+          "type": "String"
+        },
+        {
+          "name": "apy",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_base",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_reward",
+          "type": "Float64"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "il_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base_7d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_base_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_reward_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "total_supply_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "total_borrow_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_pct_1d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_pct_7d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_pct_30d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_mean_30d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "stablecoin",
+          "type": "UInt8"
+        },
+        {
+          "name": "il_risk",
+          "type": "String"
+        },
+        {
+          "name": "exposure",
+          "type": "String"
+        },
+        {
+          "name": "volume_usd_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd_7d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "arbitrum_yields_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "successful_tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_senders",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_receivers",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_gas_used",
+          "type": "UInt64"
+        },
+        {
+          "name": "avg_gas_price_gwei",
+          "type": "Float64"
+        },
+        {
+          "name": "total_native_transferred",
+          "type": "Float64"
+        },
+        {
+          "name": "contract_deployments",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_chain_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_erc20"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "daily_fees_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_user_fees_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_protocol_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_holders_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_supply_side_revenue_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_fees_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "Int64"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price_usd",
+          "type": "Float64"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_tvl_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_tvl_pool_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "pool_meta",
+          "type": "String"
+        },
+        {
+          "name": "apy",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_reward",
+          "type": "Float64"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "il_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_reward_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "total_supply_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "total_borrow_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_pct_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_pct_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_pct_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_mean_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "stablecoin",
+          "type": "UInt8"
+        },
+        {
+          "name": "il_risk",
+          "type": "String"
+        },
+        {
+          "name": "exposure",
+          "type": "String"
+        },
+        {
+          "name": "volume_usd_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd_7d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "base_yields_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "source_chain",
+          "type": "String"
+        },
+        {
+          "name": "destination_chain",
+          "type": "String"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "tx_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "bridge_volume_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "String"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "bsc_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "bsc_erc20"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price_usd",
+          "type": "Float64"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "bsc_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "successful_tx_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_senders",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_receivers",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_gas_used",
+          "type": "UInt64"
+        },
+        {
+          "name": "avg_gas_price_gwei",
+          "type": "Float64"
+        },
+        {
+          "name": "total_native_transferred",
+          "type": "Float64"
+        },
+        {
+          "name": "contract_deployments",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_chain_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "Nullable(UInt256)"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_erc20"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "daily_fees_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_user_fees_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_protocol_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_holders_revenue_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "daily_supply_side_revenue_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_fees_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "deposit_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "withdraw_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "deposit_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "withdraw_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_depositors",
+          "type": "UInt64"
+        },
+        {
+          "name": "borrow_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "repay_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "borrow_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "repay_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_borrowers",
+          "type": "UInt64"
+        },
+        {
+          "name": "liquidation_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "liquidation_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_lending_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "Int64"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "entity",
+          "type": "String"
+        },
+        {
+          "name": "entity_category",
+          "type": "String"
+        },
+        {
+          "name": "deposits_eth",
+          "type": "Float64"
+        },
+        {
+          "name": "withdrawals_eth",
+          "type": "Float64"
+        },
+        {
+          "name": "net_flow_eth",
+          "type": "Float64"
+        },
+        {
+          "name": "deposit_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "withdrawal_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "deposits_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "withdrawals_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "net_flow_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_staking_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price_usd",
+          "type": "Float64"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_tvl_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "pool_meta",
+          "type": "String"
+        },
+        {
+          "name": "apy",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_base",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_reward",
+          "type": "Float64"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "il_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base_7d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_base_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_reward_borrow",
+          "type": "Float64"
+        },
+        {
+          "name": "total_supply_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "total_borrow_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_pct_1d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_pct_7d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_pct_30d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_mean_30d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "stablecoin",
+          "type": "Nullable(UInt8)"
+        },
+        {
+          "name": "il_risk",
+          "type": "String"
+        },
+        {
+          "name": "exposure",
+          "type": "String"
+        },
+        {
+          "name": "volume_usd_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd_7d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "ethereum_yields_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperevm_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperevm_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "coin",
+          "type": "String"
+        },
+        {
+          "name": "dex",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "episode_seq",
+          "type": "UInt32"
+        },
+        {
+          "name": "open_tid",
+          "type": "UInt64"
+        },
+        {
+          "name": "direction",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "open_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "close_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "open_date",
+          "type": "Date"
+        },
+        {
+          "name": "close_date",
+          "type": "Date"
+        },
+        {
+          "name": "num_fills",
+          "type": "UInt32"
+        },
+        {
+          "name": "opened_sz",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_open_px",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_close_px",
+          "type": "Float64"
+        },
+        {
+          "name": "gross_pnl",
+          "type": "Decimal(38, 18)"
+        },
+        {
+          "name": "fees",
+          "type": "Float64"
+        },
+        {
+          "name": "net_pnl",
+          "type": "Decimal(38, 18)"
+        },
+        {
+          "name": "is_win",
+          "type": "UInt8"
+        },
+        {
+          "name": "hold_seconds",
+          "type": "UInt32"
+        },
+        {
+          "name": "version",
+          "type": "UInt64"
+        },
+        {
+          "name": "ingested_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_episodes"
+    },
+    {
+      "columns": [
+        {
+          "name": "time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "coin",
+          "type": "String"
+        },
+        {
+          "name": "funding_rate",
+          "type": "Float64"
+        },
+        {
+          "name": "premium",
+          "type": "Float64"
+        },
+        {
+          "name": "funding_date",
+          "type": "Date"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_funding_rates"
+    },
+    {
+      "columns": [
+        {
+          "name": "snapshot_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "coin",
+          "type": "String"
+        },
+        {
+          "name": "funding",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest",
+          "type": "Float64"
+        },
+        {
+          "name": "prev_day_px",
+          "type": "Float64"
+        },
+        {
+          "name": "day_ntl_vlm",
+          "type": "Float64"
+        },
+        {
+          "name": "premium",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "oracle_px",
+          "type": "Float64"
+        },
+        {
+          "name": "mark_px",
+          "type": "Float64"
+        },
+        {
+          "name": "mid_px",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "impact_bid_px",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "impact_ask_px",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "snapshot_date",
+          "type": "Date"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_market_data"
+    },
+    {
+      "columns": [
+        {
+          "name": "dex",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "coin",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "price_date",
+          "type": "Date"
+        },
+        {
+          "name": "price_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "timestamp_ms",
+          "type": "UInt64"
+        },
+        {
+          "name": "oracle_px",
+          "type": "Decimal(38, 18)"
+        },
+        {
+          "name": "source",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "version",
+          "type": "UInt64"
+        },
+        {
+          "name": "ingested_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_oracle_prices"
+    },
+    {
+      "columns": [
+        {
+          "name": "dex",
+          "type": "String"
+        },
+        {
+          "name": "full_name",
+          "type": "String"
+        },
+        {
+          "name": "deployer",
+          "type": "String"
+        },
+        {
+          "name": "oracle_updater",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "fee_recipient",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "deployer_fee_scale",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "n_assets",
+          "type": "UInt16"
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_perp_dexs"
+    },
+    {
+      "columns": [
+        {
+          "name": "dex",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "coin",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "base_symbol",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "quote_symbol",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "asset_class",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "event_type",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "event_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "event_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "timestamp_ms",
+          "type": "UInt64"
+        },
+        {
+          "name": "trade_id",
+          "type": "UInt64"
+        },
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "side",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "price",
+          "type": "Decimal(20, 10)"
+        },
+        {
+          "name": "size",
+          "type": "Decimal(20, 10)"
+        },
+        {
+          "name": "fee",
+          "type": "Decimal(20, 10)"
+        },
+        {
+          "name": "fee_token",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "closed_pnl",
+          "type": "Decimal(20, 10)"
+        },
+        {
+          "name": "start_position",
+          "type": "Decimal(20, 10)"
+        },
+        {
+          "name": "direction",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "crossed",
+          "type": "UInt8"
+        },
+        {
+          "name": "liquidation_method",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "liquidation_mark_px",
+          "type": "Nullable(Decimal(20, 10))"
+        },
+        {
+          "name": "liquidated_user",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "order_id",
+          "type": "UInt64"
+        },
+        {
+          "name": "client_order_id",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "builder",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "builder_fee",
+          "type": "Nullable(Decimal(20, 10))"
+        },
+        {
+          "name": "twap_id",
+          "type": "Nullable(UInt64)"
+        },
+        {
+          "name": "is_liquidation",
+          "type": "Nullable(UInt8)"
+        },
+        {
+          "name": "source_dataset",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "source_key",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "source",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "version",
+          "type": "UInt64"
+        },
+        {
+          "name": "ingested_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_perp_events"
+    },
+    {
+      "columns": [
+        {
+          "name": "dex",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "coin",
+          "type": "String"
+        },
+        {
+          "name": "sz_decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "max_leverage",
+          "type": "UInt16"
+        },
+        {
+          "name": "margin_table_id",
+          "type": "UInt32"
+        },
+        {
+          "name": "is_delisted",
+          "type": "UInt8"
+        },
+        {
+          "name": "funding_multiplier",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "funding_interest_rate",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_perp_meta"
+    },
+    {
+      "columns": [
+        {
+          "name": "pair_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "base_token_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "quote_token_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "is_canonical",
+          "type": "UInt8"
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_spot_pairs"
+    },
+    {
+      "columns": [
+        {
+          "name": "token_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "name",
+          "type": "String"
+        },
+        {
+          "name": "sz_decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "wei_decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "is_canonical",
+          "type": "UInt8"
+        },
+        {
+          "name": "evm_contract",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "evm_extra_wei_decimals",
+          "type": "Nullable(Int8)"
+        },
+        {
+          "name": "full_name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_spot_tokens"
+    },
+    {
+      "columns": [
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "trades",
+          "type": "UInt32"
+        },
+        {
+          "name": "wins",
+          "type": "UInt32"
+        },
+        {
+          "name": "losses",
+          "type": "UInt32"
+        },
+        {
+          "name": "scratches",
+          "type": "UInt32"
+        },
+        {
+          "name": "win_rate",
+          "type": "Float64"
+        },
+        {
+          "name": "gross_pnl",
+          "type": "Decimal(38, 18)"
+        },
+        {
+          "name": "fees",
+          "type": "Float64"
+        },
+        {
+          "name": "net_pnl",
+          "type": "Decimal(38, 18)"
+        },
+        {
+          "name": "avg_win",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "avg_loss",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "profit_factor",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "first_trade",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "last_trade",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "version",
+          "type": "UInt64"
+        },
+        {
+          "name": "ingested_at",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "hyperliquid_wallet_perf"
+    },
+    {
+      "columns": [
+        {
+          "name": "candle_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "ticker",
+          "type": "String"
+        },
+        {
+          "name": "open",
+          "type": "Float64"
+        },
+        {
+          "name": "high",
+          "type": "Float64"
+        },
+        {
+          "name": "low",
+          "type": "Float64"
+        },
+        {
+          "name": "close",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_contracts",
+          "type": "UInt64"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "kalshi_candles_1m"
+    },
+    {
+      "columns": [
+        {
+          "name": "market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "event_ticker",
+          "type": "String"
+        },
+        {
+          "name": "event_title",
+          "type": "String"
+        },
+        {
+          "name": "event_subtitle",
+          "type": "String"
+        },
+        {
+          "name": "title",
+          "type": "String"
+        },
+        {
+          "name": "start_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "end_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "close_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "payout_type",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "last_price",
+          "type": "Float64"
+        },
+        {
+          "name": "total_volume",
+          "type": "UInt64"
+        },
+        {
+          "name": "daily_volume",
+          "type": "UInt64"
+        },
+        {
+          "name": "open_interest",
+          "type": "Float64"
+        },
+        {
+          "name": "result",
+          "type": "String"
+        },
+        {
+          "name": "yes_bid",
+          "type": "Float64"
+        },
+        {
+          "name": "yes_ask",
+          "type": "Float64"
+        },
+        {
+          "name": "no_bid",
+          "type": "Float64"
+        },
+        {
+          "name": "no_ask",
+          "type": "Float64"
+        },
+        {
+          "name": "last_day_open_interest",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "kalshi_market_details"
+    },
+    {
+      "columns": [
+        {
+          "name": "trade_id",
+          "type": "String"
+        },
+        {
+          "name": "ticker",
+          "type": "String"
+        },
+        {
+          "name": "num_contracts",
+          "type": "UInt32"
+        },
+        {
+          "name": "taker_side",
+          "type": "String"
+        },
+        {
+          "name": "maker_side",
+          "type": "String"
+        },
+        {
+          "name": "yes_price",
+          "type": "Float64"
+        },
+        {
+          "name": "no_price",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_date",
+          "type": "Date"
+        },
+        {
+          "name": "created_time",
+          "type": "DateTime64(3)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "kalshi_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "platform",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "latest_price",
+          "type": "Float64"
+        },
+        {
+          "name": "implied_confidence",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count_7d",
+          "type": "UInt64"
+        },
+        {
+          "name": "smart_money_direction",
+          "type": "String"
+        },
+        {
+          "name": "days_to_resolution",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "matched_counterpart_ticker",
+          "type": "String"
+        },
+        {
+          "name": "cross_platform_spread_pct",
+          "type": "Float64"
+        },
+        {
+          "name": "market_link",
+          "type": "String"
+        },
+        {
+          "name": "price_change_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "price_momentum",
+          "type": "String"
+        },
+        {
+          "name": "volume_direction",
+          "type": "String"
+        },
+        {
+          "name": "whale_flow_net_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "whale_flow_net_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "oi_change_7d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "market_snapshot"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "platform",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "latest_price",
+          "type": "Float64"
+        },
+        {
+          "name": "implied_confidence",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count_7d",
+          "type": "UInt64"
+        },
+        {
+          "name": "smart_money_direction",
+          "type": "String"
+        },
+        {
+          "name": "days_to_resolution",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "matched_counterpart_ticker",
+          "type": "String"
+        },
+        {
+          "name": "cross_platform_spread_pct",
+          "type": "Float64"
+        },
+        {
+          "name": "market_link",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "markets"
+    },
+    {
+      "columns": [
+        {
+          "name": "polymarket_condition_id",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_question",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_title",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "match_type",
+          "type": "String"
+        },
+        {
+          "name": "confidence",
+          "type": "UInt8"
+        },
+        {
+          "name": "polymarket_price",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_price",
+          "type": "Float64"
+        },
+        {
+          "name": "spread_pct",
+          "type": "Float64"
+        },
+        {
+          "name": "spread_direction",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_volume_contracts",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_oi_contracts",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "platform_comparison"
+    },
+    {
+      "columns": [
+        {
+          "name": "event_slug",
+          "type": "String"
+        },
+        {
+          "name": "event_title",
+          "type": "String"
+        },
+        {
+          "name": "event_description",
+          "type": "String"
+        },
+        {
+          "name": "image_url",
+          "type": "String"
+        },
+        {
+          "name": "icon_url",
+          "type": "String"
+        },
+        {
+          "name": "resolution_source",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "tags",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "market_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "total_liquidity_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "end_date",
+          "type": "DateTime"
+        },
+        {
+          "name": "resolved_at",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "is_neg_risk",
+          "type": "UInt8"
+        },
+        {
+          "name": "polymarket_link",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_events"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "fee_usdc",
+          "type": "Float64"
+        },
+        {
+          "name": "transfer_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_fees_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "market_description",
+          "type": "String"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "outcome_index",
+          "type": "UInt8"
+        },
+        {
+          "name": "outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "token_outcome_name",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "market_slug",
+          "type": "String"
+        },
+        {
+          "name": "event_slug",
+          "type": "String"
+        },
+        {
+          "name": "event_title",
+          "type": "String"
+        },
+        {
+          "name": "market_end_date",
+          "type": "DateTime"
+        },
+        {
+          "name": "neg_risk",
+          "type": "UInt8"
+        },
+        {
+          "name": "active",
+          "type": "UInt8"
+        },
+        {
+          "name": "closed",
+          "type": "UInt8"
+        },
+        {
+          "name": "archived",
+          "type": "UInt8"
+        },
+        {
+          "name": "volume_total",
+          "type": "Float64"
+        },
+        {
+          "name": "liquidity",
+          "type": "Float64"
+        },
+        {
+          "name": "resolved_at",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "created_at",
+          "type": "DateTime"
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTime"
+        },
+        {
+          "name": "market_id",
+          "type": "UInt64"
+        },
+        {
+          "name": "start_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "close_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "game_start_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "tags",
+          "type": "String"
+        },
+        {
+          "name": "volume_1wk",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_1mo",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_1yr",
+          "type": "Float64"
+        },
+        {
+          "name": "resolution_source",
+          "type": "String"
+        },
+        {
+          "name": "image",
+          "type": "String"
+        },
+        {
+          "name": "icon",
+          "type": "String"
+        },
+        {
+          "name": "neg_risk_market_id",
+          "type": "String"
+        },
+        {
+          "name": "event_description",
+          "type": "String"
+        },
+        {
+          "name": "event_start_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "event_image",
+          "type": "String"
+        },
+        {
+          "name": "event_resolution_source",
+          "type": "String"
+        },
+        {
+          "name": "status",
+          "type": "String"
+        },
+        {
+          "name": "winning_outcome_index",
+          "type": "Int8"
+        },
+        {
+          "name": "polymarket_link",
+          "type": "String"
+        },
+        {
+          "name": "provider_volume_total",
+          "type": "Float64"
+        },
+        {
+          "name": "provider_volume_1wk",
+          "type": "Float64"
+        },
+        {
+          "name": "provider_volume_1mo",
+          "type": "Float64"
+        },
+        {
+          "name": "provider_volume_1yr",
+          "type": "Float64"
+        },
+        {
+          "name": "is_condition_metric_row",
+          "type": "UInt8"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_market_details"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "pnl",
+          "type": "Float64"
+        },
+        {
+          "name": "usd_volume",
+          "type": "Float64"
+        },
+        {
+          "name": "trades",
+          "type": "UInt64"
+        },
+        {
+          "name": "cost_basis",
+          "type": "Float64"
+        },
+        {
+          "name": "net_value",
+          "type": "Float64"
+        },
+        {
+          "name": "roi",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_market_leaderboard"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "event_slug",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "active",
+          "type": "UInt8"
+        },
+        {
+          "name": "closed",
+          "type": "UInt8"
+        },
+        {
+          "name": "resolved_at",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "market_end_date",
+          "type": "DateTime"
+        },
+        {
+          "name": "polymarket_link",
+          "type": "String"
+        },
+        {
+          "name": "tags",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_market_ranking"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "outcome_label",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "category",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "neg_risk",
+          "type": "UInt8"
+        },
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "net_shares",
+          "type": "Float64"
+        },
+        {
+          "name": "cost_basis",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_buy_price",
+          "type": "Float64"
+        },
+        {
+          "name": "pnl",
+          "type": "Float64"
+        },
+        {
+          "name": "resolution_status",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "side",
+          "type": "LowCardinality(String)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_market_top_holders"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "daily_net_change_raw",
+          "type": "Int256"
+        },
+        {
+          "name": "daily_net_change_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest_raw",
+          "type": "Int256"
+        },
+        {
+          "name": "open_interest_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_open_interest_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "outcome_label",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "token_outcome_name",
+          "type": "String"
+        },
+        {
+          "name": "balance",
+          "type": "Float64"
+        },
+        {
+          "name": "question_id",
+          "type": "String"
+        },
+        {
+          "name": "market_question",
+          "type": "String"
+        },
+        {
+          "name": "market_description",
+          "type": "String"
+        },
+        {
+          "name": "event_title",
+          "type": "String"
+        },
+        {
+          "name": "active",
+          "type": "UInt8"
+        },
+        {
+          "name": "closed",
+          "type": "UInt8"
+        },
+        {
+          "name": "market_end_date",
+          "type": "DateTime"
+        },
+        {
+          "name": "neg_risk",
+          "type": "UInt8"
+        },
+        {
+          "name": "resolution_status",
+          "type": "LowCardinality(String)"
+        },
+        {
+          "name": "value_per_share",
+          "type": "Float64"
+        },
+        {
+          "name": "holdings_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "pnl",
+          "type": "Float64"
+        },
+        {
+          "name": "cost_basis",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_buy_price",
+          "type": "Float64"
+        },
+        {
+          "name": "first_trade_date",
+          "type": "Date"
+        },
+        {
+          "name": "last_trade_date",
+          "type": "Date"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_positions"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "outcome_index",
+          "type": "UInt8"
+        },
+        {
+          "name": "outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "open",
+          "type": "Float64"
+        },
+        {
+          "name": "high",
+          "type": "Float64"
+        },
+        {
+          "name": "low",
+          "type": "Float64"
+        },
+        {
+          "name": "close",
+          "type": "Float64"
+        },
+        {
+          "name": "vwap",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_prices_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_hour",
+          "type": "DateTime"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "outcome_index",
+          "type": "UInt8"
+        },
+        {
+          "name": "outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "open",
+          "type": "Float64"
+        },
+        {
+          "name": "high",
+          "type": "Float64"
+        },
+        {
+          "name": "low",
+          "type": "Float64"
+        },
+        {
+          "name": "close",
+          "type": "Float64"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "vwap",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_prices_hourly"
+    },
+    {
+      "columns": [
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "outcome_index",
+          "type": "UInt8"
+        },
+        {
+          "name": "outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "last_updated",
+          "type": "Date"
+        },
+        {
+          "name": "latest_price",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_prices_latest"
+    },
+    {
+      "columns": [
+        {
+          "name": "candle_time",
+          "type": "DateTime"
+        },
+        {
+          "name": "asset_id",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "SimpleAggregateFunction(any, String)"
+        },
+        {
+          "name": "question",
+          "type": "SimpleAggregateFunction(any, String)"
+        },
+        {
+          "name": "outcome_label",
+          "type": "SimpleAggregateFunction(any, String)"
+        },
+        {
+          "name": "open",
+          "type": "Float64"
+        },
+        {
+          "name": "high",
+          "type": "Float64"
+        },
+        {
+          "name": "low",
+          "type": "Float64"
+        },
+        {
+          "name": "close",
+          "type": "Float64"
+        },
+        {
+          "name": "vwap",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_shares",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_realtime_candles_1m"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "volume_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_volume_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_volume_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_volume_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "sell_volume_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "sell_volume_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "sell_volume_30d",
+          "type": "Float64"
+        },
+        {
+          "name": "trades_1d",
+          "type": "UInt64"
+        },
+        {
+          "name": "trades_7d",
+          "type": "UInt64"
+        },
+        {
+          "name": "trades_30d",
+          "type": "UInt64"
+        },
+        {
+          "name": "buys_1d",
+          "type": "UInt64"
+        },
+        {
+          "name": "buys_7d",
+          "type": "UInt64"
+        },
+        {
+          "name": "buys_30d",
+          "type": "UInt64"
+        },
+        {
+          "name": "sells_1d",
+          "type": "UInt64"
+        },
+        {
+          "name": "sells_7d",
+          "type": "UInt64"
+        },
+        {
+          "name": "sells_30d",
+          "type": "UInt64"
+        },
+        {
+          "name": "oi_change_1d",
+          "type": "Float64"
+        },
+        {
+          "name": "oi_change_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "oi_change_30d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_rolling_metrics"
+    },
+    {
+      "columns": [
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "smart_wallets_yes",
+          "type": "UInt64"
+        },
+        {
+          "name": "smart_wallets_no",
+          "type": "UInt64"
+        },
+        {
+          "name": "smart_wallets_involved",
+          "type": "UInt64"
+        },
+        {
+          "name": "smart_buy_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "smart_sell_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "net_smart_direction",
+          "type": "String"
+        },
+        {
+          "name": "smart_conviction",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_smart_money_positioning"
+    },
+    {
+      "columns": [
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "pnl",
+          "type": "Float64"
+        },
+        {
+          "name": "usd_volume",
+          "type": "Float64"
+        },
+        {
+          "name": "trades",
+          "type": "UInt64"
+        },
+        {
+          "name": "pnl_rank",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_smart_money_wallets"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "exchange_address",
+          "type": "String"
+        },
+        {
+          "name": "protocol",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "order_hash",
+          "type": "String"
+        },
+        {
+          "name": "maker_address",
+          "type": "String"
+        },
+        {
+          "name": "taker_address",
+          "type": "String"
+        },
+        {
+          "name": "maker_asset_id",
+          "type": "String"
+        },
+        {
+          "name": "taker_asset_id",
+          "type": "String"
+        },
+        {
+          "name": "maker_amount_filled",
+          "type": "UInt256"
+        },
+        {
+          "name": "taker_amount_filled",
+          "type": "UInt256"
+        },
+        {
+          "name": "fee_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "outcome_token_id",
+          "type": "String"
+        },
+        {
+          "name": "shares",
+          "type": "Float64"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "builder",
+          "type": "String"
+        },
+        {
+          "name": "metadata",
+          "type": "String"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "question",
+          "type": "String"
+        },
+        {
+          "name": "outcome_index",
+          "type": "UInt8"
+        },
+        {
+          "name": "outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "market_slug",
+          "type": "String"
+        },
+        {
+          "name": "market_end_date",
+          "type": "DateTime"
+        },
+        {
+          "name": "neg_risk",
+          "type": "UInt8"
+        },
+        {
+          "name": "question_id",
+          "type": "String"
+        },
+        {
+          "name": "event_slug",
+          "type": "String"
+        },
+        {
+          "name": "event_title",
+          "type": "String"
+        },
+        {
+          "name": "maker_side",
+          "type": "String"
+        },
+        {
+          "name": "taker_side",
+          "type": "String"
+        },
+        {
+          "name": "row_role",
+          "type": "String"
+        },
+        {
+          "name": "real_taker_address",
+          "type": "String"
+        },
+        {
+          "name": "is_redundant_summary",
+          "type": "UInt8"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "account",
+          "type": "String"
+        },
+        {
+          "name": "token_id",
+          "type": "String"
+        },
+        {
+          "name": "event_type",
+          "type": "String"
+        },
+        {
+          "name": "side",
+          "type": "String"
+        },
+        {
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_user_activity"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "sell_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "sell_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_volume_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_hour",
+          "type": "DateTime"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "sell_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "buy_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "sell_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_volume_hourly"
+    },
+    {
+      "columns": [
+        {
+          "name": "address",
+          "type": "String"
+        },
+        {
+          "name": "total_pnl",
+          "type": "Float64"
+        },
+        {
+          "name": "total_usd_volume",
+          "type": "Float64"
+        },
+        {
+          "name": "total_volume_shares",
+          "type": "Float64"
+        },
+        {
+          "name": "total_trades",
+          "type": "UInt64"
+        },
+        {
+          "name": "positions_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "closed_positions",
+          "type": "UInt64"
+        },
+        {
+          "name": "won_positions",
+          "type": "UInt64"
+        },
+        {
+          "name": "lost_positions",
+          "type": "UInt64"
+        },
+        {
+          "name": "win_rate",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "avg_trade_size_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "avg_trades_per_position",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "buy_ratio",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "avg_buy_price",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "first_trade_date",
+          "type": "Date"
+        },
+        {
+          "name": "last_trade_date",
+          "type": "Date"
+        },
+        {
+          "name": "behavioral_label",
+          "type": "String"
+        },
+        {
+          "name": "entry_label",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "polymarket_wallet_profiles"
+    },
+    {
+      "columns": [
+        {
+          "name": "date",
+          "type": "Date"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "notional_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "open_interest_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "prediction_markets_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "date",
+          "type": "Date"
+        },
+        {
+          "name": "polymarket_condition_id",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_question",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_title",
+          "type": "String"
+        },
+        {
+          "name": "confidence",
+          "type": "UInt8"
+        },
+        {
+          "name": "match_type",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "polymarket_oi_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_volume_contracts",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_oi_contracts",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "prediction_markets_matched_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "polymarket_condition_id",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_question",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_event_slug",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_token_id",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_outcome_label",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_market_ticker",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_title",
+          "type": "String"
+        },
+        {
+          "name": "kalshi_event_ticker",
+          "type": "String"
+        },
+        {
+          "name": "confidence",
+          "type": "UInt8"
+        },
+        {
+          "name": "match_type",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "polymarket_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "polymarket_is_active",
+          "type": "UInt8"
+        },
+        {
+          "name": "kalshi_volume_contracts",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_open_interest_contracts",
+          "type": "Float64"
+        },
+        {
+          "name": "kalshi_status",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "prediction_markets_matched_markets"
+    },
+    {
+      "columns": [
+        {
+          "name": "date",
+          "type": "Date"
+        },
+        {
+          "name": "blocks",
+          "type": "UInt64"
+        },
+        {
+          "name": "transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "successful_transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "failed_transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_active_addresses",
+          "type": "UInt64"
+        },
+        {
+          "name": "gas_used",
+          "type": "UInt256"
+        },
+        {
+          "name": "fees_raw",
+          "type": "UInt256"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "robinhood_chain_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "unique_key",
+          "type": "String"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3, 'UTC')"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_bought_decimals",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "token_sold_decimals",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_price_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_sold_price_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_price_source",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_price_source",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "amount_usd_method",
+          "type": "String"
+        },
+        {
+          "name": "price_available",
+          "type": "UInt8"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "taker_source",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "swap_sender",
+          "type": "String"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "registry_source",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "token_pair",
+          "type": "Nullable(String)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "robinhood_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "hour",
+          "type": "DateTime"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "price_source",
+          "type": "String"
+        },
+        {
+          "name": "observed_at",
+          "type": "DateTime"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "robinhood_prices_hour"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "metadata_source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "robinhood_token_metadata"
+    },
+    {
+      "columns": [
+        {
+          "name": "unique_key",
+          "type": "String"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3, 'UTC')"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "item_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "from_address",
+          "type": "String"
+        },
+        {
+          "name": "to_address",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_id",
+          "type": "UInt256"
+        },
+        {
+          "name": "has_token_id",
+          "type": "Bool"
+        },
+        {
+          "name": "symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_name",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "decimals",
+          "type": "Nullable(Int64)"
+        },
+        {
+          "name": "metadata_available",
+          "type": "UInt8"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "price_available",
+          "type": "UInt8"
+        },
+        {
+          "name": "price_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "price_source",
+          "type": "Nullable(String)"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "amount_usd_semantics",
+          "type": "String"
+        },
+        {
+          "name": "coverage_semantics",
+          "type": "String"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "robinhood_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "inflow_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "inflow_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "outflow_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "outflow_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "net_flow_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_bridge_flows_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "total_blocks",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_txs",
+          "type": "UInt64"
+        },
+        {
+          "name": "user_txs",
+          "type": "UInt64"
+        },
+        {
+          "name": "dau",
+          "type": "UInt64"
+        },
+        {
+          "name": "wau",
+          "type": "UInt64"
+        },
+        {
+          "name": "mau",
+          "type": "UInt64"
+        },
+        {
+          "name": "new_users",
+          "type": "UInt64"
+        },
+        {
+          "name": "returning_users",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_transfers",
+          "type": "UInt64"
+        },
+        {
+          "name": "stablecoin_transfer_volume",
+          "type": "Float64"
+        },
+        {
+          "name": "stablecoin_dau",
+          "type": "UInt64"
+        },
+        {
+          "name": "stablecoin_txns",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_tokens_transferred",
+          "type": "UInt64"
+        },
+        {
+          "name": "bridge_net_flow_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "total_fees_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "median_fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "sponsored_fee_pct",
+          "type": "Float64"
+        },
+        {
+          "name": "dex_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "dex_trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "contract_deployments_from_traces",
+          "type": "UInt64"
+        },
+        {
+          "name": "batched_tx_count",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_chain_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "call_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_callers",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_gas_used",
+          "type": "UInt128"
+        },
+        {
+          "name": "call_count_call",
+          "type": "UInt64"
+        },
+        {
+          "name": "call_count_staticcall",
+          "type": "UInt64"
+        },
+        {
+          "name": "call_count_delegatecall",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_contract_calls_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "deployer",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "trace_type",
+          "type": "String"
+        },
+        {
+          "name": "trace_address",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_contract_deployments"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "total_blocks",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_blocks",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "user_transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "system_transactions",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_gas_used",
+          "type": "UInt128"
+        },
+        {
+          "name": "unique_senders",
+          "type": "UInt64"
+        },
+        {
+          "name": "contract_deployments",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_daily_chain_stats"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "Int64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "Int64"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_dex_base_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "user_address",
+          "type": "String"
+        },
+        {
+          "name": "token_in",
+          "type": "String"
+        },
+        {
+          "name": "token_in_symbol",
+          "type": "String"
+        },
+        {
+          "name": "amount_in_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_out",
+          "type": "String"
+        },
+        {
+          "name": "token_out_symbol",
+          "type": "String"
+        },
+        {
+          "name": "amount_out_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "reason_hex",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_dex_swaps"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_in",
+          "type": "String"
+        },
+        {
+          "name": "token_in_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_out",
+          "type": "String"
+        },
+        {
+          "name": "token_out_symbol",
+          "type": "String"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "unique_traders",
+          "type": "UInt64"
+        },
+        {
+          "name": "avg_trade_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_dex_trades_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "factory_address",
+          "type": "String"
+        },
+        {
+          "name": "token0",
+          "type": "String"
+        },
+        {
+          "name": "token1",
+          "type": "String"
+        },
+        {
+          "name": "pair_address",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_exchange_v2_pairs"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "fee_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "total_fees_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "median_fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "p95_fee_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "unique_fee_payers",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_sponsors",
+          "type": "UInt64"
+        },
+        {
+          "name": "sponsored_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "sponsored_pct",
+          "type": "Float64"
+        },
+        {
+          "name": "fee_pathUSD_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "fee_USDC_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_fee_metrics_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "fee_payer",
+          "type": "String"
+        },
+        {
+          "name": "fee_token",
+          "type": "String"
+        },
+        {
+          "name": "fee_token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "fee_amount_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_fee_payments"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "payment_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_payment_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "median_payment_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "unique_payers",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_payees",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_memos",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_mpp_metrics_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "transfer_to",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "payment_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "avg_payment_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "median_payment_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "unique_payers",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_memos",
+          "type": "UInt64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_mpp_payees_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "UInt8"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "trade_count",
+          "type": "UInt32"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_prices_dex"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "txn_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "transfer_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "dau",
+          "type": "UInt64"
+        },
+        {
+          "name": "supply_change_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "cumulative_supply_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_stablecoin_metrics_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "mint_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "burn_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "mint_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "burn_volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "net_supply_change_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_stablecoin_supply"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "token_in",
+          "type": "String"
+        },
+        {
+          "name": "token_in_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_out",
+          "type": "String"
+        },
+        {
+          "name": "token_out_symbol",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt64"
+        },
+        {
+          "name": "swap_type",
+          "type": "String"
+        },
+        {
+          "name": "trace_address",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_stablecoindex_swaps"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "transfer_count",
+          "type": "UInt64"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "unique_senders",
+          "type": "UInt64"
+        },
+        {
+          "name": "unique_receivers",
+          "type": "UInt64"
+        },
+        {
+          "name": "avg_transfer_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_token_metrics_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "transfer_from",
+          "type": "String"
+        },
+        {
+          "name": "transfer_to",
+          "type": "String"
+        },
+        {
+          "name": "memo_hex",
+          "type": "String"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_transfer_with_memo_events"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "transfer_from",
+          "type": "String"
+        },
+        {
+          "name": "transfer_to",
+          "type": "String"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "pools",
+          "type": "UInt32"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "token0_tvl_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "token1_tvl_usd",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_tvl_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "factory_address",
+          "type": "String"
+        },
+        {
+          "name": "token0",
+          "type": "String"
+        },
+        {
+          "name": "token1",
+          "type": "String"
+        },
+        {
+          "name": "pair_address",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_uniswap_v2_pairs"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pair_address",
+          "type": "String"
+        },
+        {
+          "name": "token0",
+          "type": "String"
+        },
+        {
+          "name": "token0_symbol",
+          "type": "String"
+        },
+        {
+          "name": "reserve0",
+          "type": "UInt64"
+        },
+        {
+          "name": "token0_balance",
+          "type": "Float64"
+        },
+        {
+          "name": "token0_price",
+          "type": "Float64"
+        },
+        {
+          "name": "token0_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "token1",
+          "type": "String"
+        },
+        {
+          "name": "token1_symbol",
+          "type": "String"
+        },
+        {
+          "name": "reserve1",
+          "type": "UInt64"
+        },
+        {
+          "name": "token1_balance",
+          "type": "Float64"
+        },
+        {
+          "name": "token1_price",
+          "type": "Float64"
+        },
+        {
+          "name": "token1_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_uniswap_v2_tvl"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "transaction_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "log_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "transaction_hash",
+          "type": "String"
+        },
+        {
+          "name": "pool_id",
+          "type": "String"
+        },
+        {
+          "name": "currency0",
+          "type": "String"
+        },
+        {
+          "name": "currency1",
+          "type": "String"
+        },
+        {
+          "name": "fee",
+          "type": "Int32"
+        },
+        {
+          "name": "tick_spacing",
+          "type": "Int32"
+        },
+        {
+          "name": "hooks",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_uniswap_v4_pools"
+    },
+    {
+      "columns": [
+        {
+          "name": "cohort_week",
+          "type": "Date"
+        },
+        {
+          "name": "activity_week",
+          "type": "Date"
+        },
+        {
+          "name": "cohort_size",
+          "type": "UInt64"
+        },
+        {
+          "name": "active_users",
+          "type": "UInt64"
+        },
+        {
+          "name": "retention_rate",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tempo_user_cohorts"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy_base_7d",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd_1d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "top_pools_arbitrum"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "pool_address",
+          "type": "String"
+        },
+        {
+          "name": "token_address",
+          "type": "String"
+        },
+        {
+          "name": "token_symbol",
+          "type": "String"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "apy",
+          "type": "Float64"
+        },
+        {
+          "name": "apy_base_7d",
+          "type": "Float64"
+        },
+        {
+          "name": "volume_usd_1d",
+          "type": "Float64"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "top_pools_base"
+    },
+    {
+      "columns": [
+        {
+          "name": "platform",
+          "type": "String"
+        },
+        {
+          "name": "trade_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "market_question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "side",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "shares",
+          "type": "Float64"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "is_whale",
+          "type": "UInt8"
+        },
+        {
+          "name": "whale_tier",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "trades_recent"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "token_bought_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_sold_symbol",
+          "type": "Nullable(String)"
+        },
+        {
+          "name": "token_pair",
+          "type": "String"
+        },
+        {
+          "name": "token_bought_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_sold_amount",
+          "type": "Float64"
+        },
+        {
+          "name": "token_bought_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "token_sold_amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "token_bought_address",
+          "type": "String"
+        },
+        {
+          "name": "token_sold_address",
+          "type": "String"
+        },
+        {
+          "name": "taker",
+          "type": "String"
+        },
+        {
+          "name": "maker",
+          "type": "String"
+        },
+        {
+          "name": "project_contract_address",
+          "type": "String"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tron_dex_trades"
+    },
+    {
+      "columns": [
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "decimals",
+          "type": "Int64"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "name": "volume_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "source",
+          "type": "String"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tron_prices_day"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "block_month",
+          "type": "Date"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "block_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "block_number",
+          "type": "UInt64"
+        },
+        {
+          "name": "tx_hash",
+          "type": "String"
+        },
+        {
+          "name": "evt_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "trace_address",
+          "type": "Array(Int64)"
+        },
+        {
+          "name": "token_standard",
+          "type": "String"
+        },
+        {
+          "name": "tx_from",
+          "type": "String"
+        },
+        {
+          "name": "tx_to",
+          "type": "String"
+        },
+        {
+          "name": "tx_index",
+          "type": "UInt32"
+        },
+        {
+          "name": "from",
+          "type": "String"
+        },
+        {
+          "name": "to",
+          "type": "String"
+        },
+        {
+          "name": "contract_address",
+          "type": "String"
+        },
+        {
+          "name": "symbol",
+          "type": "String"
+        },
+        {
+          "comment": "Raw token amount in smallest units before decimal adjustment.",
+          "name": "amount_raw",
+          "type": "UInt256"
+        },
+        {
+          "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+          "name": "amount",
+          "type": "Float64"
+        },
+        {
+          "name": "price_usd",
+          "type": "Nullable(Float64)"
+        },
+        {
+          "comment": "USD transfer value when available; nullable and may lag enrichment.",
+          "name": "amount_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tron_transfers"
+    },
+    {
+      "columns": [
+        {
+          "name": "blockchain",
+          "type": "String"
+        },
+        {
+          "name": "project",
+          "type": "String"
+        },
+        {
+          "name": "version",
+          "type": "String"
+        },
+        {
+          "name": "block_date",
+          "type": "Date"
+        },
+        {
+          "name": "tvl_usd",
+          "type": "Nullable(Float64)"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "tron_tvl_daily"
+    },
+    {
+      "columns": [
+        {
+          "name": "trade_time",
+          "type": "DateTime64(3)"
+        },
+        {
+          "name": "condition_id",
+          "type": "String"
+        },
+        {
+          "name": "market_question",
+          "type": "String"
+        },
+        {
+          "name": "category",
+          "type": "String"
+        },
+        {
+          "name": "subcategory",
+          "type": "String"
+        },
+        {
+          "name": "side",
+          "type": "String"
+        },
+        {
+          "name": "price",
+          "type": "Float64"
+        },
+        {
+          "name": "shares",
+          "type": "Float64"
+        },
+        {
+          "name": "amount_usd",
+          "type": "Float64"
+        },
+        {
+          "name": "whale_tier",
+          "type": "String"
+        },
+        {
+          "name": "wallet_label",
+          "type": "String"
+        },
+        {
+          "name": "is_smart_money",
+          "type": "Bool"
+        }
+      ],
+      "database": "agent",
+      "engine": "View",
+      "table": "whale_activity"
+    }
+  ],
+  "meta": {
+    "cached": false,
+    "credits_used": 1,
+    "limit": 111,
+    "offset": 0,
+    "total": 111
+  }
+}

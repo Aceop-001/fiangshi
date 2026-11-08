@@ -8,7 +8,7 @@ Record, once, into fixtures/:
 - `fixtures/payees.json` : payee facts shaped exactly like PayeeSignals
 - `fixtures/model/*.json`: 3 SERV outputs — 1 good, 1 with a hallucinated signal name, 1 with a quote that is not a substring of the evidence
 
-Adapters replay fixtures when `FIANGHSI_OFFLINE=1` or `SNAPSHOT_SOURCE=fixture`. Mocks live ONLY at adapter boundaries — core/ must never know about them.
+Adapters replay fixtures when `FIANGSHI_OFFLINE=1` or `SNAPSHOT_SOURCE=fixture`. Mocks live ONLY at adapter boundaries — core/ must never know about them.
 
 ## Deliver `npm run accept`
 Runs the 10 gates below, prints PASS/FAIL per line, exits non-zero on any FAIL, makes zero network calls, finishes <20s.

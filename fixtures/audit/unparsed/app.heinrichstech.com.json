@@ -1,0 +1,200 @@
+{
+  "url": "https://app.heinrichstech.com/v1/cdp/echo",
+  "status": 402,
+  "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "PAYMENT-REQUIRED, X-Correlation-ID",
+    "cache-control": "no-store",
+    "content-length": "3269",
+    "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 17:07:26 GMT",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkOiByZXRyeSB3aXRoIGEgUEFZTUVOVC1TSUdOQVRVUkUgKHg0MDIgdjIpIG9yIFgtUEFZTUVOVCBoZWFkZXIiLCJyZXNvdXJjZSI6eyJ1cmwiOiJodHRwczovL2FwcC5oZWlucmljaHN0ZWNoLmNvbS92MS9jZHAvZWNobyIsImRlc2NyaXB0aW9uIjoiQml0Qm9vdGggZWNobyBlbmRwb2ludCDigJQgcGF5cyBhIHRpbnkgVVNEQyBmZWUsIHJldHVybnMgYSBKU09OIGVjaG8uIFJlZmVyZW5jZSBpbXBsZW1lbnRhdGlvbiBvZiB0aGUgeDQwMiArIENEUCBGYWNpbGl0YXRvciArIEJhemFhciBkaXNjb3ZlcnkgbG9vcC4iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24ifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMiLCJhbW91bnQiOiIxMDAwIiwicGF5VG8iOiIweERhMkYzNWQyODNjNDJkZDYwQjk2NTMyMjM5NGJjNjU4YTVjMTc2OUYiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MTIwLCJhc3NldCI6IjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsImV4dHJhIjp7Im5hbWUiOiJVU0QgQ29pbiIsInZlcnNpb24iOiIyIn0sInJlc291cmNlIjoiaHR0cHM6Ly9hcHAuaGVpbnJpY2hzdGVjaC5jb20vdjEvY2RwL2VjaG8ifSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6InNvbGFuYTo1ZXlrdDRVc0Z2OFA4TkpkVFJFcFkxdnpxS3FaS3ZkcCIsImFtb3VudCI6IjEwMDAiLCJwYXlUbyI6IkVEdFBITkZBNm9mR1FaUGI4TllVeGRUa3FWd0Nma1dKelJDZzh2UVhrWUJMIiwibWF4VGltZW91dFNlY29uZHMiOjEyMCwiYXNzZXQiOiJFUGpGV2RkNUF1ZnFTU3FlTTJxTjF4enliYXBDOEc0d0VHR2tad3lURHQxdiIsImV4dHJhIjp7ImZlZVBheWVyIjoiRDZaaHROUTVuVDlablRIVWJxWFpzVHg1TUgyclBGaUJCZ2dYNGhZMVdlUE0ifSwicmVzb3VyY2UiOiJodHRwczovL2FwcC5oZWlucmljaHN0ZWNoLmNvbS92MS9jZHAvZWNobyJ9LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoieHJwbDowIiwiYXNzZXQiOiI1MjRDNTU1MzQ0MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwicGF5VG8iOiJyZnJ5aGVvNnl6RmRMV2o4cVVRdFpjN3pHOU1La0JrVUV5IiwiYW1vdW50IjoiMC4wMDEwMDAiLCJtYXhUaW1lb3V0U2Vjb25kcyI6MTIwLCJleHRyYSI6eyJpc3N1ZXIiOiJyTXhDS2JFRHdxcjc2UXVoZVNVTWRFR2Y0Qjl4SjhtNURlIiwic291cmNlVGFnIjo4MDQ2ODE0NjgsImludm9pY2VJZCI6ImUwZmQ5NWYxLWU0YWQtNDA5MS1hODcwLWY5NjdlZDY4NDE5MSJ9LCJyZXNvdXJjZSI6Imh0dHBzOi8vYXBwLmhlaW5yaWNoc3RlY2guY29tL3YxL2NkcC9lY2hvIn0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJ4cnBsOjAiLCJhc3NldCI6IjU1NTM0NDQzMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJwYXlUbyI6InJmcnloZW82eXpGZExXajhxVVF0WmM3ekc5TUtrQmtVRXkiLCJhbW91bnQiOiIwLjAwMTAwMCIsIm1heFRpbWVvdXRTZWNvbmRzIjoxMjAsImV4dHJhIjp7Imlzc3VlciI6InJHbTdXQ1ZwOWdiNGpaSFdURXRHVXI0ZGQ3NHoyWHVXaEUiLCJzb3VyY2VUYWciOjgwNDY4MTQ2OCwiaW52b2ljZUlkIjoiMTQzMDljMDAtYTYyNS00ZTQ2LThlYWMtMzdiNTQ0ZjI0MGMwIn0sInJlc291cmNlIjoiaHR0cHM6Ly9hcHAuaGVpbnJpY2hzdGVjaC5jb20vdjEvY2RwL2VjaG8ifSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6InN0ZWxsYXI6cHVibmV0IiwiYW1vdW50IjoiMTAwMDAiLCJwYXlUbyI6IkdDQjVXWlQ1VkNCQkFUR01RTVRCNlRMVVhENktRQzZONUlUUldLM0NDUDRKM1lPQ0U0NUZBMkdPIiwibWF4VGltZW91dFNlY29uZHMiOjEyMCwiYXNzZXQiOiJVU0RDIiwiZXh0cmEiOnsiY3VycmVuY3kiOiJVU0RDIiwiaXNzdWVyIjoiR0E1WlNFSllCMzdKUkM1QVZDSUE1TU9QNFJIVE0zMzVYMktHWDNJSE9KQVBQNVJFMzRLNEtaVk4ifSwicmVzb3VyY2UiOiJodHRwczovL2FwcC5oZWlucmljaHN0ZWNoLmNvbS92MS9jZHAvZWNobyJ9XSwiZXh0ZW5zaW9ucyI6eyJiYXphYXIiOnsiZGlzY292ZXJhYmxlIjp0cnVlLCJjYXRlZ29yeSI6InV0aWxpdHkiLCJ0YWdzIjpbInJlZmVyZW5jZSIsImRlbW8iLCJ4NDAyIl0sImluZm8iOnsiaW5wdXQiOnsidHlwZSI6Imh0dHAiLCJtZXRob2QiOiJQT1NUIiwiYm9keVR5cGUiOiJqc29uIiwiYm9keSI6eyJtZXNzYWdlIjoiaGVsbG8gYml0Ym9vdGgifX0sIm91dHB1dCI6eyJ0eXBlIjoianNvbiIsImV4YW1wbGUiOnsib2siOnRydWUsInNlcnZpY2UiOiJCaXRCb290aCAvdjEvY2RwL2VjaG8iLCJwcm90b2NvbCI6Ing0MDIgKyBDRFAgRmFjaWxpdGF0b3IiLCJ5b3VTZW50IjoiaGVsbG8gYml0Ym9vdGgiLCJ0aW1lc3RhbXAiOiIyMDI2LTA1LTA1VDEyOjAwOjAwLjAwMFoiLCJwYXltZW50Ijp7InRyYW5zYWN0aW9uIjoiMHhhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhIiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwicGF5ZXIiOiIweGJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIifX19fSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInR5cGUiOiJvYmplY3QiLCJyZXF1aXJlZCI6WyJpbnB1dCJdLCJwcm9wZXJ0aWVzIjp7ImlucHV0Ijp7InR5cGUiOiJvYmplY3QiLCJhZGRpdGlvbmFsUHJvcGVydGllcyI6ZmFsc2UsInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiLCJib2R5VHlwZSIsImJvZHkiXSwicHJvcGVydGllcyI6eyJ0eXBlIjp7ImNvbnN0IjoiaHR0cCIsInR5cGUiOiJzdHJpbmcifSwibWV0aG9kIjp7InR5cGUiOiJzdHJpbmciLCJlbnVtIjpbIlBPU1QiLCJQVVQiLCJQQVRDSCJdfSwiYm9keVR5cGUiOnsidHlwZSI6InN0cmluZyIsImVudW0iOlsianNvbiIsImZvcm0tZGF0YSIsInRleHQiXX0sImJvZHkiOnsicHJvcGVydGllcyI6eyJtZXNzYWdlIjp7InR5cGUiOiJzdHJpbmciLCJkZXNjcmlwdGlvbiI6Ik9wdGlvbmFsIHN0cmluZyB0byBlY2hvIGJhY2sgaW4gdGhlIHJlc3BvbnNlLiBNYXggNTAwIGNoYXJzLiIsIm1heExlbmd0aCI6NTAwfX19fX0sIm91dHB1dCI6eyJ0eXBlIjoib2JqZWN0IiwicmVxdWlyZWQiOlsidHlwZSJdLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJleGFtcGxlIjp7InR5cGUiOiJvYmplY3QifX19fX19fX0=",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+    "x-amz-apigw-id": "Gh_cREyaCYcEJbQ=",
+    "x-amzn-requestid": "08c62abd-f4de-445b-b9d4-d169058b1814",
+    "x-amzn-trace-id": "Root=1-6af0ac4e-5dc01d8b1ec66935444f2a05",
+    "x-api-version": "1.0.0",
+    "x-correlation-id": "9cd85c50-0183-49b1-9dad-57b97bef9bad",
+    "x-frame-options": "DENY"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "Payment required: retry with a PAYMENT-SIGNATURE (x402 v2) or X-PAYMENT header",
+    "resource": {
+      "url": "https://app.heinrichstech.com/v1/cdp/echo",
+      "description": "BitBooth echo endpoint — pays a tiny USDC fee, returns a JSON echo. Reference implementation of the x402 + CDP Facilitator + Bazaar discovery loop.",
+      "mimeType": "application/json"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "1000",
+        "payTo": "0xDa2F35d283c42dd60B965322394bc658a5c1769F",
+        "maxTimeoutSeconds": 120,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        },
+        "resource": "https://app.heinrichstech.com/v1/cdp/echo"
+      },
+      {
+        "scheme": "exact",
+        "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+        "amount": "1000",
+        "payTo": "EDtPHNFA6ofGQZPb8NYUxdTkqVwCfkWJzRCg8vQXkYBL",
+        "maxTimeoutSeconds": 120,
+        "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "extra": {
+          "feePayer": "D6ZhtNQ5nT9ZnTHUbqXZsTx5MH2rPFiBBggX4hY1WePM"
+        },
+        "resource": "https://app.heinrichstech.com/v1/cdp/echo"
+      },
+      {
+        "scheme": "exact",
+        "network": "xrpl:0",
+        "asset": "524C555344000000000000000000000000000000",
+        "payTo": "rfryheo6yzFdLWj8qUQtZc7zG9MKkBkUEy",
+        "amount": "0.001000",
+        "maxTimeoutSeconds": 120,
+        "extra": {
+          "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+          "sourceTag": 804681468,
+          "invoiceId": "e0fd95f1-e4ad-4091-a870-f967ed684191"
+        },
+        "resource": "https://app.heinrichstech.com/v1/cdp/echo"
+      },
+      {
+        "scheme": "exact",
+        "network": "xrpl:0",
+        "asset": "5553444300000000000000000000000000000000",
+        "payTo": "rfryheo6yzFdLWj8qUQtZc7zG9MKkBkUEy",
+        "amount": "0.001000",
+        "maxTimeoutSeconds": 120,
+        "extra": {
+          "issuer": "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE",
+          "sourceTag": 804681468,
+          "invoiceId": "14309c00-a625-4e46-8eac-37b544f240c0"
+        },
+        "resource": "https://app.heinrichstech.com/v1/cdp/echo"
+      },
+      {
+        "scheme": "exact",
+        "network": "stellar:pubnet",
+        "amount": "10000",
+        "payTo": "GCB5WZT5VCBBATGMQMTB6TLUXD6KQC6N5ITRWK3CCP4J3YOCE45FA2GO",
+        "maxTimeoutSeconds": 120,
+        "asset": "USDC",
+        "extra": {
+          "currency": "USDC",
+          "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+        },
+        "resource": "https://app.heinrichstech.com/v1/cdp/echo"
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "discoverable": true,
+        "category": "utility",
+        "tags": [
+          "reference",
+          "demo",
+          "x402"
+        ],
+        "info": {
+          "input": {
+            "type": "http",
+            "method": "POST",
+            "bodyType": "json",
+            "body": {
+              "message": "hello bitbooth"
+            }
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "ok": true,
+              "service": "BitBooth /v1/cdp/echo",
+              "protocol": "x402 + CDP Facilitator",
+              "youSent": "hello bitbooth",
+              "timestamp": "2026-05-05T12:00:00.000Z",
+              "payment": {
+                "transaction": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "network": "eip155:8453",
+                "payer": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "required": [
+            "input"
+          ],
+          "properties": {
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "method",
+                "bodyType",
+                "body"
+              ],
+              "properties": {
+                "type": {
+                  "const": "http",
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "POST",
+                    "PUT",
+                    "PATCH"
+                  ]
+                },
+                "bodyType": {
+                  "type": "string",
+                  "enum": [
+                    "json",
+                    "form-data",
+                    "text"
+                  ]
+                },
+                "body": {
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Optional string to echo back in the response. Max 500 chars.",
+                      "maxLength": 500
+                    }
+                  }
+                }
+              }
+            },
+            "output": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

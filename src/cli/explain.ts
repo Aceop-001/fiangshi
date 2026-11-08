@@ -18,7 +18,7 @@ export function explain(r: CheckResult): string {
 
   L.push(``, `-- signals`);
   const s = r.signals;
-  for (const k of ["wallet_age_hours", "tx_count", "first_funder", "funder_fanout", "distinct_payers", "repeat_payers", "total_received_usd", "appears_in_other_listings", "token_concentration", "dormancy_days"] as const)
+  for (const k of ["wallet_age_hours", "tx_count", "first_funder", "funder_fanout", "distinct_payers", "repeat_payers", "total_received_usd", "appears_in_other_listings", "token_asset_share", "top_payer_share", "dormancy_days"] as const)
     L.push(`  ${pad(k, 26)} ${fmt(s[k])}`);
   L.push(`  ${pad("identity", 26)} org=${fmt(s.identity.claims_org)} product=${fmt(s.identity.claims_product)} corroborated=${fmt(s.identity.corroborated)}`);
   L.push(`  evidence keys: ${Object.keys(s.evidence).join(", ") || "(none)"}`);

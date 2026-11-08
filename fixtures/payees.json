@@ -9,7 +9,8 @@
     "repeat_payers": 20,
     "total_received_usd": 1200,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.1,
+    "token_asset_share": 1,
+    "top_payer_share": 0.1,
     "dormancy_days": 0,
     "identity": {
       "claims_org": "Weatherly Data",
@@ -35,7 +36,8 @@
     "repeat_payers": 25,
     "total_received_usd": 2150.5,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.15000000000000002,
+    "token_asset_share": 1,
+    "top_payer_share": 0.15000000000000002,
     "dormancy_days": 1,
     "identity": {
       "claims_org": "Parcel Atlas",
@@ -61,7 +63,8 @@
     "repeat_payers": 30,
     "total_received_usd": 3101,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.2,
+    "token_asset_share": 1,
+    "top_payer_share": 0.2,
     "dormancy_days": 2,
     "identity": {
       "claims_org": "Lexicon Labs",
@@ -87,7 +90,8 @@
     "repeat_payers": 35,
     "total_received_usd": 4051.5,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.1,
+    "token_asset_share": 1,
+    "top_payer_share": 0.1,
     "dormancy_days": 3,
     "identity": {
       "claims_org": "Tidewater Maps",
@@ -113,7 +117,8 @@
     "repeat_payers": 40,
     "total_received_usd": 5002,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.15000000000000002,
+    "token_asset_share": 1,
+    "top_payer_share": 0.15000000000000002,
     "dormancy_days": 0,
     "identity": {
       "claims_org": "Quarry Search",
@@ -139,7 +144,8 @@
     "repeat_payers": 45,
     "total_received_usd": 5952.5,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.2,
+    "token_asset_share": 1,
+    "top_payer_share": 0.2,
     "dormancy_days": 1,
     "identity": {
       "claims_org": "Northbeam Quotes",
@@ -165,7 +171,8 @@
     "repeat_payers": 50,
     "total_received_usd": 6903,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.1,
+    "token_asset_share": 1,
+    "top_payer_share": 0.1,
     "dormancy_days": 2,
     "identity": {
       "claims_org": "Ferro Translate",
@@ -191,7 +198,8 @@
     "repeat_payers": 55,
     "total_received_usd": 7853.5,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.15000000000000002,
+    "token_asset_share": 1,
+    "top_payer_share": 0.15000000000000002,
     "dormancy_days": 3,
     "identity": {
       "claims_org": "Gullwing OCR",
@@ -217,7 +225,8 @@
     "repeat_payers": 60,
     "total_received_usd": 8804,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.2,
+    "token_asset_share": 1,
+    "top_payer_share": 0.2,
     "dormancy_days": 0,
     "identity": {
       "claims_org": "Basalt Geocode",
@@ -243,7 +252,8 @@
     "repeat_payers": 65,
     "total_received_usd": 9754.5,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.1,
+    "token_asset_share": 1,
+    "top_payer_share": 0.1,
     "dormancy_days": 1,
     "identity": {
       "claims_org": "Marigold News",
@@ -269,7 +279,8 @@
     "repeat_payers": 0,
     "total_received_usd": 0.4,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.95,
+    "token_asset_share": 1,
+    "top_payer_share": 0.95,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -294,7 +305,8 @@
     "repeat_payers": 4,
     "total_received_usd": 90,
     "appears_in_other_listings": 3,
-    "token_concentration": 0.3,
+    "token_asset_share": 1,
+    "top_payer_share": 0.3,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -319,7 +331,8 @@
     "repeat_payers": 4,
     "total_received_usd": 90,
     "appears_in_other_listings": 3,
-    "token_concentration": 0.3,
+    "token_asset_share": 1,
+    "top_payer_share": 0.3,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -344,7 +357,8 @@
     "repeat_payers": 4,
     "total_received_usd": 90,
     "appears_in_other_listings": 3,
-    "token_concentration": 0.3,
+    "token_asset_share": 1,
+    "top_payer_share": 0.3,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -369,7 +383,8 @@
     "repeat_payers": 4,
     "total_received_usd": 90,
     "appears_in_other_listings": 3,
-    "token_concentration": 0.3,
+    "token_asset_share": 1,
+    "top_payer_share": 0.3,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -394,7 +409,8 @@
     "repeat_payers": 0,
     "total_received_usd": 0.1,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.2,
+    "token_asset_share": 1,
+    "top_payer_share": 0.2,
     "dormancy_days": 0,
     "identity": {
       "claims_org": "Weatherly Data",
@@ -420,7 +436,8 @@
     "repeat_payers": 1,
     "total_received_usd": 12,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.7,
+    "token_asset_share": 1,
+    "top_payer_share": 0.7,
     "dormancy_days": 120,
     "identity": {
       "claims_org": null,
@@ -445,7 +462,8 @@
     "repeat_payers": 0,
     "total_received_usd": 3,
     "appears_in_other_listings": 2,
-    "token_concentration": 0.4,
+    "token_asset_share": 1,
+    "top_payer_share": 0.4,
     "dormancy_days": 0,
     "identity": {
       "claims_org": "Weatherly Data",
@@ -471,7 +489,8 @@
     "repeat_payers": 20,
     "total_received_usd": 4000,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.2,
+    "token_asset_share": 1,
+    "top_payer_share": 0.2,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -496,7 +515,8 @@
     "repeat_payers": 0,
     "total_received_usd": 0,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.5,
+    "token_asset_share": 1,
+    "top_payer_share": 0.5,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -521,7 +541,8 @@
     "repeat_payers": 5,
     "total_received_usd": 300,
     "appears_in_other_listings": 0,
-    "token_concentration": null,
+    "token_asset_share": null,
+    "top_payer_share": null,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -545,7 +566,8 @@
     "repeat_payers": 0,
     "total_received_usd": 25,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.6,
+    "token_asset_share": 1,
+    "top_payer_share": 0.6,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -570,7 +592,8 @@
     "repeat_payers": 2,
     "total_received_usd": 145,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.5599999999999999,
+    "token_asset_share": 1,
+    "top_payer_share": 0.5599999999999999,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -595,7 +618,8 @@
     "repeat_payers": 4,
     "total_received_usd": 265,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.52,
+    "token_asset_share": 1,
+    "top_payer_share": 0.52,
     "dormancy_days": 2,
     "identity": {
       "claims_org": null,
@@ -620,7 +644,8 @@
     "repeat_payers": 6,
     "total_received_usd": 385,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.48,
+    "token_asset_share": 1,
+    "top_payer_share": 0.48,
     "dormancy_days": 3,
     "identity": {
       "claims_org": null,
@@ -645,7 +670,8 @@
     "repeat_payers": 8,
     "total_received_usd": 505,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.43999999999999995,
+    "token_asset_share": 1,
+    "top_payer_share": 0.43999999999999995,
     "dormancy_days": 4,
     "identity": {
       "claims_org": null,
@@ -670,7 +696,8 @@
     "repeat_payers": 10,
     "total_received_usd": 625,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.39999999999999997,
+    "token_asset_share": 1,
+    "top_payer_share": 0.39999999999999997,
     "dormancy_days": 0,
     "identity": {
       "claims_org": null,
@@ -695,7 +722,8 @@
     "repeat_payers": 12,
     "total_received_usd": 745,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.36,
+    "token_asset_share": 1,
+    "top_payer_share": 0.36,
     "dormancy_days": 1,
     "identity": {
       "claims_org": null,
@@ -720,7 +748,8 @@
     "repeat_payers": 14,
     "total_received_usd": 865,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.31999999999999995,
+    "token_asset_share": 1,
+    "top_payer_share": 0.31999999999999995,
     "dormancy_days": 2,
     "identity": {
       "claims_org": null,
@@ -745,7 +774,8 @@
     "repeat_payers": 16,
     "total_received_usd": 985,
     "appears_in_other_listings": 0,
-    "token_concentration": 0.27999999999999997,
+    "token_asset_share": 1,
+    "top_payer_share": 0.27999999999999997,
     "dormancy_days": 3,
     "identity": {
       "claims_org": null,
@@ -770,7 +800,8 @@
     "repeat_payers": 18,
     "total_received_usd": 1105,
     "appears_in_other_listings": 1,
-    "token_concentration": 0.24,
+    "token_asset_share": 1,
+    "top_payer_share": 0.24,
     "dormancy_days": 4,
     "identity": {
       "claims_org": null,

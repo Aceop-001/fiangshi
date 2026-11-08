@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { auditReport, buildSample, type AuditRaw } from "../scripts/audit.js";
-import { signalsFromSurf } from "../src/adapters/surf.js";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { auditReport, buildSample, creditsUsedTodayUtc, shapeOf, type ReportInputs } from "../scripts/audit.js";
+import { signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
+import { tmp } from "./helpers.js";
 
-const smoke = JSON.parse(readFileSync("fixtures/surf/smoke-12payees.json", "utf8")) as { rows: AuditRaw["rows"] };
-const labels = (JSON.parse(readFileSync("fixtures/surf/labels-12payees.json", "utf8")) as { envelope: { data: AuditRaw["labels"] } }).envelope.data;
+const smoke = JSON.parse(readFileSync("fixtures/surf/smoke-12payees.json", "utf8")) as { rows: SurfPayeeRow[] };
+const labels = (JSON.parse(readFileSync("fixtures/surf/labels-12payees.json", "utf8")) as { envelope: { data: SurfWalletLabel[] } }).envelope.data;
 const U = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 
 describe("audit sample", () => {
@@ -27,14 +29,33 @@ describe("audit sample", () => {
 describe("signalsFromSurf", () => {
   const now = 1794150000;
   it("maps a real row; token-contract funder becomes missing", () => {
-    const r = smoke.rows.find((x) => x.payee.startsWith("0x480cd46e"))!; // first_inbound_from = USDC contract
+    const r = smoke.rows.find((x) => x.payee.startsWith("0x480cd46e"))!;
     const s = signalsFromSurf(r, { now, windowStart: now - 365 * 86400, tokenContracts: [U] });
     expect(s.first_funder).toBeNull();
     expect(s.tx_count).toBe((r.inbound_count ?? 0) + (r.outbound_count ?? 0));
   });
   it("payee with no rows -> all activity missing (silence), not zeros", () => {
     const s = signalsFromSurf({ payee: "0x" + "c".repeat(40) }, { now, windowStart: now - 365 * 86400, tokenContracts: [] });
-    expect([s.wallet_age_hours, s.tx_count, s.distinct_payers]).toEqual([null, null, null]);
+    expect([s.wallet_age_hours, s.tx_count, s.distinct_payers, s.top_payer_share]).toEqual([null, null, null, null]);
+  });
+  it("passes top_payer_share through for E v2", () => {
+    const s = signalsFromSurf({ payee: "0x" + "d".repeat(40), first_inbound_at: now - 9e6, inbound_count: 5, distinct_inbound_senders: 3, top_payer_share: 0.42 }, { now, windowStart: now - 365 * 86400, tokenContracts: [] });
+    expect(s.top_payer_share).toBe(0.42);
+  });
+});
+
+describe("free-tier credit accounting", () => {
+  it("sums only today's surf rows from costs.md", () => {
+    const p = join(tmp(), "costs.md");
+    writeFileSync(p, ["| time | provider | label | call | units | status |", "| 2026-11-08T01:00:00Z | surf | x | 1/60 | 5 | ok |", "| 2026-11-08T02:00:00Z | surf | y | 2/60 | 1 | ok |", "| 2026-11-07T23:00:00Z | surf | z | 3/60 | 5 | ok |", "| 2026-11-08T03:00:00Z | serv | m | 1/100 | 900 | ok |"].join("\n"));
+    expect(creditsUsedTodayUtc(p, "2026-11-08")).toBe(6);
+  });
+});
+
+describe("shapeOf (unparseable 402 description)", () => {
+  it("names body keys and payment headers without interpreting them", () => {
+    expect(shapeOf({ status: 402, headers: { "www-authenticate": "L402 x" }, body: { error: "pay", price: 1 } })).toBe("JSON keys {error, price}; payment headers [www-authenticate]");
+    expect(shapeOf({ status: 402, headers: {}, body: "" })).toBe("empty body; payment headers [none]");
   });
 });
 
@@ -43,15 +64,26 @@ describe("audit report (dry run on the real 12-payee data, 0 credits)", () => {
     smoke.rows.map((r) => ({ resource: `https://${r.payee.slice(2, 8)}.example/`, serviceName: null, network: "eip155:8453", payTo: r.payee, amount: "1000", asset: U })),
     200,
   );
-  const md = auditReport(sample, { ran_at: "2026-11-08T16:24:30Z", days: 365, rows: smoke.rows, funder_rows: [], labels });
-  it("has every required section", () => {
-    for (const h of ["endpoints → payees ratio", "Wallet age (lower bound", "Funder clusters (exchanges excluded)", "Policy bands", "Caveats"]) expect(md).toContain(h);
+  const inp: ReportInputs = {
+    sample,
+    cp: { payee_rows: Object.fromEntries(smoke.rows.map((r) => [r.payee, r])), funder_rows: [], labels, labels_done: Array(23).fill("x"), calls: [{ label: "onchain-sql payee-inbound payees=12", ms: 4412, credits: 5, at: "2026-11-08T16:24:26Z" }], stopped: null, mode: "sync" },
+    ranAt: "2026-11-08T16:24:30Z",
+    probes: [{ status: 402, parsed: true, payee_matches_catalog: true }, { status: 405, parsed: false }],
+    unparsed: [{ url: "https://x.example/p", shape: "HTTP 402; empty body; payment headers [none]" }],
+    knownPair: { funder: "0x5609e41fbd5dc6184ccbd161eafff1060b7660f6", payees: [{ payee: "0x3da40a9ad36640a2c0f533bac368490095574664", host: "crypto.apitoll.cloud" }, { payee: "0x58bdad5e654691ac5ed4631758f3d8da00666b6c", host: "edgar.apitoll.cloud" }] },
+  };
+  const md = auditReport(inp);
+  it("has every required section and a buyer sentence per finding", () => {
+    for (const h of ["## Method", "## Census", "coverage", "LOWER BOUNDS", "Funder clusters (exchanges excluded)", "## Live probes", "unparseable 402 shapes", "## Labels", "6/23", "## Billing (measured)", "| 4 |", "Policy bands (E v2", "E v1 → v2"]) expect(md).toContain(h);
+    expect((md.match(/\*For a buyer:\*/g) ?? []).length).toBeGreaterThanOrEqual(7);
   });
-  it("finds the apitoll shared-funder cluster and counts CEX exclusion by label", () => {
+  it("names the apitoll pair and the in-sample shared-funder cluster", () => {
+    expect(md).toContain("crypto.apitoll.cloud");
+    expect(md).toContain("edgar.apitoll.cloud");
     expect(md).toMatch(/0x5609e4…60f6 \| 2 \| no/);
-    expect(md).toMatch(/by Surf `entity_type: cex` label/);
   });
-  it("counts the laso.finance payee as floored at the window start", () => {
+  it("counts the laso.finance payee as floored and reports coverage", () => {
     expect(md).toMatch(/floored at window start\) \| [1-9]/);
+    expect(md).toContain("12 of 12 payees audited");
   });
 });

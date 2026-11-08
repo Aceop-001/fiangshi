@@ -19,7 +19,8 @@ export function clean(over: Partial<PayeeSignals> = {}): PayeeSignals {
     repeat_payers: 30,
     total_received_usd: 9000,
     appears_in_other_listings: 1,
-    token_concentration: 0.1,
+    token_asset_share: 1,
+    top_payer_share: 0.15,
     dormancy_days: 0,
     identity: { claims_org: "Acme", claims_product: "Acme API", corroborated: true },
     evidence: {

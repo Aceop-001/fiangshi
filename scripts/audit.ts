@@ -1,29 +1,31 @@
 /**
  * Payee audit over the x402 Bazaar catalog. Mechanical: enumerate -> dedupe -> sample -> probe -> batched Surf -> report.
  *
- *   npx tsx scripts/audit.ts sample [--n 200]        0 credits. data/bazaar/resources.jsonl -> fixtures/audit/sample.json
- *   npx tsx scripts/audit.ts probe                   0 credits. one unpaid GET per sampled payee, 1 req/sec -> fixtures/audit/probes.jsonl
- *   npx tsx scripts/audit.ts run                     credits. 3 SQL + ceil(addresses/100) label calls -> fixtures/audit/raw.json
- *   npx tsx scripts/audit.ts report [--raw f] [--labels f]   0 credits -> artifacts/audit.md
+ *   npx tsx scripts/audit.ts sample [--n 200] [--out f]   0 credits. data/bazaar/resources.jsonl -> fixtures/audit/sample.json
+ *   npx tsx scripts/audit.ts probe                         0 credits. 1 unpaid GET per sampled payee, 1 req/sec -> probes.jsonl
+ *   npx tsx scripts/audit.ts reprobe-unparsed              0 credits. re-GET only the 402s the parser rejected, save raw shapes
+ *   npx tsx scripts/audit.ts run [--sample f] [--batch N] [--gate-ms 24000]
+ *        Staged + checkpointed (fixtures/audit/checkpoint-<sample>.json); re-running resumes.
+ *        No SURF_API_KEY: sync calls; first batch is timed and later batches run only if every call took <= gate-ms.
+ *                         Each call checks today's remaining free-tier credits first and checkpoints + stops if short.
+ *        SURF_API_KEY set : async jobs (onchain-sql-job-create) per batch, same single-branch SQL.
+ *   npx tsx scripts/audit.ts report [--sample f]           0 credits -> artifacts/audit.md
  *
- * Sample = Base (eip155:8453) payees, deduped, ordered by sha256(payee): reproducible and unbiased by catalog order.
- * `run` refuses to start if the estimated credits exceed what is left of today's free tier (from artifacts/costs.md),
- * unless SURF_API_KEY is set.
+ * Sample = Base (eip155:8453) payees, deduped, ordered by sha256(payee): reproducible, not biased by catalog order.
  */
 import { spawnSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parse402 } from "../src/adapters/probe.js";
 import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
 import { sha256 } from "../src/core/canonical.js";
-import { components, score } from "../src/core/score.js";
-import { decidingVow, evaluateVows } from "../src/core/vows.js";
-import { bandForScore, minBand, type Band, type PayeeSignals } from "../src/core/types.js";
+import type { Band, PayeeSignals } from "../src/core/types.js";
 import { loadDotEnv } from "../src/config.js";
+import { diffE, policyBand } from "../src/policy.js";
 import { computeFanout } from "../src/snapshot.js";
 import { guarded } from "./budget.js";
-import { runSync } from "./surf/payee-facts.js";
+import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const AUD = join(ROOT, "fixtures", "audit");
@@ -31,6 +33,8 @@ const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 const FREE_PER_DAY = 30;
 const DAYS = 365;
+const COST = { sql: 5, labels: 1 } as const; // measured 2026-11-08 (docs: 4 and 4)
+const ADDR = /^0x[0-9a-f]{40}$/;
 
 interface CatalogRow { resource: string | null; serviceName: string | null; network: string | null; payTo: string | null; amount: string | null; asset: string | null }
 export interface SamplePayee { payee: string; resources: number; example_url: string; service: string | null; price_usd: number | null }
@@ -42,10 +46,11 @@ export interface Sample {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const readJsonl = <T>(p: string): T[] => readFileSync(p, "utf8").split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l) as T);
+const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-4)}`;
 
 // ---------- sample (0 credits)
 export function buildSample(rows: CatalogRow[], n: number): Sample {
-  const base = rows.filter((r) => r.network === "eip155:8453" && r.payTo && /^0x[0-9a-f]{40}$/.test(r.payTo));
+  const base = rows.filter((r) => r.network === "eip155:8453" && r.payTo && ADDR.test(r.payTo));
   const byPayee = new Map<string, CatalogRow[]>();
   for (const r of base) (byPayee.get(r.payTo!) ?? byPayee.set(r.payTo!, []).get(r.payTo!)!).push(r);
   const ordered = [...byPayee.keys()].sort((a, b) => sha256(a).localeCompare(sha256(b)));
@@ -57,7 +62,7 @@ export function buildSample(rows: CatalogRow[], n: number): Sample {
   });
   const top = [...byPayee.entries()].map(([payee, rs]) => ({ payee, resources: rs.length })).sort((a, b) => b.resources - a.resources).slice(0, 10);
   return {
-    method: `Base (eip155:8453) payTo from the x402 Bazaar catalog, deduped, ordered by sha256(payee), first ${n}`,
+    method: `Base (eip155:8453) payTo from the x402 Bazaar catalog, deduped, ordered by sha256(payee), first ${Math.min(n, byPayee.size)}`,
     catalog: {
       resources: rows.length,
       base_resources: base.length,
@@ -70,25 +75,30 @@ export function buildSample(rows: CatalogRow[], n: number): Sample {
   };
 }
 
-// ---------- probe (0 credits)
+// ---------- probes (0 credits)
+async function getRaw(url: string) {
+  const res = await fetch(url, { method: "GET", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { accept: "application/json" } });
+  const headers: Record<string, string> = {};
+  res.headers.forEach((v, k) => (headers[k] = v));
+  const text = await res.text();
+  let body: unknown = text.slice(0, 4000);
+  try {
+    body = JSON.parse(text);
+  } catch {
+    /* keep text */
+  }
+  return { url, status: res.status, headers, body };
+}
+
 async function probeSample(sample: Sample): Promise<void> {
   const out = join(AUD, "probes.jsonl");
   writeFileSync(out, "");
   for (const p of sample.payees) {
     let line: Record<string, unknown> = { payee: p.payee, url: p.example_url };
     try {
-      const res = await fetch(p.example_url, { method: "GET", redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { accept: "application/json" } });
-      const headers: Record<string, string> = {};
-      res.headers.forEach((v, k) => (headers[k] = v));
-      const text = await res.text();
-      let body: unknown = text.slice(0, 4000);
-      try {
-        body = JSON.parse(text);
-      } catch {
-        /* keep text */
-      }
-      const parsed = parse402({ url: p.example_url, status: res.status, headers, body });
-      line = { ...line, status: res.status, parsed: parsed.ok, live_payee: parsed.ok ? parsed.terms.payee : null, payee_matches_catalog: parsed.ok ? parsed.terms.payee === p.payee : null, price: parsed.ok ? parsed.terms.price : null, error: parsed.ok ? null : parsed.error };
+      const raw = await getRaw(p.example_url);
+      const parsed = parse402(raw);
+      line = { ...line, status: raw.status, parsed: parsed.ok, live_payee: parsed.ok ? parsed.terms.payee : null, payee_matches_catalog: parsed.ok ? parsed.terms.payee === p.payee : null, price: parsed.ok ? parsed.terms.price : null, error: parsed.ok ? null : parsed.error };
     } catch (e) {
       line = { ...line, status: null, parsed: false, error: (e as Error).message.slice(0, 120) };
     }
@@ -97,161 +107,321 @@ async function probeSample(sample: Sample): Promise<void> {
   }
 }
 
+/** Describe a 402 the parser rejected: which keys/headers it has, without guessing what they mean. */
+export function shapeOf(raw: { status: number; headers: Record<string, string>; body: unknown }): string {
+  const hdrs = Object.keys(raw.headers).filter((k) => /payment|x402|www-auth|l402|price/i.test(k));
+  const b = raw.body;
+  let bodyDesc: string;
+  if (b === null || b === undefined || b === "") bodyDesc = "empty body";
+  else if (typeof b === "string") bodyDesc = `text body (${b.trim().slice(0, 40).replace(/\s+/g, " ")}…)`;
+  else if (Array.isArray(b)) bodyDesc = `JSON array`;
+  else {
+    const o = b as Record<string, unknown>;
+    const acc = Array.isArray(o.accepts) ? o.accepts[0] : undefined;
+    bodyDesc = `JSON keys {${Object.keys(o).slice(0, 8).join(", ")}}` + (acc && typeof acc === "object" ? ` · accepts[0] keys {${Object.keys(acc as object).slice(0, 10).join(", ")}}` : "");
+  }
+  return `${bodyDesc}; payment headers [${hdrs.join(", ") || "none"}]`;
+}
+
+async function reprobeUnparsed(): Promise<void> {
+  const probes = readJsonl<Record<string, unknown>>(join(AUD, "probes.jsonl")).filter((p) => p.status === 402 && p.parsed === false);
+  const dir = join(AUD, "unparsed");
+  mkdirSync(dir, { recursive: true });
+  for (const p of probes) {
+    try {
+      const raw = await getRaw(String(p.url));
+      writeFileSync(join(dir, `${new URL(String(p.url)).host}.json`), JSON.stringify(raw, null, 2) + "\n");
+      console.log(`${raw.status} ${p.url} :: ${shapeOf(raw)}`);
+    } catch (e) {
+      console.log(`ERR ${p.url} ${(e as Error).message}`);
+    }
+    await sleep(1000);
+  }
+}
+
 // ---------- run (credits)
-function creditsUsedTodayUtc(): number {
-  const p = join(ROOT, "artifacts", "costs.md");
-  if (!existsSync(p)) return 0;
-  const today = new Date().toISOString().slice(0, 10);
-  return readFileSync(p, "utf8")
+interface Checkpoint {
+  sample: string;
+  mode: "sync" | "async";
+  batch: number;
+  payee_rows: Record<string, SurfPayeeRow>;
+  batches_done: number[];
+  funders_done: boolean;
+  funder_rows: SurfPayeeRow[];
+  labels_done: string[];
+  labels: SurfWalletLabel[];
+  calls: { label: string; ms: number; credits: number | null; at: string }[];
+  stopped: string | null;
+}
+
+export function creditsUsedTodayUtc(costsMd = join(ROOT, "artifacts", "costs.md"), today = new Date().toISOString().slice(0, 10)): number {
+  if (!existsSync(costsMd)) return 0;
+  return readFileSync(costsMd, "utf8")
     .split("\n")
     .filter((l) => l.startsWith(`| ${today}`) && l.includes("| surf |"))
     .reduce((a, l) => a + (Number(l.split("|")[5]?.trim()) || 0), 0);
 }
 
-function labelsCall(addrs: string[]): Promise<{ data: SurfWalletLabel[]; credits: number | null }> {
+function labelsCall(addrs: string[]): Promise<{ data: SurfWalletLabel[]; credits: number | null; ms: number }> {
+  const t = Date.now();
   return guarded("surf", `wallet-labels-batch n=${addrs.length}`, async () => {
     const r = spawnSync(SURF, ["wallet-labels-batch", "--addresses", addrs.join(","), "--json"], { encoding: "utf8", timeout: 60_000 });
     const j = JSON.parse(r.stdout || "{}") as { error?: { code: string; message: string }; meta?: { credits_used?: number }; data?: SurfWalletLabel[] };
     if (j.error) throw new Error(`${j.error.code}: ${j.error.message}`);
-    return { value: { data: j.data ?? [], credits: j.meta?.credits_used ?? null }, units: j.meta?.credits_used ?? null };
+    return { value: { data: j.data ?? [], credits: j.meta?.credits_used ?? null, ms: Date.now() - t }, units: j.meta?.credits_used ?? null };
   });
 }
 
-async function runAudit(sample: Sample): Promise<void> {
-  const payees = sample.payees.map((p) => p.payee);
-  const labelCallsMax = Math.ceil((payees.length * 2) / 100);
-  const estimate = 3 * 5 + labelCallsMax * 1;
-  const used = creditsUsedTodayUtc();
-  if (!process.env.SURF_API_KEY && used + estimate > FREE_PER_DAY)
-    throw new Error(`free tier: ${used} credits used today (UTC), run needs ~${estimate}; ${FREE_PER_DAY - used} left. Retry after 00:00 UTC or set SURF_API_KEY.`);
-  console.log(`estimate ~${estimate} credits (used today ${used}/${FREE_PER_DAY})`);
+class StopRun extends Error {}
 
-  const t0 = Date.now();
-  const payeePass = await runSync(payees, DAYS); // inbound + outbound over all payees: 2 calls
-  const funders = [...new Set(payeePass.rows.map((r) => String(r.first_inbound_from ?? "")).filter((a) => /^0x[0-9a-f]{40}$/.test(a)))];
-  const funderPass = funders.length ? await runSync(funders, DAYS, ["payee-outbound"]) : { calls: [], rows: [] }; // 1 call
-  const addrs = [...new Set([...payees, ...funders])];
-  const labels: SurfWalletLabel[] = [];
-  const labelCredits: (number | null)[] = [];
-  for (let i = 0; i < addrs.length; i += 100) {
-    const r = await labelsCall(addrs.slice(i, i + 100));
-    labels.push(...r.data);
-    labelCredits.push(r.credits);
-  }
-  const raw = {
-    ran_at: new Date().toISOString(),
-    days: DAYS,
-    ms: Date.now() - t0,
-    credits: { payee_calls: payeePass.calls.map((c) => c.credits), funder_calls: funderPass.calls.map((c) => c.credits), label_calls: labelCredits },
-    rows: payeePass.rows,
-    funder_rows: funderPass.rows,
-    labels,
+async function runAudit(sample: Sample, samplePath: string, batchSize: number, gateMs: number): Promise<Checkpoint> {
+  const keyed = Boolean(process.env.SURF_API_KEY);
+  const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
+  const cp: Checkpoint = existsSync(cpPath)
+    ? (JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint)
+    : { sample: basename(samplePath), mode: keyed ? "async" : "sync", batch: batchSize, payee_rows: {}, batches_done: [], funders_done: false, funder_rows: [], labels_done: [], labels: [], calls: [], stopped: null };
+  cp.stopped = null;
+  const save = () => writeFileSync(cpPath, JSON.stringify(cp, null, 1) + "\n");
+  const need = (credits: number, what: string) => {
+    if (keyed) return;
+    const left = FREE_PER_DAY - creditsUsedTodayUtc();
+    if (left < credits) throw new StopRun(`free tier: ${left} credits left today (UTC), ${what} needs ${credits}. Checkpoint saved; re-run after 00:00 UTC to resume.`);
   };
-  writeFileSync(join(AUD, "raw.json"), JSON.stringify(raw, null, 1) + "\n");
-  console.log(`run done in ${raw.ms}ms credits=${JSON.stringify(raw.credits)}`);
+  const log = (calls: Call[]) => {
+    for (const c of calls) {
+      cp.calls.push({ label: c.label, ms: c.ms, credits: c.credits, at: new Date().toISOString() });
+      console.log(`  ${c.label.padEnd(52)} credits=${c.credits} ${c.ms}ms`);
+    }
+  };
+  const sqlPass = async (addrs: string[], templates: readonly ("payee-inbound" | "payee-outbound")[]) => {
+    const out: Record<string, unknown>[] = [];
+    for (const t of templates) {
+      need(COST.sql, t);
+      const r = keyed ? await runAsync(addrs, DAYS, t) : await runSync(addrs, DAYS, [t]);
+      log(r.calls);
+      const byPayee = new Map(out.map((x) => [String(x.payee), x]));
+      for (const row of r.rows) {
+        const prev = byPayee.get(String(row.payee));
+        if (prev) Object.assign(prev, row);
+        else out.push({ ...row });
+      }
+      save();
+    }
+    return { rows: out };
+  };
+
+  const payees = sample.payees.map((p) => p.payee);
+  const batches: string[][] = [];
+  for (let i = 0; i < payees.length; i += batchSize) batches.push(payees.slice(i, i + batchSize));
+
+  try {
+    for (let b = 0; b < batches.length; b++) {
+      if (cp.batches_done.includes(b)) continue;
+      console.log(`batch ${b + 1}/${batches.length}: ${batches[b]!.length} payees`);
+      const before = cp.calls.length;
+      const { rows } = await sqlPass(batches[b]!, ["payee-inbound", "payee-outbound"]);
+      for (const p of batches[b]!) cp.payee_rows[p] = { payee: p, ...(rows.find((r) => r.payee === p) ?? {}) } as SurfPayeeRow;
+      cp.batches_done.push(b);
+      save();
+      const slowest = Math.max(...cp.calls.slice(before).map((c) => c.ms));
+      console.log(`  batch ${b + 1} slowest call ${slowest}ms (gate ${gateMs}ms)`);
+      if (!keyed && slowest > gateMs && b < batches.length - 1)
+        throw new StopRun(`batch ${b + 1} slowest call ${slowest}ms > ${gateMs}ms gate (30s sync timeout with 20% margin). Stopped; re-run with a smaller --batch.`);
+    }
+    const funders = [...new Set(Object.values(cp.payee_rows).map((r) => String(r.first_inbound_from ?? "")).filter((a) => ADDR.test(a)))];
+    if (!cp.funders_done && funders.length) {
+      console.log(`funders: ${funders.length}`);
+      const rows: SurfPayeeRow[] = [];
+      for (let i = 0; i < funders.length; i += batchSize) rows.push(...((await sqlPass(funders.slice(i, i + batchSize), ["payee-outbound"])).rows as unknown as SurfPayeeRow[]));
+      cp.funder_rows = rows;
+      cp.funders_done = true;
+      save();
+    }
+    const addrs = [...new Set([...payees, ...funders])].filter((a) => !cp.labels_done.includes(a));
+    for (let i = 0; i < addrs.length; i += 100) {
+      const chunk = addrs.slice(i, i + 100);
+      need(COST.labels, "wallet-labels-batch");
+      const r = await labelsCall(chunk);
+      cp.labels.push(...r.data);
+      cp.labels_done.push(...chunk);
+      cp.calls.push({ label: `wallet-labels-batch n=${chunk.length}`, ms: r.ms, credits: r.credits, at: new Date().toISOString() });
+      console.log(`  wallet-labels-batch n=${chunk.length}`.padEnd(54) + ` credits=${r.credits} ${r.ms}ms`);
+      save();
+    }
+  } catch (e) {
+    cp.stopped = (e as Error).message;
+    save();
+    if (!(e instanceof StopRun)) throw e;
+    console.log(`STOPPED: ${cp.stopped}`);
+    return cp;
+  }
+  console.log(`complete: ${Object.keys(cp.payee_rows).length} payees, credits ${cp.calls.reduce((a, c) => a + (c.credits ?? 0), 0)}`);
+  return cp;
 }
 
 // ---------- report (0 credits)
-export interface AuditRaw { ran_at: string; days: number; rows: SurfPayeeRow[]; funder_rows: SurfPayeeRow[]; labels: SurfWalletLabel[]; credits?: unknown; ms?: number }
-
 const AGE_BUCKETS: [string, number][] = [["< 48h", 48], ["48h – 7d", 168], ["7 – 30d", 720], ["30 – 90d", 2160], ["90 – 365d", 8760]];
 
-export function auditReport(sample: Sample, raw: AuditRaw, probes: Record<string, unknown>[] = []): string {
-  const now = Math.floor(Date.parse(raw.ran_at) / 1000);
-  const windowStart = now - raw.days * 86_400;
-  const outByFunder = Object.fromEntries(raw.funder_rows.map((r) => [r.payee.toLowerCase(), r.distinct_outbound_receivers ?? 0]));
-  const { labels: funderLabels, tokenContracts } = funderLabelsFromSurf(raw.labels, outByFunder);
-  const labelOf = new Map(raw.labels.map((l) => [l.address.toLowerCase(), l]));
-  const rowOf = new Map(raw.rows.map((r) => [r.payee.toLowerCase(), r]));
-  const priceOf = new Map(sample.payees.map((p) => [p.payee, p.price_usd]));
+export interface ReportInputs {
+  sample: Sample;
+  cp: Pick<Checkpoint, "payee_rows" | "funder_rows" | "labels" | "labels_done" | "calls" | "stopped" | "mode">;
+  ranAt: string;
+  probes?: Record<string, unknown>[];
+  unparsed?: { url: string; shape: string; parsesNow?: boolean }[];
+  knownPair?: { payees: { payee: string; host: string }[]; funder: string } | null;
+}
 
-  let signals: PayeeSignals[] = sample.payees.map((p) => {
+export function auditReport(inp: ReportInputs): string {
+  const { sample, cp } = inp;
+  const probes = inp.probes ?? [];
+  const now = Math.floor(Date.parse(inp.ranAt) / 1000);
+  const windowStart = now - DAYS * 86_400;
+  const outByFunder = Object.fromEntries(cp.funder_rows.map((r) => [r.payee.toLowerCase(), r.distinct_outbound_receivers ?? 0]));
+  const { labels: funderLabels, tokenContracts } = funderLabelsFromSurf(cp.labels, outByFunder);
+  const labelOf = new Map(cp.labels.map((l) => [l.address.toLowerCase(), l]));
+  const priceOf = new Map(sample.payees.map((p) => [p.payee, p.price_usd]));
+  const audited = sample.payees.filter((p) => cp.payee_rows[p.payee]);
+
+  let signals: PayeeSignals[] = audited.map((p) => {
     const l = labelOf.get(p.payee);
-    return signalsFromSurf(rowOf.get(p.payee) ?? { payee: p.payee }, {
-      now,
-      windowStart,
-      tokenContracts,
-      identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined,
-    });
+    return signalsFromSurf(cp.payee_rows[p.payee]!, { now, windowStart, tokenContracts, identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined });
   });
   const fan = computeFanout(signals, { labels: funderLabels, edges: {} });
   signals = signals.map((s) => (s.first_funder ? { ...s, funder_fanout: fan.get(s.payee) ?? 0 } : s));
-
-  const evals = signals.map((s) => {
-    const price = priceOf.get(s.payee) ?? null;
-    const sc = score(components(s, funderLabels));
-    const rows = evaluateVows({ signals: s, price, funder_labels: funderLabels });
-    const silence = rows.find((r) => r.vow === "silence")!.fired;
-    const dv = decidingVow(rows);
-    const band: Band = minBand(silence ? "REVIEW" : bandForScore(sc), dv?.band ?? "ALLOW");
-    return { s, sc, band, vow: dv?.vow ?? null, fired: rows.filter((r) => r.fired).map((r) => r.vow) };
-  });
+  const items = signals.map((s) => ({ s, price: priceOf.get(s.payee) ?? null }));
+  const v2 = items.map((x) => ({ ...x, r: policyBand(x.s, x.price, funderLabels, "v2") }));
+  const diff = diffE(items, funderLabels);
 
   const n = signals.length;
+  const total = sample.catalog.distinct_base_payees;
+  const pct = (x: number, d = n) => `${((100 * x) / Math.max(1, d)).toFixed(1)}%`;
   const active = signals.filter((s) => s.wallet_age_hours !== null);
   const floored = active.filter((s) => s.wallet_age_hours! >= (now - windowStart) / 3600 - 24);
   const buckets = AGE_BUCKETS.map(([name, max], i) => {
     const min = i === 0 ? 0 : AGE_BUCKETS[i - 1]![1];
     return [name, active.filter((s) => s.wallet_age_hours! >= min && s.wallet_age_hours! < max && !floored.includes(s)).length] as const;
   });
-  const pct = (x: number) => `${((100 * x) / Math.max(1, n)).toFixed(1)}%`;
+  const young = buckets[0]![1];
 
   const clusters = new Map<string, string[]>();
   for (const s of signals) if (s.first_funder && funderLabels[s.first_funder] !== "cex") (clusters.get(s.first_funder) ?? clusters.set(s.first_funder, []).get(s.first_funder)!).push(s.payee);
   const multi = [...clusters.entries()].filter(([, ps]) => ps.length >= 2).sort((a, b) => b[1].length - a[1].length);
   const cexFunded = signals.filter((s) => s.first_funder && funderLabels[s.first_funder] === "cex");
   const viaLabel = cexFunded.filter((s) => labelOf.get(s.first_funder!)?.entity_type?.toLowerCase() === "cex").length;
+  const labelledCount = cp.labels.length;
+  const labelQueried = cp.labels_done.length;
 
   const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
-  evals.forEach((e) => bands[e.band]++);
+  v2.forEach((e) => bands[e.r.band]++);
   const vowCount = new Map<string, number>();
-  evals.forEach((e) => e.fired.forEach((v) => vowCount.set(v, (vowCount.get(v) ?? 0) + 1)));
-  const concOne = signals.filter((s) => s.token_concentration !== null && s.token_concentration >= 0.99).length;
+  v2.forEach((e) => e.r.fired.forEach((v) => vowCount.set(v, (vowCount.get(v) ?? 0) + 1)));
+  const tokenOne = signals.filter((s) => s.token_asset_share !== null && s.token_asset_share >= 0.99).length;
 
-  const probed = probes.length;
+  const sqlCalls = cp.calls.filter((c) => c.label.startsWith("onchain-sql") && !/job-(get|results)/.test(c.label));
+  const labelCalls = cp.calls.filter((c) => c.label.startsWith("wallet-labels"));
+  const credits = cp.calls.reduce((a, c) => a + (c.credits ?? 0), 0);
+  const sqlCredits = [...new Set(sqlCalls.map((c) => c.credits))];
+  const slowest = sqlCalls.length ? Math.max(...sqlCalls.map((c) => c.ms)) : 0;
+
   const p402 = probes.filter((p) => p.status === 402).length;
   const pParsed = probes.filter((p) => p.parsed === true).length;
   const rotated = probes.filter((p) => p.payee_matches_catalog === false);
+  const dist: Record<string, number> = {};
+  probes.forEach((p) => (dist[String(p.status ?? "error")] = (dist[String(p.status ?? "error")] ?? 0) + 1));
+  const top = sample.catalog.top_payees[0];
 
-  const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-4)}`;
   const L: string[] = [];
-  L.push(`# Payee audit — x402 Bazaar, Base`, ``);
-  L.push(`Generated by \`npx tsx scripts/audit.ts report\` from \`fixtures/audit/{sample.json,raw.json,probes.jsonl}\`. Surf data as of ${raw.ran_at} (${raw.days}-day window).`, ``);
-  L.push(`## Catalog`, ``);
+  L.push(`# Payee audit — x402 Bazaar catalog, Base`, ``);
+  L.push(`Generated by \`npx tsx scripts/audit.ts report\` from \`fixtures/audit/\` (sample, checkpoint, probes). Surf data through ${inp.ranAt}; ${DAYS}-day window.${cp.stopped ? ` **Run incomplete:** ${cp.stopped}` : ""}`, ``);
+
+  L.push(`## Method`, ``);
+  L.push(`1. Enumerated the public Bazaar catalog (\`scripts/enumerate-bazaar.ts\`, 0 credits): every resource with its \`accepts[0].payTo\`, network and price.`);
+  L.push(`2. Deduped Base (\`eip155:8453\`) payees. ${sample.method}.`);
+  L.push(`3. Probed one live endpoint per sampled payee, unpaid (1 req/sec, 0 credits), to check the catalog payee against the live 402.`);
+  L.push(`4. Ran batched Surf SQL over \`agent.base_transfers\`: payee inbound + payee outbound + funder outbound. Each query covers the whole batch, never one payee at a time. Then \`wallet-labels-batch\` in groups of ≤100 addresses.`);
+  L.push(`5. Scored with the deterministic policy (score + vows, no model) under **E v2** (payer concentration).`, ``);
+
+  L.push(`## Census`, ``);
   L.push(`| metric | value |`, `|---|---|`);
-  L.push(`| catalog resources | ${sample.catalog.resources} |`, `| Base resources | ${sample.catalog.base_resources} (${sample.catalog.base_usdc_resources} priced in USDC) |`);
-  L.push(`| distinct Base payees | ${sample.catalog.distinct_base_payees} |`, `| **endpoints → payees ratio** | **${sample.catalog.endpoints_per_payee} resources per payee** |`);
-  L.push(`| largest payee | ${sample.catalog.top_payees[0] ? `${short(sample.catalog.top_payees[0].payee)} with ${sample.catalog.top_payees[0].resources} resources` : "-"} |`, ``);
-  L.push(`Sample: ${sample.method} → **${n} payees**.`, ``);
-  if (probed) {
-    L.push(`## Live probes (1 unpaid GET per sampled payee)`, ``);
-    L.push(`${probed} probed · ${p402} returned 402 · ${pParsed} parsed · **${rotated.length} payee mismatches** (live payTo ≠ catalog payTo).`, ``);
-    const dist: Record<string, number> = {};
-    probes.forEach((p) => (dist[String(p.status ?? "error")] = (dist[String(p.status ?? "error")] ?? 0) + 1));
-    L.push(`Status distribution: ${Object.entries(dist).sort((a, b) => b[1] - a[1]).map(([s, c]) => `${s}: ${c}`).join(" · ")}. 405 = POST-only resource probed with GET; 404 = dead listing; 200 = served without a paywall; ${p402 - pParsed} returned 402 in a shape the parser rejects (kept as REVIEW, not guessed).`, ``);
-    for (const r of rotated.slice(0, 10)) L.push(`- ${r.url}: catalog ${short(String(r.payee))} → live ${short(String(r.live_payee))}`);
-    if (rotated.length) L.push(``);
+  L.push(`| catalog resources | ${sample.catalog.resources.toLocaleString("en-US")} |`);
+  L.push(`| Base resources | ${sample.catalog.base_resources.toLocaleString("en-US")} (${pct(sample.catalog.base_resources, sample.catalog.resources)}; ${sample.catalog.base_usdc_resources.toLocaleString("en-US")} priced in USDC) |`);
+  L.push(`| distinct Base payees | ${total.toLocaleString("en-US")} |`);
+  L.push(`| **endpoints → payees** | **${sample.catalog.endpoints_per_payee} resources per payee** |`);
+  if (top) L.push(`| largest payee | ${short(top.payee)}: ${top.resources.toLocaleString("en-US")} resources (${pct(top.resources, sample.catalog.base_resources)} of Base) |`);
+  L.push(`| **coverage** | **${n} of ${total.toLocaleString("en-US")} payees audited (${pct(n, total)})** |`, ``);
+  L.push(`*For a buyer:* the catalog looks like ${sample.catalog.base_resources.toLocaleString("en-US")} sellers but is ${total.toLocaleString("en-US")} wallets. Diversifying across endpoints is not diversifying across counterparties.`, ``);
+
+  if (probes.length) {
+    L.push(`## Live probes (${probes.length} unpaid GETs, one per sampled payee)`, ``);
+    L.push(`| status | count | meaning |`, `|---|---|---|`);
+    const meaning: Record<string, string> = { "402": "paywall answered", "405": "POST-only resource, probed with GET", "404": "dead listing", "200": "served without a paywall", "401": "auth-gated", "400": "bad request without parameters", "502": "upstream error", "503": "unavailable", error: "network error / timeout" };
+    for (const [s, c] of Object.entries(dist).sort((a, b) => b[1] - a[1])) L.push(`| ${s} | ${c} | ${meaning[s] ?? ""} |`);
+    L.push(``, `${p402} returned 402 · ${pParsed} parsed · **${rotated.length} payee mismatches** (live \`payTo\` ≠ catalog).`, ``);
+    if (inp.unparsed?.length) {
+      L.push(`**${inp.unparsed.length} unparseable 402 shapes** at probe time (raw saved in \`fixtures/audit/unparsed/\`; failed closed, not guessed):`, ``);
+      for (const u of inp.unparsed) L.push(`- \`${u.url}\` — ${u.shape} — ${u.parsesNow ? "**parses after the multi-entry fix**" : "still rejected: no usable accepts[]"}`);
+      const fixedNow = inp.unparsed.filter((u) => u.parsesNow).length;
+      L.push(``, `Parser fix (validate each \`accepts[]\` entry on its own instead of the whole array): ${fixedNow} of ${inp.unparsed.length} now parse, so **${pParsed + fixedNow} of ${p402}** 402s are usable.`, ``);
+    }
+    L.push(`*For a buyer:* ${pct(probes.length - p402, probes.length)} of listed endpoints did not answer a plain GET with a 402. A catalog listing is not proof of a working paywall. Probe before you budget.`, ``);
   }
-  L.push(`## Wallet age (lower bound — first transfer within the ${raw.days}-day window)`, ``);
-  L.push(`| bucket | payees | share |`, `|---|---|---|`);
+
+  L.push(`## Wallet age — LOWER BOUNDS (first transfer within the ${DAYS}-day window)`, ``);
+  L.push(`| bucket (lower bound) | payees | share |`, `|---|---|---|`);
   for (const [b, c] of buckets) L.push(`| ${b} | ${c} | ${pct(c)} |`);
-  L.push(`| ≥ ${raw.days}d (floored at window start) | ${floored.length} | ${pct(floored.length)} |`, `| no transfers in window | ${n - active.length} | ${pct(n - active.length)} |`, ``);
+  L.push(`| ≥ ${DAYS}d (floored at window start) | ${floored.length} | ${pct(floored.length)} |`, `| no transfers in window | ${n - active.length} | ${pct(n - active.length)} |`, ``);
+  L.push(`*For a buyer:* ${young} payees (${pct(young)}) first appeared under 48h ago. The age vow BLOCKs them regardless of model advice. Every other age here is a floor, never an overstatement.`, ``);
+
   L.push(`## Funder clusters (exchanges excluded)`, ``);
-  L.push(`Exchange exclusion: ${cexFunded.length} payees CEX-funded (${viaLabel} by Surf \`entity_type: cex\` label, ${cexFunded.length - viaLabel} by fanout ≥ 500 heuristic). Token contracts as "first funder": ${tokenContracts.length} (treated as missing).`, ``);
-  L.push(`Clusters are 1-hop (shared direct first funder) within the sample; the kinship vow fires at ≥ 3 *other* payees.`, ``);
+  L.push(`Exchange exclusion: ${cexFunded.length} payees are CEX-funded (${viaLabel} by Surf \`entity_type: cex\` label, ${cexFunded.length - viaLabel} by the fanout ≥ 500 heuristic). ${tokenContracts.length} token contracts showed up as "first funder" and are treated as missing.`, ``);
+  if (inp.knownPair) L.push(`Known pair (12-endpoint probe, 2026-11-08): **${inp.knownPair.payees.map((p) => `${p.host} (${short(p.payee)})`).join(" and ")}** share first funder ${short(inp.knownPair.funder)}.`, ``);
   if (multi.length) {
+    L.push(`Clusters in the audited set. These are 1-hop: payees sharing a direct, non-exchange first funder. The kinship vow fires at ≥ 3 *other* payees.`, ``);
     L.push(`| funder | payees | kinship fires |`, `|---|---|---|`);
-    for (const [f, ps] of multi.slice(0, 15)) L.push(`| ${short(f)} | ${ps.length} | ${ps.length >= 4 ? "yes" : "no"} |`);
-  } else L.push(`No shared non-exchange funders in the sample.`);
-  L.push(``, `## Policy bands (deterministic score + vows, no model)`, ``);
+    for (const [f, ps] of multi.slice(0, 20)) L.push(`| ${short(f)} | ${ps.length} | ${ps.length >= 4 ? "yes" : "no"} |`);
+  } else L.push(`No shared non-exchange funders in the audited set.`);
+  L.push(``, `*For a buyer:* payees that share a non-exchange funder are probably one operator. Count them as one counterparty when you cap exposure.`, ``);
+
+  L.push(`## Labels`, ``);
+  L.push(`Label coverage: **${labelledCount}/${labelQueried}** addresses returned a Surf label in this run (phase 3d baseline: **6/23**). Unlabelled funders fall back to the fanout heuristic.`, ``);
+  L.push(`*For a buyer:* labels confirm exchanges where they exist, but most wallets are unlabelled. Missing identity is the norm, and it is scored as neutral, not as trust.`, ``);
+
+  L.push(`## Billing (measured)`, ``);
+  L.push(`| call | count | credits / call (measured) | documented |`, `|---|---|---|---|`);
+  L.push(`| on-chain SQL (${cp.mode}) | ${sqlCalls.length} | ${sqlCredits.join(", ") || "-"} | 4 |`);
+  L.push(`| wallet-labels-batch | ${labelCalls.length} | ${[...new Set(labelCalls.map((c) => c.credits))].join(", ") || "-"} | 4 |`);
+  L.push(``, `Total **${credits} credits** for ${n} payees. Slowest SQL call ${slowest} ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.`, ``);
+  L.push(`*For a buyer:* checking a counterparty costs a fixed amount per batch, so audits get cheaper per payee as they grow.`, ``);
+
+  L.push(`## Policy bands (E v2, deterministic score + vows, no model)`, ``);
   L.push(`| band | payees | share |`, `|---|---|---|`);
   for (const b of ["ALLOW", "REVIEW", "BLOCK"] as Band[]) L.push(`| ${b} | ${bands[b]} | ${pct(bands[b])} |`);
   L.push(``, `Vows fired: ${[...vowCount.entries()].map(([v, c]) => `${v} ${c}`).join(" · ") || "none"}.`, ``);
+  L.push(`E v1 → v2: **${diff.changed.length} of ${n} payees changed band** (v1 ${JSON.stringify(diff.v1)} → v2 ${JSON.stringify(diff.v2)}). ${tokenOne} of ${active.length} active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.`, ``);
+  L.push(`*For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.`, ``);
+
   L.push(`## Caveats`, ``);
-  L.push(`- Age is a floor: ${floored.length} payees sit at the window start, so their true age is ≥ ${raw.days}d. The 48h age vow is unaffected.`);
-  L.push(`- E (exposure) proxy: ${concOne}/${active.length} active payees have ≥ 99% of inbound USD in one token. x402 sellers are paid in USDC by design, so this proxy costs nearly every seller the full 10 points of E — it is not discriminative and should be redefined before scoring is trusted.`);
-  L.push(`- Identity is corroborated only where Surf has an \`entity_name\` label; Dolphin claim extraction is not wired yet.`);
+  L.push(`- Ages are floors. ${floored.length} payees sit at the window start, so their true age is ≥ ${DAYS}d. The 48h age vow is unaffected.`);
+  L.push(`- Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.`);
+  L.push(`- Identity counts as corroborated only where Surf has an \`entity_name\` label. Dolphin claim extraction is not wired into this audit.`);
+  L.push(`- E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.`);
   return L.join("\n") + "\n";
+}
+
+function knownPairFromSmoke(): ReportInputs["knownPair"] {
+  const p = join(ROOT, "fixtures", "surf", "smoke-12payees.json");
+  const real = join(ROOT, "fixtures", "402", "real");
+  if (!existsSync(p) || !existsSync(real)) return null;
+  const rows = (JSON.parse(readFileSync(p, "utf8")) as { rows: SurfPayeeRow[] }).rows;
+  const hostOf = new Map<string, string>();
+  for (const f of readdirSync(real)) {
+    const r = parse402(JSON.parse(readFileSync(join(real, f), "utf8")));
+    if (r.ok) hostOf.set(r.terms.payee, new URL(r.terms.url).host);
+  }
+  const byFunder = new Map<string, SurfPayeeRow[]>();
+  for (const r of rows) if (r.first_inbound_from) (byFunder.get(r.first_inbound_from) ?? byFunder.set(r.first_inbound_from, []).get(r.first_inbound_from)!).push(r);
+  const pair = [...byFunder.entries()].find(([, rs]) => rs.length >= 2 && rs.every((r) => hostOf.get(r.payee)?.endsWith("apitoll.cloud")));
+  return pair ? { funder: pair[0], payees: pair[1].map((r) => ({ payee: r.payee, host: hostOf.get(r.payee) ?? "?" })) } : null;
 }
 
 async function main() {
@@ -261,26 +431,38 @@ async function main() {
     return i >= 0 ? rest[i + 1] : undefined;
   };
   mkdirSync(AUD, { recursive: true });
-  const samplePath = join(AUD, "sample.json");
+  const samplePath = flag("--sample") ?? flag("--out") ?? join(AUD, "sample.json");
   if (cmd === "sample") {
     const s = buildSample(readJsonl<CatalogRow>(join(ROOT, "data", "bazaar", "resources.jsonl")), Number(flag("--n") ?? 200));
     writeFileSync(samplePath, JSON.stringify(s, null, 1) + "\n");
-    console.log(JSON.stringify(s.catalog, null, 1), `\nsample: ${s.payees.length} payees -> ${samplePath}`);
+    console.log(JSON.stringify({ ...s.catalog, top_payees: undefined }), `\nsample: ${s.payees.length} payees -> ${samplePath}`);
   } else if (cmd === "probe") {
     await probeSample(JSON.parse(readFileSync(samplePath, "utf8")) as Sample);
-    console.log("probes -> fixtures/audit/probes.jsonl");
+  } else if (cmd === "reprobe-unparsed") {
+    await reprobeUnparsed();
   } else if (cmd === "run") {
-    await runAudit(JSON.parse(readFileSync(samplePath, "utf8")) as Sample);
+    const keyed = Boolean(process.env.SURF_API_KEY);
+    await runAudit(JSON.parse(readFileSync(samplePath, "utf8")) as Sample, samplePath, Number(flag("--batch") ?? (keyed ? 300 : 100)), Number(flag("--gate-ms") ?? 24_000));
   } else if (cmd === "report") {
-    const sample = JSON.parse(readFileSync(flag("--sample") ?? samplePath, "utf8")) as Sample;
-    const raw = JSON.parse(readFileSync(flag("--raw") ?? join(AUD, "raw.json"), "utf8")) as AuditRaw;
+    const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
+    const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
+    if (!existsSync(cpPath)) throw new Error(`no checkpoint at ${cpPath}; run first`);
+    const cp = JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint;
     const pp = join(AUD, "probes.jsonl");
-    const probes = existsSync(pp) && !flag("--sample") ? readJsonl<Record<string, unknown>>(pp) : [];
-    const out = flag("--out") ?? join(ROOT, "artifacts", "audit.md");
-    writeFileSync(out, auditReport(sample, raw, probes));
+    const ud = join(AUD, "unparsed");
+    const unparsed = existsSync(ud)
+      ? readdirSync(ud).map((f) => {
+          const raw = JSON.parse(readFileSync(join(ud, f), "utf8")) as { url: string; status: number; headers: Record<string, string>; body: unknown };
+          return { url: raw.url, shape: `HTTP ${raw.status}; ${shapeOf(raw)}`, parsesNow: parse402(raw as Parameters<typeof parse402>[0]).ok };
+        })
+      : [];
+    const ranAt = cp.calls.filter((c) => c.label.startsWith("onchain-sql")).map((c) => c.at).sort().pop() ?? new Date().toISOString();
+    const md = auditReport({ sample, cp, ranAt, probes: existsSync(pp) ? readJsonl(pp) : [], unparsed, knownPair: knownPairFromSmoke() });
+    const out = flag("--report") ?? join(ROOT, "artifacts", "audit.md");
+    writeFileSync(out, md);
     console.log(`report -> ${out}`);
   } else {
-    console.error("usage: audit.ts sample [--n N] | probe | run | report [--sample f --raw f --out f]");
+    console.error("usage: audit.ts sample [--n N --out f] | probe | reprobe-unparsed | run [--sample f --batch N --gate-ms ms] | report [--sample f]");
     process.exit(2);
   }
 }

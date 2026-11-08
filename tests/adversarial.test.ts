@@ -68,8 +68,8 @@ describe("adversarial", () => {
     expect(run({ wallet_age_hours: -1000 }).band).toBe("REVIEW");
   });
 
-  it("token_concentration 1.5 (out of range) -> missing -> REVIEW", () => {
-    expect(run({ token_concentration: 1.5 }).band).toBe("REVIEW");
+  it("top_payer_share 1.5 (out of range) -> missing -> REVIEW", () => {
+    expect(run({ top_payer_share: 1.5 }).band).toBe("REVIEW");
   });
 
   it("NaN tx_count -> missing -> REVIEW", () => {

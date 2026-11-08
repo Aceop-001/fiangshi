@@ -26,7 +26,8 @@ export function sanitize(s: PayeeSignals): PayeeSignals {
   const payee = s.payee.toLowerCase();
   let funder = s.first_funder ? s.first_funder.toLowerCase() : null;
   if (funder === payee || funder === "") funder = null;
-  const conc = nonNegNum(s.token_concentration);
+  const conc = nonNegNum(s.token_asset_share);
+  const top = nonNegNum(s.top_payer_share);
   return {
     ...s,
     payee,
@@ -38,7 +39,8 @@ export function sanitize(s: PayeeSignals): PayeeSignals {
     repeat_payers: nonNegNum(s.repeat_payers),
     total_received_usd: nonNegNum(s.total_received_usd),
     appears_in_other_listings: nonNegNum(s.appears_in_other_listings),
-    token_concentration: conc !== null && conc <= 1 ? conc : null,
+    token_asset_share: conc !== null && conc <= 1 ? conc : null,
+    top_payer_share: top !== null && top <= 1 ? top : null,
     dormancy_days: nonNegNum(s.dormancy_days),
   };
 }
@@ -69,8 +71,29 @@ export function identityScore(s: PayeeSignals): number {
   return 0; // claims something we cannot corroborate
 }
 
-export function exposure(s: PayeeSignals): number | null {
-  return s.token_concentration === null ? null : 1 - s.token_concentration;
+/** Payers counted toward E: distinct inbound senders, minus the first funder when it is a labelled exchange. */
+export function exposurePayers(s: PayeeSignals, labels: Record<string, FunderLabel> = {}): number | null {
+  if (s.distinct_payers === null) return null;
+  const cexFunderIsSender = s.first_funder !== null && labels[s.first_funder] === "cex" && s.distinct_payers > 0;
+  return s.distinct_payers - (cexFunderIsSender ? 1 : 0);
+}
+
+/**
+ * E v2 — payer concentration (component in [0,1]; points = 10 × E):
+ *   E = min(1, log10(payers + 1) / 2) × (1 − max(0, top_payer_share − 0.30) / 0.70)
+ * Breadth saturates at 99 payers; no penalty until the top payer exceeds 30% of inbound USD.
+ */
+export function exposure(s: PayeeSignals, labels: Record<string, FunderLabel> = {}): number | null {
+  const payers = exposurePayers(s, labels);
+  if (payers === null || s.top_payer_share === null) return null;
+  const breadth = Math.min(1, Math.log10(payers + 1) / 2);
+  const concentration = 1 - Math.max(0, s.top_payer_share - 0.3) / 0.7;
+  return clamp01(breadth * concentration);
+}
+
+/** E v1 (retired 2026-11-08): 1 − top token share. Kept only to measure the v1→v2 band change. */
+export function exposureV1(s: PayeeSignals): number | null {
+  return s.token_asset_share === null ? null : 1 - s.token_asset_share;
 }
 
 export function corroboration(s: PayeeSignals): number {
@@ -78,13 +101,13 @@ export function corroboration(s: PayeeSignals): number {
   return have / EVIDENCE_FIELDS.length;
 }
 
-export function components(s: PayeeSignals, labels: Record<string, FunderLabel>): Components {
+export function components(s: PayeeSignals, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2"): Components {
   return {
     M: maturity(s),
     P: provenance(s, labels),
     R: revenue(s),
     I: identityScore(s),
-    E: exposure(s),
+    E: eVersion === "v2" ? exposure(s, labels) : exposureV1(s),
     C: corroboration(s),
   };
 }

@@ -68,6 +68,7 @@ export interface SurfPayeeRow {
   first_inbound_from?: string;
   inbound_usd?: number | null;
   top_token_share?: number | null;
+  top_payer_share?: number | null;
   first_outbound_at?: number;
   last_outbound_at?: number;
   outbound_count?: number;
@@ -111,7 +112,8 @@ export function signalsFromSurf(
     repeat_payers: inbound !== null && distinct !== null ? Math.max(0, inbound - distinct) : null,
     total_received_usd: typeof r.inbound_usd === "number" ? r.inbound_usd : first !== null ? 0 : null,
     appears_in_other_listings: null,
-    token_concentration: typeof r.top_token_share === "number" ? r.top_token_share : null,
+    token_asset_share: typeof r.top_token_share === "number" ? r.top_token_share : null,
+    top_payer_share: typeof r.top_payer_share === "number" ? r.top_payer_share : null,
     dormancy_days: last !== null ? Math.max(0, (ctx.now - last) / 86_400) : null,
     identity: { claims_org: ctx.identity?.claims_org ?? null, claims_product: null, corroborated: ctx.identity?.corroborated ?? null },
     evidence,

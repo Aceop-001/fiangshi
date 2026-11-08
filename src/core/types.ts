@@ -46,7 +46,8 @@ export const PayeeSignals = z.object({
   repeat_payers: z.number().nullable(),
   total_received_usd: z.number().nullable(),
   appears_in_other_listings: z.number().nullable(),
-  token_concentration: z.number().nullable(),
+  token_asset_share: z.number().nullable(), // informational only (v1 E input); x402 sellers are ~1.0 by design
+  top_payer_share: z.number().nullable(), // largest sender share of inbound USD (E v2 input)
   dormancy_days: z.number().nullable(),
   identity: Identity,
   evidence: z.record(z.string(), z.string()),
@@ -130,7 +131,7 @@ export const REQUIRED_SIGNALS = [
   "funder_fanout",
   "distinct_payers",
   "total_received_usd",
-  "token_concentration",
+  "top_payer_share",
 ] as const satisfies readonly (keyof PayeeSignals)[];
 
 /** Evidence keys counted by corroboration (C). */

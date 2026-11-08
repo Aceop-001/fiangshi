@@ -29,3 +29,16 @@ describe("probe: real recorded x402 v2 responses (fixtures/402/real)", () => {
     expect(parse402({ url: "u", status: 402, headers: { "payment-required": "!!!not-base64-json" }, body: "" }).ok).toBe(false);
   });
 });
+
+describe("probe: multi-chain accepts[] (regression, 200-payee probe 2026-11-08)", () => {
+  const un = () => loadFixtures402(join("fixtures", "audit", "unparsed"));
+  it("a non-conforming alternative entry (Hyperliquid/XRPL decimal amount) no longer hides a valid Base option", () => {
+    const fixed = un().map(parse402).filter((r) => r.ok);
+    expect(fixed.length).toBe(5);
+    for (const r of fixed) if (r.ok) expect(r.terms.network).toBe("base");
+  });
+  it("402s without any accepts[] still fail closed (not guessed)", () => {
+    const still = un().map(parse402).filter((r) => !r.ok).map((r) => r.raw?.url);
+    expect(still.sort()).toEqual(["https://graphadvocate.com/onchain-x402/address", "https://yieldsignal.vercel.app/signal/usdc-base-yield"]);
+  });
+});

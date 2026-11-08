@@ -1,6 +1,6 @@
 /**
  * Budget guard. EVERY outbound data call goes through guarded().
- * - refuses all live calls when FIANGHSI_OFFLINE=1
+ * - refuses all live calls when FIANGSHI_OFFLINE=1
  * - increments a counter file BEFORE the call (failed calls still count)
  * - refuses call N+1 past the cap
  * - appends one line per call / refusal to artifacts/costs.md
@@ -13,10 +13,10 @@ export type Provider = "surf" | "serv" | "dolphin" | "kite";
 
 export const capFor = (p: Provider): number =>
   ({
-    surf: num("FIANGHSI_MAX_SURF_CALLS", 60),
-    serv: num("FIANGHSI_MAX_SERV_CALLS", 100),
-    dolphin: num("FIANGHSI_MAX_DOLPHIN_CALLS", 30),
-    kite: num("FIANGHSI_MAX_KITE_CALLS", 1),
+    surf: num("FIANGSHI_MAX_SURF_CALLS", 60),
+    serv: num("FIANGSHI_MAX_SERV_CALLS", 100),
+    dolphin: num("FIANGSHI_MAX_DOLPHIN_CALLS", 30),
+    kite: num("FIANGSHI_MAX_KITE_CALLS", 1),
   })[p];
 
 export class BudgetExceeded extends Error {}

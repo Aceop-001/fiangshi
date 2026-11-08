@@ -1,0 +1,228 @@
+{
+  "url": "https://bruk-agent-api.fly.dev/v1/payment-check",
+  "status": 402,
+  "headers": {
+    "content-encoding": "br",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 17:07:17 GMT",
+    "fly-request-id": "01M6Y21VHHRJHJC693VE20VKKR-sin",
+    "link": "<https://bruk-agent-api.fly.dev/v1/sample/payment-check>; rel=\"alternate\"; title=\"free sample\"",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQQVlNRU5ULVNJR05BVFVSRSBoZWFkZXIgaXMgcmVxdWlyZWQiLCJyZXNvdXJjZSI6eyJ1cmwiOiJodHRwczovL2JydWstYWdlbnQtYXBpLmZseS5kZXYvdjEvcGF5bWVudC1jaGVjayIsImRlc2NyaXB0aW9uIjoiVmVyaWZpZXMgdGhhdCBhbiBYUlAgTGVkZ2VyIHBheW1lbnQgc2V0dGxlZCBhcyBleHBlY3RlZDogdmFsaWRhdGlvbiwgcmVzdWx0IGNvZGUsIGRlc3RpbmF0aW9uLCBkZXN0aW5hdGlvbiB0YWcsIGN1cnJlbmN5LCBpc3N1ZXIsIGFuZCB0aGUgYW1vdW50IGFjdHVhbGx5IGRlbGl2ZXJlZCwgd2hpY2ggZXhwb3NlcyBwYXJ0aWFsLXBheW1lbnQgdHJpY2tzLiBVc2VmdWwgd2hlbiBjb25maXJtaW5nIHRoYXQgYSBjdXN0b21lciBvciBjb3VudGVycGFydHkgcmVhbGx5IHBhaWQuIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYW1vdW50IjoiMTAwMDAiLCJhc3NldCI6IjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsInBheVRvIjoiMHg2QjFBNDQzOTFCRDMwYjU3MDJDNjA5MkJhZkE2OWM1ZTUyNmE3MTBiIiwibWF4VGltZW91dFNlY29uZHMiOjYwMCwiZXh0cmEiOnsibmFtZSI6IlVTRCBDb2luIiwidmVyc2lvbiI6IjIifX0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJ4cnBsOjAiLCJhbW91bnQiOiI3NzUwIiwiYXNzZXQiOiJYUlAiLCJwYXlUbyI6InIzNnNiRENBc2FDajQ0WlVYV1kyampHRTFqQnBzQ29SUTQiLCJtYXhUaW1lb3V0U2Vjb25kcyI6NjAwLCJleHRyYSI6eyJpbnZvaWNlSWQiOiI0MjkwMTNFNTg5NzE0OUQ4QkUyRTcxNUNFMUY3NzkxQSIsInNvdXJjZVRhZyI6ODA0NjgxNDY4fX0seyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJ4cnBsOjAiLCJhbW91bnQiOiIwLjAxIiwiYXNzZXQiOiI1MjRDNTU1MzQ0MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwicGF5VG8iOiJyMzZzYkRDQXNhQ2o0NFpVWFdZMmpqR0UxakJwc0NvUlE0IiwibWF4VGltZW91dFNlY29uZHMiOjYwMCwiZXh0cmEiOnsiaW52b2ljZUlkIjoiNDI5MDEzRTU4OTcxNDlEOEJFMkU3MTVDRTFGNzc5MUEiLCJzb3VyY2VUYWciOjgwNDY4MTQ2OCwiaXNzdWVyIjoick14Q0tiRUR3cXI3NlF1aGVTVU1kRUdmNEI5eEo4bTVEZSIsInN5bWJvbCI6IlJMVVNEIn19XSwiZXh0ZW5zaW9ucyI6eyJiYXphYXIiOnsiaW5mbyI6eyJpbnB1dCI6eyJ0eXBlIjoiaHR0cCIsInF1ZXJ5UGFyYW1zIjp7InR4IjoiQ0NBMjUyOEU4QkU3QjNDNTA2NDBCRDhDQjBBNjI0NTU1RDU5NTJEQUQ1MTg0M0MwOTEzQTkwNEUwRkQ2OTBFNyJ9LCJtZXRob2QiOiJHRVQifSwib3V0cHV0Ijp7InR5cGUiOiJqc29uIiwiZXhhbXBsZSI6eyJzZXJ2aWNlIjoicGF5bWVudF9jaGVjayIsImNoZWNrZWRfYXQiOiIyMDI2LTEwLTE4VDAzOjQ4OjQyKzAwOjAwIiwiYW5zd2VyIjp7InZlcmRpY3QiOiJzZXR0bGVkX2FzX2V4cGVjdGVkIiwib2JzZXJ2ZWQiOnsiZnJvbSI6InJOeHA0aDhhcHZSaXM2bUpmOVNoOEM2aVJ4ZnJEV043QVYiLCJ0byI6InJEQUU1M1ZmTXZmdFBCNG9ncFdHV3Z6a1F4Zmh0NkpQeHIiLCJkZXN0aW5hdGlvbl90YWciOjAsImRlbGl2ZXJlZCI6eyJjdXJyZW5jeSI6IlhSUCIsImlzc3VlciI6bnVsbCwidmFsdWUiOiIxODkxODYuNjkwNzY1In0sInN0YXRlZF9hbW91bnRfZmllbGQiOnsiY3VycmVuY3kiOiJYUlAiLCJpc3N1ZXIiOm51bGwsInZhbHVlIjoiMTg5MTg2LjY5MDc2NSJ9LCJwYXJ0aWFsX3BheW1lbnRfZmxhZyI6ZmFsc2V9LCJjaGVja3MiOlt7ImNoZWNrIjoiZGVzdGluYXRpb24iLCJleHBlY3RlZCI6InJEQUU1M1ZmTXZmdFBCNG9ncFdHV3Z6a1F4Zmh0NkpQeHIiLCJvYnNlcnZlZCI6InJEQUU1M1ZmTXZmdFBCNG9ncFdHV3Z6a1F4Zmh0NkpQeHIiLCJwYXNzIjp0cnVlfSx7ImNoZWNrIjoiY3VycmVuY3kiLCJleHBlY3RlZCI6IlhSUCIsIm9ic2VydmVkIjoiWFJQIiwicGFzcyI6dHJ1ZX1dLCJ3YXJuaW5ncyI6W119LCJwcm9vZiI6eyJuZXR3b3JrIjoieHJwbDowIChtYWlubmV0KSIsInRyYW5zYWN0aW9uIjoiQ0NBMjUyOEU4QkU3QjNDNTA2NDBCRDhDQjBBNjI0NTU1RDU5NTJEQUQ1MTg0M0MwOTEzQTkwNEUwRkQ2OTBFNyIsInNvdXJjZXMiOlt7Im5hbWUiOiJYUlAgTGVkZ2VyIHB1YmxpYyBzZXJ2ZXIiLCJ1cmwiOiJodHRwczovL3MxLnJpcHBsZS5jb206NTEyMzQvIiwibWV0aG9kIjoidHgifV0sInZhbGlkYXRlZCI6dHJ1ZSwibGVkZ2VyX2luZGV4IjoxMDc3MzEzODEsImNsb3NlX3RpbWUiOiIyMDI2LTEwLTE4VDAzOjQ1OjAyKzAwOjAwIn0sInVua25vd25zIjpbIldobyBjb250cm9scyB0aGUgc2VuZGluZyBvciByZWNlaXZpbmcgYWRkcmVzcyAodGhlIGxlZGdlciBkb2VzIG5vdCByZWNvcmQgaWRlbnRpdHkpLiJdfX19LCJzY2hlbWEiOnsiJHNjaGVtYSI6Imh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsiaW5wdXQiOnsidHlwZSI6Im9iamVjdCIsInByb3BlcnRpZXMiOnsidHlwZSI6eyJ0eXBlIjoic3RyaW5nIiwiY29uc3QiOiJodHRwIn0sIm1ldGhvZCI6eyJ0eXBlIjoic3RyaW5nIiwiZW51bSI6WyJHRVQiLCJIRUFEIiwiREVMRVRFIl19LCJxdWVyeVBhcmFtcyI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJ0eCI6eyJ0eXBlIjoic3RyaW5nIiwicGF0dGVybiI6Il5bMC05QS1GYS1mXXs2NH0kIiwiZGVzY3JpcHRpb24iOiI2NC1jaGFyYWN0ZXIgdHJhbnNhY3Rpb24gaGFzaC4ifSwibmV0d29yayI6eyJ0eXBlIjoic3RyaW5nIiwiZW51bSI6WyJtYWlubmV0IiwidGVzdG5ldCJdLCJkZXNjcmlwdGlvbiI6IlhSUCBMZWRnZXIgbmV0d29yay4gRGVmYXVsdCBtYWlubmV0LiJ9LCJkZXN0aW5hdGlvbiI6eyJ0eXBlIjoic3RyaW5nIiwicGF0dGVybiI6Il5yWzEtOUEtSEotTlAtWmEta20tel17MjQsMzR9JCIsImRlc2NyaXB0aW9uIjoiRXhwZWN0ZWQgcmVjZWl2aW5nIHItYWRkcmVzcy4ifSwiYW1vdW50Ijp7InR5cGUiOiJzdHJpbmciLCJkZXNjcmlwdGlvbiI6IkV4cGVjdGVkIGRlbGl2ZXJlZCBhbW91bnQsIGRlY2ltYWwsIGUuZy4gMjUgb3IgMjUuNS4ifSwiY3VycmVuY3kiOnsidHlwZSI6InN0cmluZyIsImRlc2NyaXB0aW9uIjoiRXhwZWN0ZWQgY3VycmVuY3ksIGUuZy4gWFJQIG9yIFJMVVNELiJ9LCJpc3N1ZXIiOnsidHlwZSI6InN0cmluZyIsInBhdHRlcm4iOiJeclsxLTlBLUhKLU5QLVphLWttLXpdezI0LDM0fSQiLCJkZXNjcmlwdGlvbiI6IkV4cGVjdGVkIHRva2VuIGlzc3VlciByLWFkZHJlc3MuIn0sImRlc3RpbmF0aW9uX3RhZyI6eyJ0eXBlIjoic3RyaW5nIiwicGF0dGVybiI6Il5bMC05XSskIiwiZGVzY3JpcHRpb24iOiJFeHBlY3RlZCBkZXN0aW5hdGlvbiB0YWcuIn19LCJyZXF1aXJlZCI6WyJ0eCJdfX0sInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfSwib3V0cHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJleGFtcGxlIjp7InR5cGUiOiJvYmplY3QifX0sInJlcXVpcmVkIjpbInR5cGUiXX19LCJyZXF1aXJlZCI6WyJpbnB1dCJdfX19fQ==",
+    "server": "Fly/366e4bf88 (2026-10-27)",
+    "via": "2 fly.io, 2 fly.io"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "PAYMENT-SIGNATURE header is required",
+    "resource": {
+      "url": "https://bruk-agent-api.fly.dev/v1/payment-check",
+      "description": "Verifies that an XRP Ledger payment settled as expected: validation, result code, destination, destination tag, currency, issuer, and the amount actually delivered, which exposes partial-payment tricks. Useful when confirming that a customer or counterparty really paid.",
+      "mimeType": "application/json"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "10000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "payTo": "0x6B1A44391BD30b5702C6092BafA69c5e526a710b",
+        "maxTimeoutSeconds": 600,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "xrpl:0",
+        "amount": "7750",
+        "asset": "XRP",
+        "payTo": "r36sbDCAsaCj44ZUXWY2jjGE1jBpsCoRQ4",
+        "maxTimeoutSeconds": 600,
+        "extra": {
+          "invoiceId": "429013E5897149D8BE2E715CE1F7791A",
+          "sourceTag": 804681468
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "xrpl:0",
+        "amount": "0.01",
+        "asset": "524C555344000000000000000000000000000000",
+        "payTo": "r36sbDCAsaCj44ZUXWY2jjGE1jBpsCoRQ4",
+        "maxTimeoutSeconds": 600,
+        "extra": {
+          "invoiceId": "429013E5897149D8BE2E715CE1F7791A",
+          "sourceTag": 804681468,
+          "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+          "symbol": "RLUSD"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "queryParams": {
+              "tx": "CCA2528E8BE7B3C50640BD8CB0A624555D5952DAD51843C0913A904E0FD690E7"
+            },
+            "method": "GET"
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "service": "payment_check",
+              "checked_at": "2026-10-18T03:48:42+00:00",
+              "answer": {
+                "verdict": "settled_as_expected",
+                "observed": {
+                  "from": "rNxp4h8apvRis6mJf9Sh8C6iRxfrDWN7AV",
+                  "to": "rDAE53VfMvftPB4ogpWGWvzkQxfht6JPxr",
+                  "destination_tag": 0,
+                  "delivered": {
+                    "currency": "XRP",
+                    "issuer": null,
+                    "value": "189186.690765"
+                  },
+                  "stated_amount_field": {
+                    "currency": "XRP",
+                    "issuer": null,
+                    "value": "189186.690765"
+                  },
+                  "partial_payment_flag": false
+                },
+                "checks": [
+                  {
+                    "check": "destination",
+                    "expected": "rDAE53VfMvftPB4ogpWGWvzkQxfht6JPxr",
+                    "observed": "rDAE53VfMvftPB4ogpWGWvzkQxfht6JPxr",
+                    "pass": true
+                  },
+                  {
+                    "check": "currency",
+                    "expected": "XRP",
+                    "observed": "XRP",
+                    "pass": true
+                  }
+                ],
+                "warnings": []
+              },
+              "proof": {
+                "network": "xrpl:0 (mainnet)",
+                "transaction": "CCA2528E8BE7B3C50640BD8CB0A624555D5952DAD51843C0913A904E0FD690E7",
+                "sources": [
+                  {
+                    "name": "XRP Ledger public server",
+                    "url": "https://s1.ripple.com:51234/",
+                    "method": "tx"
+                  }
+                ],
+                "validated": true,
+                "ledger_index": 107731381,
+                "close_time": "2026-10-18T03:45:02+00:00"
+              },
+              "unknowns": [
+                "Who controls the sending or receiving address (the ledger does not record identity)."
+              ]
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "HEAD",
+                    "DELETE"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {
+                    "tx": {
+                      "type": "string",
+                      "pattern": "^[0-9A-Fa-f]{64}$",
+                      "description": "64-character transaction hash."
+                    },
+                    "network": {
+                      "type": "string",
+                      "enum": [
+                        "mainnet",
+                        "testnet"
+                      ],
+                      "description": "XRP Ledger network. Default mainnet."
+                    },
+                    "destination": {
+                      "type": "string",
+                      "pattern": "^r[1-9A-HJ-NP-Za-km-z]{24,34}$",
+                      "description": "Expected receiving r-address."
+                    },
+                    "amount": {
+                      "type": "string",
+                      "description": "Expected delivered amount, decimal, e.g. 25 or 25.5."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "Expected currency, e.g. XRP or RLUSD."
+                    },
+                    "issuer": {
+                      "type": "string",
+                      "pattern": "^r[1-9A-HJ-NP-Za-km-z]{24,34}$",
+                      "description": "Expected token issuer r-address."
+                    },
+                    "destination_tag": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$",
+                      "description": "Expected destination tag."
+                    }
+                  },
+                  "required": [
+                    "tx"
+                  ]
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    },
+    "try_free": {
+      "sample": "https://bruk-agent-api.fly.dev/v1/sample/payment-check",
+      "free_send_check": "https://bruk-agent-api.fly.dev/v1/free/send-check?destination=r...",
+      "note": "The sample is the same answer shape, cached up to 5 minutes. No payment or key needed."
+    }
+  }
+}

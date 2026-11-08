@@ -17,7 +17,7 @@ describe("budget guard", () => {
     expect(readFileSync(opts.costsPath, "utf8")).toMatch(/4\/3 .*REFUSED/);
   });
 
-  it("refuses every live call when FIANGHSI_OFFLINE=1, without counting", async () => {
+  it("refuses every live call when FIANGSHI_OFFLINE=1, without counting", async () => {
     const d = tmp();
     await expect(guarded("serv", "x", async () => ({ value: 1 }), { counterPath: join(d, "b.json") })).rejects.toBeInstanceOf(OfflineRefused);
     expect(existsSync(join(d, "b.json"))).toBe(false);

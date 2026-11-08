@@ -34,11 +34,32 @@ describe("score components: boundaries 0 / mid / 1 / missing", () => {
     expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: false } }))).toBe(0);
   });
 
-  it("E exposure: 1 - concentration, null when missing", () => {
-    expect(exposure(clean({ token_concentration: 0 }))).toBe(1);
-    expect(exposure(clean({ token_concentration: 1 }))).toBe(0);
-    expect(exposure(clean({ token_concentration: 0.5 }))).toBe(0.5);
-    expect(exposure(clean({ token_concentration: null }))).toBeNull();
+  // E v2 = min(1, log10(payers+1)/2) × (1 − max(0, top − 0.30)/0.70); points = 10 × E
+  const E = (payers: number, top: number) => exposure(clean({ first_funder: "0xnew", distinct_payers: payers, top_payer_share: top }), LABELS)!;
+
+  it("E v2: 1 payer -> breadth factor 0.1505; as SOLE payer (top 100%) the concentration factor zeroes it", () => {
+    expect(E(1, 0.3)).toBeCloseTo(Math.log10(2) / 2, 4); // 0.1505 -> 1.51 pts
+    expect(E(1, 1.0)).toBe(0); // a single payer always holds 100% of inbound
+  });
+  it("E v2: 10 payers at 40% top -> 0.4463 (4.46 pts)", () => {
+    expect(E(10, 0.4)).toBeCloseTo((Math.log10(11) / 2) * (1 - 0.1 / 0.7), 6);
+    expect(10 * E(10, 0.4)).toBeCloseTo(4.46, 2);
+  });
+  it("E v2: 100 payers balanced -> 1.0 (10 pts)", () => {
+    expect(10 * E(100, 0.05)).toBe(10);
+  });
+  it("E v2: no penalty up to 30% top share; 0 payers -> 0; missing inputs -> null", () => {
+    expect(E(99, 0.3)).toBe(1);
+    expect(E(0, 0)).toBe(0);
+    expect(exposure(clean({ top_payer_share: null }), LABELS)).toBeNull();
+    expect(exposure(clean({ distinct_payers: null }), LABELS)).toBeNull();
+  });
+  it("E v2: a labelled-exchange first funder is not counted as a payer", () => {
+    const viaCex = exposure(clean({ first_funder: "0xcex", distinct_payers: 10, top_payer_share: 0.1 }), LABELS)!;
+    expect(viaCex).toBeCloseTo(Math.log10(10) / 2, 6); // 9 payers, not 10
+  });
+  it("E v2 ignores token_asset_share (USDC-only seller is not penalised)", () => {
+    expect(exposure(clean({ token_asset_share: 1 }), LABELS)).toBe(exposure(clean({ token_asset_share: 0 }), LABELS));
   });
 
   it("C corroboration: share of evidence fields present", () => {

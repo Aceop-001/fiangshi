@@ -91,8 +91,9 @@ export async function runSync(
   return { calls, rows: [...byPayee.values()] };
 }
 
-async function runAsync(payees: string[], days: number): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
-  const submit = await guardedSurf(`onchain-sql-job-create payees=${payees.length}`, ["onchain-sql-job-create"], { sql: buildSql(payees, days), max_rows: 1000 });
+/** One async job (requires SURF_API_KEY). Submit is billed + budget-guarded; polls/results are recorded but not counted. */
+export async function runAsync(payees: string[], days: number, template: Template = "smoke-payees"): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
+  const submit = await guardedSurf(`onchain-sql-job-create ${template} payees=${payees.length}`, ["onchain-sql-job-create"], { sql: buildSql(payees, days, template), max_rows: 10000 });
   const calls: Call[] = [submit];
   const job = submit.envelope.data as { job_id: string; status: string };
   let status = job.status;

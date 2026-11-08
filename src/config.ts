@@ -25,12 +25,12 @@ export const num = (k: string, d: number): number => {
   return Number.isFinite(v) && process.env[k] !== "" && process.env[k] !== undefined ? v : d;
 };
 
-export const isOffline = () => env("FIANGHSI_OFFLINE") === "1";
+export const isOffline = () => env("FIANGSHI_OFFLINE") === "1";
 export const snapshotSource = (): "fixture" | "live" => (env("SNAPSHOT_SOURCE", "fixture") === "live" ? "live" : "fixture");
 export const mockModels = () => env("MOCK_MODELS");
 
-export const dataDir = () => resolve(ROOT, env("FIANGHSI_DATA_DIR", "data"));
-export const artifactsDir = () => resolve(ROOT, env("FIANGHSI_ARTIFACTS_DIR", "artifacts"));
+export const dataDir = () => resolve(ROOT, env("FIANGSHI_DATA_DIR", "data"));
+export const artifactsDir = () => resolve(ROOT, env("FIANGSHI_ARTIFACTS_DIR", "artifacts"));
 export const fixturesDir = () => resolve(ROOT, "fixtures");
-export const policyTtlHours = () => num("FIANGHSI_POLICY_TTL_HOURS", 72);
+export const policyTtlHours = () => num("FIANGSHI_POLICY_TTL_HOURS", 72);
 export const PROBE_TIMEOUT_MS = 15_000;

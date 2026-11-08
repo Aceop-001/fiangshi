@@ -12,11 +12,11 @@ import { ROOT } from "../src/config.js";
 
 const TMP = mkdtempSync(join(tmpdir(), "fiangshi-accept-"));
 Object.assign(process.env, {
-  FIANGHSI_OFFLINE: "1",
+  FIANGSHI_OFFLINE: "1",
   SNAPSHOT_SOURCE: "fixture",
   MOCK_MODELS: "good",
-  FIANGHSI_DATA_DIR: join(TMP, "data"),
-  FIANGHSI_ARTIFACTS_DIR: join(TMP, "artifacts"),
+  FIANGSHI_DATA_DIR: join(TMP, "data"),
+  FIANGSHI_ARTIFACTS_DIR: join(TMP, "artifacts"),
 });
 const NO_NET = pathToFileURL(join(ROOT, "scripts", "no-network.mjs")).href;
 await import(NO_NET);

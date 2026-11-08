@@ -1,0 +1,31 @@
+{
+  "url": "https://graphadvocate.com/onchain-x402/address",
+  "status": 402,
+  "headers": {
+    "allow": "POST",
+    "content-length": "343",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 17:07:13 GMT",
+    "server": "railway-hikari",
+    "vary": "accept-encoding",
+    "x-hikari-trace": "sin1.98a6",
+    "x-railway-edge": "sin1",
+    "x-railway-request-id": "IlPQ61LFTwG32WM1c9o55Q"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "Payment required",
+    "resource": {
+      "serviceName": "Graph Advocate",
+      "tags": [
+        "x402",
+        "payments",
+        "base",
+        "wallet",
+        "onchain data"
+      ],
+      "iconUrl": "https://graphadvocate.com/graphadvocate.png"
+    },
+    "hint": "Decode the base64 `payment-required` response header for the full x402 challenge (accepts, schema, output example)."
+  }
+}

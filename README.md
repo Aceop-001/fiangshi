@@ -71,3 +71,10 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - Validated against BaseScan: first-seen matches to the second and the first funder matches; transfer count is +3.2% (353 vs 342).
 - `wallet-labels-batch` returns `entity_type: cex` (Bybit, Bitrefill). It drives the kinship exclusion, with a fanout-≥500 heuristic for unlabelled funders.
 - `artifacts/capability.md`: component table, schema deltas, $10 arithmetic (≈10,600 payees) and the age-is-a-lower-bound limit.
+
+**Phase 3f (E v2, parser fix, model wiring)**
+- **E v2 = payer concentration.** E = min(1, log10(payers+1)/2) × (1 − max(0, top_payer_share − 0.30)/0.70). v1's token concentration is now `token_asset_share`, kept for information only; x402 sellers are about 1.0 on it by design. `top_payer_share` comes from the same SQL call.
+- **Band change (`scripts/e-diff.ts`):** 1 of 31 synthetic payees changed (BLOCK→REVIEW). Real cached rows lack the inputs, so the real count comes from the audit.
+- **Parser fix:** each `accepts[]` entry is validated on its own. 5 of the 7 unparseable 402s from the 200-payee probe now parse; a multi-chain server's decimal-amount XRPL/Hyperliquid option used to hide its valid Base option.
+- **SERV (chat completions, documented `max_completion_tokens` + strict `json_schema`) and Dolphin (documented base URL and model) are live-wired.** 16 tests cover malformed output, timeout, empty body, HTTP errors and truncation, all failing closed.
+- **Model smoke (`scripts/smoke.ts`) is ready but BLOCKED:** no SERV or Dolphin key in the environment, 0 calls. The env prefix is fixed (`FIANGHSI_` → `FIANGSHI_`).

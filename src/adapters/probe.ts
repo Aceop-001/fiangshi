@@ -30,11 +30,23 @@ const Requirement = z
     amount: z.string().regex(/^\d+$/).optional(),
     payTo: z.string().min(1),
     asset: z.string().min(1),
-    resource: z.string().optional(),
   })
   .passthrough()
   .refine((r) => r.amount !== undefined || r.maxAmountRequired !== undefined, "amount or maxAmountRequired required");
-const Body402 = z.object({ x402Version: z.number(), accepts: z.array(Requirement).min(1) }).passthrough();
+type Req = z.infer<typeof Requirement>;
+// Entries are validated one by one: multi-chain servers list options (Hyperliquid, XRPL) whose amounts are decimals.
+// One non-conforming alternative must not hide a valid Base option (bug found in the 200-payee probe, 2026-11-08).
+export const Body402 = z.object({ x402Version: z.number(), accepts: z.array(z.unknown()).min(1) }).passthrough();
+
+/** Pick the requirement to price: exact + known network, then exact, then first valid. */
+export function pickRequirement(accepts: unknown[]): Req | null {
+  const valid = accepts.flatMap((a) => {
+    const r = Requirement.safeParse(a);
+    return r.success ? [r.data] : [];
+  });
+  const known = (r: Req) => normalizeNetwork(r.network) !== r.network || Object.keys(ASSETS).some((k) => k.startsWith(`${r.network}:`));
+  return valid.find((r) => r.scheme === "exact" && known(r)) ?? valid.find((r) => r.scheme === "exact") ?? valid[0] ?? null;
+}
 
 /** v2 servers send requirements base64-encoded in the `payment-required` header (body may be empty). */
 function fromHeader(headers: Record<string, string>): unknown {
@@ -70,10 +82,13 @@ export function parse402(raw: RawResponse): ProbeResult {
     }
   }
   // Body first (v1 and many v2 servers), then the v2 `payment-required` header.
-  let parsed = Body402.safeParse(body);
-  if (!parsed.success) parsed = Body402.safeParse(fromHeader(raw.headers));
-  if (!parsed.success) return { ok: false, error: "402 has no valid x402 accepts[] in body or payment-required header", raw };
-  const req = parsed.data.accepts.find((a) => a.scheme === "exact") ?? parsed.data.accepts[0]!;
+  let req: Req | null = null;
+  for (const candidate of [body, fromHeader(raw.headers)]) {
+    const parsed = Body402.safeParse(candidate);
+    if (parsed.success) req = pickRequirement(parsed.data.accepts);
+    if (req) break;
+  }
+  if (!req) return { ok: false, error: "402 has no valid x402 accepts[] in body or payment-required header", raw };
   const network = normalizeNetwork(req.network);
   const base = {
     url: raw.url,

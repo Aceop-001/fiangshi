@@ -1,0 +1,184 @@
+{
+  "url": "https://api.hyperextend.xyz/v1/candles/BTC/1m/latest",
+  "status": 402,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000",
+    "content-encoding": "gzip",
+    "content-length": "1697",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 17:07:20 GMT",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6IDIsICJlcnJvciI6ICJwYXltZW50IHJlcXVpcmVkIiwgInJlc291cmNlIjogeyJ1cmwiOiAiaHR0cHM6Ly9hcGkuaHlwZXJleHRlbmQueHl6L3YxL2NhbmRsZXMvQlRDLzFtL2xhdGVzdCIsICJkZXNjcmlwdGlvbiI6ICJUaGUgbW9zdC1yZWNlbnQgTiBPSExDViBjYW5kbGVzIChcdTIyNjQ1MDAwKSwgaW4gSHlwZXJsaXF1aWQncyBjYW5kbGVTbmFwc2hvdCBzaGFwZS4gU2FtZSBwZXItcm93IHByaWNpbmcgYXMgdGhlIHdpbmRvd2VkIHJlYWQgKCQwLjAwMDAxIGJhc2UgZm9yIG1haW4vc3BvdCwgJDAuMDAwMDI1IHByZW1pdW0gZm9yIEhJUC0zL0hJUC00KTsgY2FuZGxlcyBsYWcgfjIgZGF5cy4iLCAibWltZVR5cGUiOiAiYXBwbGljYXRpb24vanNvbiIsICJzZXJ2aWNlTmFtZSI6ICJoeXBlcmV4dGVuZCIsICJ0YWdzIjogWyJoeXBlcmxpcXVpZCIsICJtYXJrZXQtZGF0YSIsICJjYW5kbGVzIiwgIm9wZW4taW50ZXJlc3QiLCAiaGlwLTMiLCAiaGlwLTQiLCAidHJhZGVzIiwgImxpcXVpZGF0aW9ucyJdLCAiaWNvblVybCI6ICJodHRwczovL2h5cGVyZXh0ZW5kLnh5ei9mYXZpY29uLnN2ZyJ9LCAiYWNjZXB0cyI6IFt7InNjaGVtZSI6ICJleGFjdCIsICJuZXR3b3JrIjogImVpcDE1NTo4NDUzIiwgImFzc2V0IjogIjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsICJhbW91bnQiOiAiMjAwMCIsICJwYXlUbyI6ICIweDU0OGZDMjg5NTI2YWIyRjAzOTFENTYyYTcyM2NkQTY0QmJmMWFiYzQiLCAibWF4VGltZW91dFNlY29uZHMiOiA2MCwgImV4dHJhIjogeyJuYW1lIjogIlVTRCBDb2luIiwgInZlcnNpb24iOiAiMiJ9fSwgeyJzY2hlbWUiOiAiZXhhY3QiLCAibmV0d29yayI6ICJoeXBlcmxpcXVpZDptYWlubmV0IiwgImFzc2V0IjogIlVTREM6MHg2ZDFlN2NkZTUzYmE5NDY3Yjc4M2NiN2M1MzBjZTA1NCIsICJhbW91bnQiOiAiMC4wMDIiLCAicGF5VG8iOiAiMHg1NDhmQzI4OTUyNmFiMkYwMzkxRDU2MmE3MjNjZEE2NEJiZjFhYmM0IiwgIm1heFRpbWVvdXRTZWNvbmRzIjogNjAsICJleHRyYSI6IHsiZGVzdGluYXRpb25EZXgiOiAic3BvdCJ9fSwgeyJzY2hlbWUiOiAiYmF0Y2gtc2V0dGxlbWVudCIsICJuZXR3b3JrIjogImVpcDE1NTo4NDUzIiwgImFzc2V0IjogIjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsICJhbW91bnQiOiAiMjAwMCIsICJwYXlUbyI6ICIweDU0OGZDMjg5NTI2YWIyRjAzOTFENTYyYTcyM2NkQTY0QmJmMWFiYzQiLCAibWF4VGltZW91dFNlY29uZHMiOiAzMDAsICJleHRyYSI6IHsicmVjZWl2ZXJBdXRob3JpemVyIjogIjB4MzcyMTgyNGEzMTE5N2RjREQyOTg0Y0Y0M2I5MkI2Y2M4QTg3YzBGYiIsICJ3aXRoZHJhd0RlbGF5IjogODY0MDAsICJuYW1lIjogIlVTRCBDb2luIiwgInZlcnNpb24iOiAiMiJ9fV0sICJleHRlbnNpb25zIjogeyJiYXphYXIiOiB7ImluZm8iOiB7ImlucHV0IjogeyJ0eXBlIjogImh0dHAiLCAicXVlcnlQYXJhbXMiOiB7Im4iOiAxMDAsICJkZXgiOiAibWFpbiJ9LCAibWV0aG9kIjogIkdFVCJ9LCAib3V0cHV0IjogeyJ0eXBlIjogImpzb24iLCAiZXhhbXBsZSI6IHsidCI6IDE3MDAwMDAwMDAwMDAsICJUIjogMTcwMDAwMDA1OTk5OSwgInMiOiAiQlRDIiwgImkiOiAiMW0iLCAibyI6ICI0MjAwMC4wIiwgImMiOiAiNDIwODAuMCIsICJoIjogIjQyMTAwLjAiLCAibCI6ICI0MTk1MC4wIiwgInYiOiAiMTIuNSIsICJuIjogMzQwfX19LCAic2NoZW1hIjogeyIkc2NoZW1hIjogImh0dHBzOi8vanNvbi1zY2hlbWEub3JnL2RyYWZ0LzIwMjAtMTIvc2NoZW1hIiwgInR5cGUiOiAib2JqZWN0IiwgInByb3BlcnRpZXMiOiB7ImlucHV0IjogeyJ0eXBlIjogIm9iamVjdCIsICJwcm9wZXJ0aWVzIjogeyJ0eXBlIjogeyJ0eXBlIjogInN0cmluZyIsICJjb25zdCI6ICJodHRwIn0sICJtZXRob2QiOiB7InR5cGUiOiAic3RyaW5nIiwgImVudW0iOiBbIkdFVCIsICJIRUFEIiwgIkRFTEVURSJdfSwgInF1ZXJ5UGFyYW1zIjogeyJ0eXBlIjogIm9iamVjdCIsICJwcm9wZXJ0aWVzIjogeyJuIjogeyJ0eXBlIjogImludGVnZXIifSwgImRleCI6IHsidHlwZSI6ICJzdHJpbmcifX0sICJyZXF1aXJlZCI6IFtdfSwgInBhdGhQYXJhbXMiOiB7InR5cGUiOiAib2JqZWN0IiwgInByb3BlcnRpZXMiOiB7ImNvaW4iOiB7InR5cGUiOiAic3RyaW5nIiwgImRlc2NyaXB0aW9uIjogIkFzc2V0IHN5bWJvbCwgZS5nLiBCVEMifSwgImludGVydmFsIjogeyJ0eXBlIjogInN0cmluZyIsICJkZXNjcmlwdGlvbiI6ICJDYW5kbGUgaW50ZXJ2YWwsIGUuZy4gMW0ifX0sICJyZXF1aXJlZCI6IFsiY29pbiIsICJpbnRlcnZhbCJdfX0sICJyZXF1aXJlZCI6IFsidHlwZSIsICJtZXRob2QiXSwgImFkZGl0aW9uYWxQcm9wZXJ0aWVzIjogZmFsc2V9LCAib3V0cHV0IjogeyJ0eXBlIjogIm9iamVjdCIsICJwcm9wZXJ0aWVzIjogeyJ0eXBlIjogeyJ0eXBlIjogInN0cmluZyJ9LCAiZXhhbXBsZSI6IHsidHlwZSI6ICJvYmplY3QifX0sICJyZXF1aXJlZCI6IFsidHlwZSJdfX0sICJyZXF1aXJlZCI6IFsiaW5wdXQiXX19fSwgImluc3RydWN0aW9ucyI6IHsic3VtbWFyeSI6ICJQYXltZW50IGlzIHJlcXVpcmVkIHZpYSB0aGUgeDQwMiBwcm90b2NvbCAodjIpLiBUaGUgNDAyIGBhY2NlcHRzYCBsaXN0cyB0aGUgYXZhaWxhYmxlIHBheW1lbnQgcmFpbHMgLSBwYXkgd2l0aCBhbnkgT05FIG9mIHRoZW06IHJlYWQgdGhlIFBBWU1FTlQtUkVRVUlSRUQgaGVhZGVyLCBzaWduLCBhbmQgcmV0cnkgd2l0aCBhIFBBWU1FTlQtU0lHTkFUVVJFIGhlYWRlci4gKDEpIEJhc2UgKEVWTSk6IHVzZSBDb2luYmFzZSdzIG9mZmljaWFsIHg0MDIgY2xpZW50IChgcGlwIGluc3RhbGwgXCJ4NDAyW2V2bV1cImApIGZyb20gYSBCYXNlLW1haW5uZXQgVVNEQyB3YWxsZXQgLSBhIHBsYWluIEVPQSwgbm90IGEgc21hcnQgd2FsbGV0LiBJdCBzaWducyBhbiBFSVAtMzAwOSBVU0RDIGF1dGhvcmlzYXRpb247IHlvdSBuZWVkIFVTREMsIG5vdCBFVEggKHRoZSBmYWNpbGl0YXRvciBicm9hZGNhc3RzIGFuZCBwYXlzIHRoZSBnYXMpLiAoMikgSHlwZXJsaXF1aWQgKEh5cGVyQ29yZSk6IHBheSBkaXJlY3RseSB3aXRoIHRoZSBTQU1FIFVTREMgeW91IHRyYWRlIGFuZCBvcGVuIHBvc2l0aW9ucyB3aXRoIG9uIEh5cGVybGlxdWlkIC0gbm8gYnJpZGdpbmcsIG5vIHNlcGFyYXRlIHdhbGxldC4gU2lnbiBhIEh5cGVybGlxdWlkVHJhbnNhY3Rpb246U2VuZEFzc2V0IGFjdGlvbiAoZ2FzbGVzcywgbm8gZmFjaWxpdGF0b3IpIGFuZCB0aGUgc2VydmVyIHNldHRsZXMgaXQgb24tY2hhaW4uIiwgImNsaWVudCI6ICJodHRwczovL2dpdGh1Yi5jb20vY29pbmJhc2UveDQwMiIsICJkb2NzIjogImh0dHBzOi8vaHlwZXJleHRlbmQueHl6L2RvY3MiLCAiYmF0Y2hTZXR0bGVtZW50IjogIlRoZSBiYXRjaC1zZXR0bGVtZW50IHNjaGVtZSBuZWVkcyBhIGNoYW5uZWwgd2l0aCBhIG5vbi16ZXJvIHBheWVyQXV0aG9yaXplciwgdGhlIGFkZHJlc3Mgb2YgdGhlIGtleSB0aGF0IHNpZ25zIHlvdXIgdm91Y2hlcnMuIEEgcHJpdmF0ZS1rZXkgd2FsbGV0IGNvbXBsaWVzIGF1dG9tYXRpY2FsbHk7IGEgc21hcnQtY29udHJhY3Qgd2FsbGV0IG11c3QgcGFzcyBhIHZvdWNoZXJfc2lnbmVyICh2b3VjaGVyU2lnbmVyIGluIFR5cGVTY3JpcHQpLiBPdGhlcndpc2UgcGF5IHdpdGggdGhlIGV4YWN0IHNjaGVtZSBvbiBCYXNlIG9yIEh5cGVyQ29yZS4gRGV0YWlsczogaHR0cHM6Ly9oeXBlcmV4dGVuZC54eXovZG9jcyNwYXllci1hdXRob3JpemVyIn19",
+    "server": "uvicorn",
+    "vary": "Accept-Encoding",
+    "via": "1.1 Caddy"
+  },
+  "body": {
+    "x402Version": 2,
+    "error": "payment required",
+    "resource": {
+      "url": "https://api.hyperextend.xyz/v1/candles/BTC/1m/latest",
+      "description": "The most-recent N OHLCV candles (≤5000), in Hyperliquid's candleSnapshot shape. Same per-row pricing as the windowed read ($0.00001 base for main/spot, $0.000025 premium for HIP-3/HIP-4); candles lag ~2 days.",
+      "mimeType": "application/json",
+      "serviceName": "hyperextend",
+      "tags": [
+        "hyperliquid",
+        "market-data",
+        "candles",
+        "open-interest",
+        "hip-3",
+        "hip-4",
+        "trades",
+        "liquidations"
+      ],
+      "iconUrl": "https://hyperextend.xyz/favicon.svg"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": "2000",
+        "payTo": "0x548fC289526ab2F0391D562a723cdA64Bbf1abc4",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      },
+      {
+        "scheme": "exact",
+        "network": "hyperliquid:mainnet",
+        "asset": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054",
+        "amount": "0.002",
+        "payTo": "0x548fC289526ab2F0391D562a723cdA64Bbf1abc4",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "destinationDex": "spot"
+        }
+      },
+      {
+        "scheme": "batch-settlement",
+        "network": "eip155:8453",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": "2000",
+        "payTo": "0x548fC289526ab2F0391D562a723cdA64Bbf1abc4",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "receiverAuthorizer": "0x3721824a31197dcDD2984cF43b92B6cc8A87c0Fb",
+          "withdrawDelay": 86400,
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "queryParams": {
+              "n": 100,
+              "dex": "main"
+            },
+            "method": "GET"
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "t": 1700000000000,
+              "T": 1700000059999,
+              "s": "BTC",
+              "i": "1m",
+              "o": "42000.0",
+              "c": "42080.0",
+              "h": "42100.0",
+              "l": "41950.0",
+              "v": "12.5",
+              "n": 340
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "HEAD",
+                    "DELETE"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {
+                    "n": {
+                      "type": "integer"
+                    },
+                    "dex": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                },
+                "pathParams": {
+                  "type": "object",
+                  "properties": {
+                    "coin": {
+                      "type": "string",
+                      "description": "Asset symbol, e.g. BTC"
+                    },
+                    "interval": {
+                      "type": "string",
+                      "description": "Candle interval, e.g. 1m"
+                    }
+                  },
+                  "required": [
+                    "coin",
+                    "interval"
+                  ]
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    },
+    "instructions": {
+      "summary": "Payment is required via the x402 protocol (v2). The 402 `accepts` lists the available payment rails - pay with any ONE of them: read the PAYMENT-REQUIRED header, sign, and retry with a PAYMENT-SIGNATURE header. (1) Base (EVM): use Coinbase's official x402 client (`pip install \"x402[evm]\"`) from a Base-mainnet USDC wallet - a plain EOA, not a smart wallet. It signs an EIP-3009 USDC authorisation; you need USDC, not ETH (the facilitator broadcasts and pays the gas). (2) Hyperliquid (HyperCore): pay directly with the SAME USDC you trade and open positions with on Hyperliquid - no bridging, no separate wallet. Sign a HyperliquidTransaction:SendAsset action (gasless, no facilitator) and the server settles it on-chain.",
+      "client": "https://github.com/coinbase/x402",
+      "docs": "https://hyperextend.xyz/docs",
+      "batchSettlement": "The batch-settlement scheme needs a channel with a non-zero payerAuthorizer, the address of the key that signs your vouchers. A private-key wallet complies automatically; a smart-contract wallet must pass a voucher_signer (voucherSigner in TypeScript). Otherwise pay with the exact scheme on Base or HyperCore. Details: https://hyperextend.xyz/docs#payer-authorizer"
+    }
+  }
+}

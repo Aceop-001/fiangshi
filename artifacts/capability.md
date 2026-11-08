@@ -13,7 +13,7 @@ Measured 2026-11-08 on the unauthenticated free tier (30 credits/day per IP), us
 | **P provenance** | **yes** | `payee-inbound.sql` `first_inbound_from`, then `wallet-labels-batch` `entity_type` (`cex`) | Unlabelled funder with ≥500 distinct outbound receivers in the window is treated as an exchange (extra `payee-outbound.sql` run over the funders) | 5 (funder fanout) + 2 (labels, ≤100 addresses per call) |
 | **R revenue reality** | **yes** | `payee-inbound.sql` `distinct_inbound_senders`, `inbound_count`, `inbound_usd` | `repeat_payers` = `inbound_count − distinct_inbound_senders` until a repeat-sender count is added to the same query | 0 (same query as M) |
 | I identity | partial | `wallet-labels-batch` `entity_name` and labels. Bitrefill and Bybit come back named; ENS names like `lasofinance.eth` come back as labels. Covered 6 of 23 addresses | Claims extracted by Dolphin from the Bazaar `description` / `serviceName`, checked against the label | 0 (shares the P labels call) |
-| E exposure | partial | No holdings in SQL. `wallet-detail` has tokens but takes one address per call, which would be a per-entity loop (forbidden) | Top token's share of `inbound_usd` by `contract_address`, added to the inbound query | 0 (same query) |
+| **E exposure (v2)** | **yes** | `payee-inbound.sql` `distinct_inbound_senders` + `top_payer_share` (largest sender's share of inbound USD, from `sumMap` by `from`) | — (v1's `top_token_share` is kept, informational only) | 0 (same query) |
 | C corroboration | yes | Computed locally from evidence-field coverage | — | 0 |
 
 Other `PayeeSignals` fields:
@@ -114,3 +114,27 @@ So credits don't limit the audit: $10 covers more payees than the Base catalog i
 - Data refreshes about every 24h, so a payee younger than a day may not appear yet. It then fails closed (silence vow → REVIEW), never ALLOW.
 - Base only. Other chains have their own `*_transfers` tables, one query each.
 - Label coverage is partial (6 of 23 here), and the fanout heuristic carries the rest.
+
+## E signal: v1 → v2 (2026-11-08)
+
+| | v1 (retired) | v2 (current) |
+|---|---|---|
+| input | `token_concentration`: share of inbound USD in the top token | `top_payer_share`: share of inbound USD from the top **sender**, plus distinct payers |
+| formula | E = 1 − token share | E = min(1, log10(payers + 1) / 2) × (1 − max(0, top_payer_share − 0.30) / 0.70) |
+| points | 10 × E | 10 × E |
+| why changed | x402 sellers are paid in USDC by design. Measured `top_token_share` = 1.0 on both payees checked, so v1 gave every seller E ≈ 0 and docked 10 points across the board. | Measures what a buyer cares about: whether revenue depends on one payer (wash or self-dealing risk) or is spread across many. |
+
+- `payers` excludes the first funder when Surf labels it an exchange. Other exchange or relayer senders aren't individually labelled at this scale, so that's a known limit.
+- The field `token_concentration` is renamed `token_asset_share` and kept as information only, so it isn't required by the silence vow. `top_payer_share` is now required, so if it's missing the silence vow fires and the result is REVIEW.
+
+Reference values from tests (`tests/score.test.ts`):
+
+| case | E | points | note |
+|---|---|---|---|
+| 1 payer (sole payer, top 100%) | 0 | 0 | breadth factor alone is 0.1505, but a sole payer is 100% concentrated |
+| 10 payers, top 40% | 0.4463 | 4.46 | |
+| 100 payers, top ≤30% | 1.0 | 10 | |
+
+Band change measured on cached data (`npx tsx scripts/e-diff.ts`, 0 credits):
+- **Synthetic fixtures, 31 payees:** 1 changed. `0x44726a3e` went BLOCK (47.86) → REVIEW (50.08). v1 {ALLOW 10, REVIEW 13, BLOCK 8} → v2 {ALLOW 10, REVIEW 14, BLOCK 7}.
+- **Real cached rows, 12 payees:** not measurable. Neither input was in the earlier query, so both versions return REVIEW via the silence vow. The real count comes from the audit run, where `artifacts/audit.md` reports v1 vs v2 for every audited payee.

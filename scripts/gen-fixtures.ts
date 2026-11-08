@@ -6,7 +6,7 @@
  * real endpoints. TODO(api-wiring): replace fixtures/402 with 10 real recorded unpaid responses.
  * Run: npx tsx scripts/gen-fixtures.ts
  */
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -62,7 +62,8 @@ function signals(s: Spec) {
     repeat_payers: s.repeat,
     total_received_usd: s.usd,
     appears_in_other_listings: s.listings,
-    token_concentration: s.conc,
+    token_asset_share: s.conc === null ? null : 1, // x402 sellers are paid in USDC only
+    top_payer_share: s.conc, // largest payer share of inbound USD
     dormancy_days: s.dormancy,
     identity: { claims_org: s.org, claims_product: s.product, corroborated: s.corroborated },
     evidence: ev,
@@ -164,8 +165,9 @@ function raw402(name: string, url: string, amount: string) {
   };
 }
 
-rmSync(join(FIX, "402"), { recursive: true, force: true });
+// Remove only our own synthetic top-level files; never touch subdirectories (fixtures/402/real holds recorded data).
 mkdirSync(join(FIX, "402"), { recursive: true });
+for (const f of readdirSync(join(FIX, "402"))) if (/^\d{2}-[a-z0-9-]+\.json$/.test(f)) rmSync(join(FIX, "402", f));
 mkdirSync(join(FIX, "model"), { recursive: true });
 endpoints.forEach(([name, url, amt], i) =>
   writeFileSync(join(FIX, "402", `${String(i + 1).padStart(2, "0")}-${name}.json`), JSON.stringify(raw402(name, url, amt), null, 2) + "\n"),

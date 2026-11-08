@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { guarded } from "../../scripts/budget.js";
-import { PROBE_TIMEOUT_MS, dataDir, env, isOffline, mockModels } from "../config.js";
+import { PROBE_TIMEOUT_MS, dataDir, env, isOffline, mockModels, num } from "../config.js";
 import { hashOf } from "../core/canonical.js";
 import { validateModelOutput, type ModelAdvice } from "../core/decide.js";
 import { bandForScore, type Band, type PayeeSignals, type Terms } from "../core/types.js";
@@ -51,6 +51,101 @@ function prompt(i: AdjudicationInput, strict: boolean): { system: string; user: 
   return { system, user };
 }
 
+/**
+ * Strict JSON schema forwarded via `response_format` (docs.openserv.ai/serv-reasoning/tutorials/structured-outputs).
+ * `rationale` is the model's reasoning field in OUR contract; it is required and must be a string.
+ * (SERV's own reasoning trace exists only on POST /v1/responses for OpenAI models; chat completions has no reasoning field.)
+ */
+export const VERDICT_SCHEMA = {
+  type: "json_schema",
+  json_schema: {
+    name: "fiangshi_verdict",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        band: { type: "string", enum: ["ALLOW", "REVIEW", "BLOCK"] },
+        citations: {
+          type: "array",
+          items: { type: "object", properties: { signal: { type: "string" }, quote: { type: "string" } }, required: ["signal", "quote"], additionalProperties: false },
+        },
+        rationale: { type: "string" },
+      },
+      required: ["band", "citations", "rationale"],
+      additionalProperties: false,
+    },
+  },
+} as const;
+
+/** Per-call metadata for smoke reports. Never contains the key. */
+export interface ModelCallMeta {
+  provider: "serv" | "dolphin";
+  model: string;
+  ms: number;
+  status: number | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  finish_reason: string | null;
+  error: string | null;
+  raw: unknown;
+}
+export const modelCalls: ModelCallMeta[] = [];
+export const modelTimeoutMs = () => num("FIANGSHI_MODEL_TIMEOUT_MS", PROBE_TIMEOUT_MS);
+
+interface ChatJson {
+  choices?: { message?: { content?: string | null }; finish_reason?: string }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+}
+
+/**
+ * One OpenAI-compatible chat completion. Fails closed by THROWING on: HTTP error, timeout, empty body,
+ * non-JSON body, missing content, truncation (finish_reason=length). Callers turn throws into degraded verdicts.
+ */
+export async function chatCompletion(
+  provider: "serv" | "dolphin",
+  base: string,
+  key: string,
+  body: Record<string, unknown>,
+): Promise<{ text: string; meta: ModelCallMeta }> {
+  const t0 = Date.now();
+  const meta: ModelCallMeta = { provider, model: String(body.model), ms: 0, status: null, prompt_tokens: null, completion_tokens: null, total_tokens: null, finish_reason: null, error: null, raw: null };
+  try {
+    const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(modelTimeoutMs()),
+    });
+    meta.status = res.status;
+    if (!res.ok) throw new Error(`${provider}: HTTP ${res.status}`); // never echo the body: it may reflect the key
+    const text = await res.text();
+    if (!text.trim()) throw new Error(`${provider}: empty response body`);
+    let j: ChatJson;
+    try {
+      j = JSON.parse(text) as ChatJson;
+    } catch {
+      throw new Error(`${provider}: response body is not JSON`);
+    }
+    meta.raw = j;
+    meta.prompt_tokens = j.usage?.prompt_tokens ?? null;
+    meta.completion_tokens = j.usage?.completion_tokens ?? null;
+    meta.total_tokens = j.usage?.total_tokens ?? null;
+    meta.finish_reason = j.choices?.[0]?.finish_reason ?? null;
+    if (meta.finish_reason === "length") throw new Error(`${provider}: output truncated (finish_reason=length)`);
+    const content = j.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) throw new Error(`${provider}: empty message content`);
+    return { text: content, meta };
+  } catch (e) {
+    const err = e as Error;
+    meta.error = err.name === "TimeoutError" || err.name === "AbortError" ? `${provider}: timeout after ${modelTimeoutMs()}ms` : err.message;
+    throw new Error(meta.error);
+  } finally {
+    meta.ms = Date.now() - t0;
+    modelCalls.push(meta);
+  }
+}
+
 async function liveText(i: AdjudicationInput, strict: boolean): Promise<string> {
   const key = env("SERV_REASONING_API_KEY");
   const model = env("SERV_MODEL");
@@ -58,23 +153,17 @@ async function liveText(i: AdjudicationInput, strict: boolean): Promise<string> 
   if (!key || !model) throw new Error("serv: SERV_REASONING_API_KEY / SERV_MODEL not set");
   const { system, user } = prompt(i, strict);
   return guarded("serv", `adjudicate ${i.signals.payee.slice(0, 10)}`, async () => {
-    const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model,
-        temperature: 0,
-        max_tokens: 400,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    const { text, meta } = await chatCompletion("serv", base, key, {
+      model,
+      temperature: 0,
+      max_completion_tokens: 600,
+      response_format: VERDICT_SCHEMA,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
     });
-    if (!res.ok) throw new Error(`serv: HTTP ${res.status}`); // never echo body (may reflect key)
-    const j = (await res.json()) as { choices?: { message?: { content?: string } }[]; usage?: { total_tokens?: number } };
-    return { value: j.choices?.[0]?.message?.content ?? "", units: j.usage?.total_tokens ?? null };
+    return { value: text, units: meta.total_tokens };
   });
 }
 

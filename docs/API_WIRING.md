@@ -20,7 +20,7 @@ Call pattern for the snapshot (the ONLY expensive path):
 - Read `meta.credits_used` from the response and log it.
 - Write results to data/snapshot.json; never re-query the same payee set.
 - Forbidden: `for (const p of payees) await surf(...)`. If you catch yourself writing that, replace it with a batch or stop and ask.
-- Smoke: one 2-payee query, print credits_used. Cap the whole project at FIANGHSI_MAX_SURF_CALLS=60 and expect the audit to need <=10.
+- Smoke: one 2-payee query, print credits_used. Cap the whole project at FIANGSHI_MAX_SURF_CALLS=60 and expect the audit to need <=10.
 
 ## B. SERV REASONING (verdict model)
 - Client: OpenAI-compatible. baseURL from SERV_BASE_URL (default https://inference-api.openserv.ai/v1), key SERV_REASONING_API_KEY.
@@ -44,7 +44,7 @@ Call pattern for the snapshot (the ONLY expensive path):
 - Smoke: exactly ONE real settlement. Record tx hash, amount, receipt hash into artifacts/costs.md. Everything before that runs with settlement:"dry-run".
 
 ## E. FIXTURE FALLBACK (mandatory)
-Every adapter returns fixture data when FIANGHSI_OFFLINE=1. `npm run accept` must pass with the network unplugged. Live mode is a flag, not a different code path. If live and fixture disagree in shape, fix the fixture and add a test — never special-case the code.
+Every adapter returns fixture data when FIANGSHI_OFFLINE=1. `npm run accept` must pass with the network unplugged. Live mode is a flag, not a different code path. If live and fixture disagree in shape, fix the fixture and add a test — never special-case the code.
 
 ## ORDER OF WORK
 Surf smoke -> SERV smoke -> Dolphin smoke -> fixtures locked -> adapter code -> Kite dry-run -> one real settlement -> update artifacts/costs.md and README Build Log.

@@ -1,0 +1,20 @@
+{
+  "url": "https://yieldsignal.vercel.app/signal/usdc-base-yield",
+  "status": 402,
+  "headers": {
+    "cache-control": "public, max-age=0, must-revalidate",
+    "content-length": "57",
+    "content-type": "application/json",
+    "date": "Sun, 08 Nov 2026 17:07:15 GMT",
+    "server": "Vercel",
+    "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+    "x-vercel-error": "DEPLOYMENT_DISABLED",
+    "x-vercel-id": "bom1::zvb5r-1794157635245-9bee519d21d6"
+  },
+  "body": {
+    "error": {
+      "code": "402",
+      "message": "Payment required"
+    }
+  }
+}

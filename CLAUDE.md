@@ -38,7 +38,7 @@ data/ (gitignored)
 
 ## DATA CONTRACTS — freeze in src/core/types.ts (zod) before any logic
 - Terms: {url, price, asset, network, payee, terms_hash}
-- PayeeSignals: {payee, wallet_age_hours, tx_count, first_funder, funder_fanout, distinct_payers, repeat_payers, total_received_usd, appears_in_other_listings, token_concentration, dormancy_days, identity{claims_org, claims_product, corroborated}, evidence{field:string}}
+- PayeeSignals: {payee, wallet_age_hours, tx_count, first_funder, funder_fanout, distinct_payers, repeat_payers, total_received_usd, appears_in_other_listings, token_asset_share (informational), top_payer_share, dormancy_days, identity{claims_org, claims_product, corroborated}, evidence{field:string}}
 - Verdict: {band, score, vow_fired?, citations[{signal,quote}], degraded, model}
 - Receipt: {payee, url, terms_hash, price, band, score, vow_fired, evidence[], model{verdict,extractor,degraded}, snapshot_id, checked_at, prev_hash, receipt_hash, settlement:"dry-run"|"kite:<tx>"}
 
@@ -74,7 +74,7 @@ Bands: >=80 ALLOW · 50-79 REVIEW · <50 BLOCK
 `fiangshi check <url> [--json] [--explain]` · `verify` · `index` · `lab` · `certify`
 
 ## ENV (.env.example committed)
-SERV_REASONING_API_KEY, SERV_BASE_URL=https://inference-api.openserv.ai/v1, DOLPHIN_API_KEY, DOLPHIN_BASE_URL, DOLPHIN_MODEL, KITE_FACILITATOR_URL, FIANGHSI_PRICE_CHECK=0.05, FIANGHSI_POLICY_TTL_HOURS=72, FIANGHSI_MAX_SURF_CALLS=60, SNAPSHOT_SOURCE=fixture|live, MOCK_MODELS, FIANGHSI_OFFLINE
+SERV_REASONING_API_KEY, SERV_BASE_URL=https://inference-api.openserv.ai/v1, DOLPHIN_API_KEY, DOLPHIN_BASE_URL, DOLPHIN_MODEL, KITE_FACILITATOR_URL, FIANGSHI_PRICE_CHECK=0.05, FIANGSHI_POLICY_TTL_HOURS=72, FIANGSHI_MAX_SURF_CALLS=60, SNAPSHOT_SOURCE=fixture|live, MOCK_MODELS, FIANGSHI_OFFLINE
 
 ## DEFINITION OF DONE
 - [ ] check on a real endpoint <5s, usable offline from cache
@@ -111,6 +111,8 @@ Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
 - A UNION/join/multi-branch query needs an async job (`onchain-sql-job-create`), which REQUIRES an API key (UNAUTHORIZED without). On the free tier, use the two single-branch sync queries: `scripts/surf/payee-inbound.sql` and `payee-outbound.sql`.
 - Window: 365 days (`block_date >= today() - 365`). Wallet age is therefore a LOWER BOUND (first_seen within the window).
 - Billing is per call by tier, not per payee: SQL measured 5 credits/call whether 2 or 12 payees. Labels: 1 credit per ≤100 addresses (measured). Batch payees; never loop per payee.
+- Scoring: E v2 uses `top_payer_share` + distinct payers (see artifacts/capability.md "E signal: v1 → v2"). `token_asset_share` is informational only.
+- Models: SERV = POST {SERV_BASE_URL}/chat/completions with `max_completion_tokens` + `response_format` json_schema (strict). Dolphin = https://lighthouse.dphn.ai/run/text-v/v1, model deepseek-ai/DeepSeek-V4.1-Flash. Smoke: `npx tsx scripts/smoke.ts serv|dolphin`.
 - Entry points: `npx tsx scripts/surf/payee-facts.ts <payee,...> [--tag t] [--only inbound|outbound]` and `npx tsx scripts/surf/labels.ts <smoke.json> <out.json>`. Both are budget-guarded.
 
 ## AUDIT (approved 2026-11-08: 200 payees, free tier)

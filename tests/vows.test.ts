@@ -51,7 +51,7 @@ describe("vows (table-driven)", () => {
   });
 
   it("model cannot raise above score band (low score + model ALLOW -> BLOCK by score)", () => {
-    const s = clean({ first_funder: "0xmixer", distinct_payers: 1, repeat_payers: 0, wallet_age_hours: 60, tx_count: 2, token_concentration: 0.9, identity: anon });
+    const s = clean({ first_funder: "0xmixer", distinct_payers: 1, repeat_payers: 0, wallet_age_hours: 60, tx_count: 2, token_asset_share: 0.9, identity: anon });
     const d = decide(s, 0.05, LABELS, advice(allowRaw(s), s));
     expect(d.scoreBand).toBe("BLOCK");
     expect(d.verdict.band).toBe("BLOCK");

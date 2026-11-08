@@ -1,0 +1,28 @@
+{
+  "url": "https://fresh-oracle.example/v1/price",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "50000",
+        "resource": "https://fresh-oracle.example/v1/price",
+        "description": "synthetic fixture for burner",
+        "mimeType": "application/json",
+        "payTo": "0xfd0a8f55ea115ccf0d6d4491b6bcd5d67f1c1bc1",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

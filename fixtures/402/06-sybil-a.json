@@ -1,0 +1,28 @@
+{
+  "url": "https://swarm-a.example/v1/search",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "30000",
+        "resource": "https://swarm-a.example/v1/search",
+        "description": "synthetic fixture for sybil-a",
+        "mimeType": "application/json",
+        "payTo": "0xcbd6ca86db7f4893a23ff602a13f15182155ccac",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

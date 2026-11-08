@@ -1,0 +1,28 @@
+{
+  "url": "https://premium-signals.example/v1/alpha",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "1000000",
+        "resource": "https://premium-signals.example/v1/alpha",
+        "description": "synthetic fixture for no-history",
+        "mimeType": "application/json",
+        "payTo": "0x9b5d471de3c86c986d05bb4d7dc4aee01b297cc3",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

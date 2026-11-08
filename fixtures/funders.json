@@ -1,0 +1,11 @@
+{
+  "labels": {
+    "0x5227de47318c170c69e1eaa9aa9356b7679d9495": "cex",
+    "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647": "cex",
+    "0xbb3aec5a92c4bfbfee83e49912d4ac803c7deede": "mixer"
+  },
+  "edges": {
+    "0xd2e49b1a3775df96fd8bfcabee0abbf4d7c0e997": "0x8725c4aaf51c8121d26cf1672801bb522270b03c",
+    "0x5e870ca62bbfa76195b4db16cd2552053fc6892d": "0x8725c4aaf51c8121d26cf1672801bb522270b03c"
+  }
+}

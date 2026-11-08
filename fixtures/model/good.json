@@ -1,0 +1,4 @@
+{
+  "payee": "0x20081b2380bce3d7d10d8e380e28ff2980ce5fe9",
+  "raw": "{\"band\":\"ALLOW\",\"citations\":[{\"signal\":\"wallet_age_hours\",\"quote\":\"first inbound tx 3000h before snapshot (base)\"},{\"signal\":\"distinct_payers\",\"quote\":\"60 distinct payer addresses, 20 repeat\"}],\"rationale\":\"mature, CEX-funded, real repeat payers\"}"
+}

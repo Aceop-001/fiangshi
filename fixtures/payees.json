@@ -1,0 +1,788 @@
+[
+  {
+    "payee": "0x20081b2380bce3d7d10d8e380e28ff2980ce5fe9",
+    "wallet_age_hours": 3000,
+    "tx_count": 400,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 60,
+    "repeat_payers": 20,
+    "total_received_usd": 1200,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.1,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": "Weatherly Data",
+      "claims_product": "Weatherly API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 3000h before snapshot (base)",
+      "tx_count": "400 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "60 distinct payer addresses, 20 repeat",
+      "total_received_usd": "$1200.00 USDC received",
+      "identity": "seller bio: \"Weatherly Data - Weatherly API\""
+    }
+  },
+  {
+    "payee": "0xe95817d3c1d41be35532694a5dee1832fb5ea2e3",
+    "wallet_age_hours": 3600,
+    "tx_count": 650,
+    "first_funder": "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647",
+    "funder_fanout": 0,
+    "distinct_payers": 90,
+    "repeat_payers": 25,
+    "total_received_usd": 2150.5,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.15000000000000002,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": "Parcel Atlas",
+      "claims_product": "Parcel API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 3600h before snapshot (base)",
+      "tx_count": "650 transactions on base",
+      "first_funder": "first funded by 0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647 (Kraken hot wallet)",
+      "distinct_payers": "90 distinct payer addresses, 25 repeat",
+      "total_received_usd": "$2150.50 USDC received",
+      "identity": "seller bio: \"Parcel Atlas - Parcel API\""
+    }
+  },
+  {
+    "payee": "0xbebbd42fa8a529e5d5d7f56069d0f0be593e7a22",
+    "wallet_age_hours": 4200,
+    "tx_count": 900,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 120,
+    "repeat_payers": 30,
+    "total_received_usd": 3101,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.2,
+    "dormancy_days": 2,
+    "identity": {
+      "claims_org": "Lexicon Labs",
+      "claims_product": "Lexicon API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 4200h before snapshot (base)",
+      "tx_count": "900 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "120 distinct payer addresses, 30 repeat",
+      "total_received_usd": "$3101.00 USDC received",
+      "identity": "seller bio: \"Lexicon Labs - Lexicon API\""
+    }
+  },
+  {
+    "payee": "0x8b12dc68d0afb0ca12e59daadfe4563aa1ed2256",
+    "wallet_age_hours": 4800,
+    "tx_count": 1150,
+    "first_funder": "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647",
+    "funder_fanout": 0,
+    "distinct_payers": 150,
+    "repeat_payers": 35,
+    "total_received_usd": 4051.5,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.1,
+    "dormancy_days": 3,
+    "identity": {
+      "claims_org": "Tidewater Maps",
+      "claims_product": "Tidewater API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 4800h before snapshot (base)",
+      "tx_count": "1150 transactions on base",
+      "first_funder": "first funded by 0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647 (Kraken hot wallet)",
+      "distinct_payers": "150 distinct payer addresses, 35 repeat",
+      "total_received_usd": "$4051.50 USDC received",
+      "identity": "seller bio: \"Tidewater Maps - Tidewater API\""
+    }
+  },
+  {
+    "payee": "0xd35e8444a56c3af6875113bb0ebfe4eb98b2f97c",
+    "wallet_age_hours": 5400,
+    "tx_count": 1400,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 180,
+    "repeat_payers": 40,
+    "total_received_usd": 5002,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.15000000000000002,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": "Quarry Search",
+      "claims_product": "Quarry API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 5400h before snapshot (base)",
+      "tx_count": "1400 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "180 distinct payer addresses, 40 repeat",
+      "total_received_usd": "$5002.00 USDC received",
+      "identity": "seller bio: \"Quarry Search - Quarry API\""
+    }
+  },
+  {
+    "payee": "0x67a8c6d558f5f8673fe34dcf35c9f176edb6c25b",
+    "wallet_age_hours": 6000,
+    "tx_count": 1650,
+    "first_funder": "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647",
+    "funder_fanout": 0,
+    "distinct_payers": 210,
+    "repeat_payers": 45,
+    "total_received_usd": 5952.5,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.2,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": "Northbeam Quotes",
+      "claims_product": "Northbeam API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 6000h before snapshot (base)",
+      "tx_count": "1650 transactions on base",
+      "first_funder": "first funded by 0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647 (Kraken hot wallet)",
+      "distinct_payers": "210 distinct payer addresses, 45 repeat",
+      "total_received_usd": "$5952.50 USDC received",
+      "identity": "seller bio: \"Northbeam Quotes - Northbeam API\""
+    }
+  },
+  {
+    "payee": "0x2db33369fa5b51d84fa9a4d130b97a86bab6eea4",
+    "wallet_age_hours": 6600,
+    "tx_count": 1900,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 240,
+    "repeat_payers": 50,
+    "total_received_usd": 6903,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.1,
+    "dormancy_days": 2,
+    "identity": {
+      "claims_org": "Ferro Translate",
+      "claims_product": "Ferro API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 6600h before snapshot (base)",
+      "tx_count": "1900 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "240 distinct payer addresses, 50 repeat",
+      "total_received_usd": "$6903.00 USDC received",
+      "identity": "seller bio: \"Ferro Translate - Ferro API\""
+    }
+  },
+  {
+    "payee": "0x9c2bf8353269c51999a505063dd8d5ce25065edc",
+    "wallet_age_hours": 7200,
+    "tx_count": 2150,
+    "first_funder": "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647",
+    "funder_fanout": 0,
+    "distinct_payers": 270,
+    "repeat_payers": 55,
+    "total_received_usd": 7853.5,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.15000000000000002,
+    "dormancy_days": 3,
+    "identity": {
+      "claims_org": "Gullwing OCR",
+      "claims_product": "Gullwing API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 7200h before snapshot (base)",
+      "tx_count": "2150 transactions on base",
+      "first_funder": "first funded by 0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647 (Kraken hot wallet)",
+      "distinct_payers": "270 distinct payer addresses, 55 repeat",
+      "total_received_usd": "$7853.50 USDC received",
+      "identity": "seller bio: \"Gullwing OCR - Gullwing API\""
+    }
+  },
+  {
+    "payee": "0xa101176bfde5f8774c7fcfdf480b23a59ff2cb04",
+    "wallet_age_hours": 7800,
+    "tx_count": 2400,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 300,
+    "repeat_payers": 60,
+    "total_received_usd": 8804,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.2,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": "Basalt Geocode",
+      "claims_product": "Basalt API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 7800h before snapshot (base)",
+      "tx_count": "2400 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "300 distinct payer addresses, 60 repeat",
+      "total_received_usd": "$8804.00 USDC received",
+      "identity": "seller bio: \"Basalt Geocode - Basalt API\""
+    }
+  },
+  {
+    "payee": "0xd3cb55cdf12289021ac5773c87f979c665ed4708",
+    "wallet_age_hours": 8400,
+    "tx_count": 2650,
+    "first_funder": "0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647",
+    "funder_fanout": 0,
+    "distinct_payers": 330,
+    "repeat_payers": 65,
+    "total_received_usd": 9754.5,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.1,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": "Marigold News",
+      "claims_product": "Marigold API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 8400h before snapshot (base)",
+      "tx_count": "2650 transactions on base",
+      "first_funder": "first funded by 0xcabc0fc0eedfe3899749c9c5ea3c4798943ae647 (Kraken hot wallet)",
+      "distinct_payers": "330 distinct payer addresses, 65 repeat",
+      "total_received_usd": "$9754.50 USDC received",
+      "identity": "seller bio: \"Marigold News - Marigold API\""
+    }
+  },
+  {
+    "payee": "0xfd0a8f55ea115ccf0d6d4491b6bcd5d67f1c1bc1",
+    "wallet_age_hours": 20,
+    "tx_count": 6,
+    "first_funder": "0x036ab441038ac1298182140e3d83c0f12d6a4fef",
+    "funder_fanout": 0,
+    "distinct_payers": 2,
+    "repeat_payers": 0,
+    "total_received_usd": 0.4,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.95,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 20h before snapshot (base)",
+      "tx_count": "6 transactions on base",
+      "first_funder": "first funded by 0x036ab441038ac1298182140e3d83c0f12d6a4fef (fresh wallet)",
+      "distinct_payers": "2 distinct payer addresses, 0 repeat",
+      "total_received_usd": "$0.40 USDC received"
+    }
+  },
+  {
+    "payee": "0xcbd6ca86db7f4893a23ff602a13f15182155ccac",
+    "wallet_age_hours": 900,
+    "tx_count": 120,
+    "first_funder": "0xd2e49b1a3775df96fd8bfcabee0abbf4d7c0e997",
+    "funder_fanout": 0,
+    "distinct_payers": 15,
+    "repeat_payers": 4,
+    "total_received_usd": 90,
+    "appears_in_other_listings": 3,
+    "token_concentration": 0.3,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 900h before snapshot (base)",
+      "tx_count": "120 transactions on base",
+      "first_funder": "first funded by 0xd2e49b1a3775df96fd8bfcabee0abbf4d7c0e997 (unlabelled wallet)",
+      "distinct_payers": "15 distinct payer addresses, 4 repeat",
+      "total_received_usd": "$90.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x2ed42c538037cee695d5ef6df29b4108fb52bd2f",
+    "wallet_age_hours": 910,
+    "tx_count": 120,
+    "first_funder": "0xd2e49b1a3775df96fd8bfcabee0abbf4d7c0e997",
+    "funder_fanout": 0,
+    "distinct_payers": 15,
+    "repeat_payers": 4,
+    "total_received_usd": 90,
+    "appears_in_other_listings": 3,
+    "token_concentration": 0.3,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 910h before snapshot (base)",
+      "tx_count": "120 transactions on base",
+      "first_funder": "first funded by 0xd2e49b1a3775df96fd8bfcabee0abbf4d7c0e997 (unlabelled wallet)",
+      "distinct_payers": "15 distinct payer addresses, 4 repeat",
+      "total_received_usd": "$90.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x867c77fc662b72fd5d1deba2dce5d4cec97da33a",
+    "wallet_age_hours": 920,
+    "tx_count": 120,
+    "first_funder": "0x5e870ca62bbfa76195b4db16cd2552053fc6892d",
+    "funder_fanout": 0,
+    "distinct_payers": 15,
+    "repeat_payers": 4,
+    "total_received_usd": 90,
+    "appears_in_other_listings": 3,
+    "token_concentration": 0.3,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 920h before snapshot (base)",
+      "tx_count": "120 transactions on base",
+      "first_funder": "first funded by 0x5e870ca62bbfa76195b4db16cd2552053fc6892d (unlabelled wallet)",
+      "distinct_payers": "15 distinct payer addresses, 4 repeat",
+      "total_received_usd": "$90.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x7f39cb3b1aeff9e47fe9db1689b1f279757ba51f",
+    "wallet_age_hours": 930,
+    "tx_count": 120,
+    "first_funder": "0x5e870ca62bbfa76195b4db16cd2552053fc6892d",
+    "funder_fanout": 0,
+    "distinct_payers": 15,
+    "repeat_payers": 4,
+    "total_received_usd": 90,
+    "appears_in_other_listings": 3,
+    "token_concentration": 0.3,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 930h before snapshot (base)",
+      "tx_count": "120 transactions on base",
+      "first_funder": "first funded by 0x5e870ca62bbfa76195b4db16cd2552053fc6892d (unlabelled wallet)",
+      "distinct_payers": "15 distinct payer addresses, 4 repeat",
+      "total_received_usd": "$90.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xa0856d6bddd0fb83567ef20effba88a5a1a1a725",
+    "wallet_age_hours": 30,
+    "tx_count": 12,
+    "first_funder": "0x0135c6e1cd3e104abd18e6875e9770ae03c327ff",
+    "funder_fanout": 0,
+    "distinct_payers": 1,
+    "repeat_payers": 0,
+    "total_received_usd": 0.1,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.2,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": "Weatherly Data",
+      "claims_product": "Weatherly API",
+      "corroborated": true
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 30h before snapshot (base)",
+      "tx_count": "12 transactions on base",
+      "first_funder": "first funded by 0x0135c6e1cd3e104abd18e6875e9770ae03c327ff (fresh wallet)",
+      "distinct_payers": "1 distinct payer addresses, 0 repeat",
+      "total_received_usd": "$0.10 USDC received",
+      "identity": "seller bio: \"Weatherly Data - moved to a new wallet\""
+    }
+  },
+  {
+    "payee": "0xc71a95046cf28f0095aa45bd718980aeeaa19168",
+    "wallet_age_hours": 6000,
+    "tx_count": 40,
+    "first_funder": "0x296ab17a0ab8e8173f37d80f06ed14dbedf2de19",
+    "funder_fanout": 0,
+    "distinct_payers": 3,
+    "repeat_payers": 1,
+    "total_received_usd": 12,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.7,
+    "dormancy_days": 120,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 6000h before snapshot (base)",
+      "tx_count": "40 transactions on base",
+      "first_funder": "first funded by 0x296ab17a0ab8e8173f37d80f06ed14dbedf2de19 (fresh wallet)",
+      "distinct_payers": "3 distinct payer addresses, 1 repeat",
+      "total_received_usd": "$12.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x44dbb4a70de8fa2d70f645b832d0ecdc4cd6e707",
+    "wallet_age_hours": 60,
+    "tx_count": 30,
+    "first_funder": "0x6fde7ca8b8c97004030a11eae8f2e3c2cb032850",
+    "funder_fanout": 0,
+    "distinct_payers": 4,
+    "repeat_payers": 0,
+    "total_received_usd": 3,
+    "appears_in_other_listings": 2,
+    "token_concentration": 0.4,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": "Weatherly Data",
+      "claims_product": "Weatherly API",
+      "corroborated": false
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 60h before snapshot (base)",
+      "tx_count": "30 transactions on base",
+      "first_funder": "first funded by 0x6fde7ca8b8c97004030a11eae8f2e3c2cb032850 (fresh wallet)",
+      "distinct_payers": "4 distinct payer addresses, 0 repeat",
+      "total_received_usd": "$3.00 USDC received",
+      "identity": "seller bio: \"Weatherly Data official - hourly weather API\""
+    }
+  },
+  {
+    "payee": "0x58a28fbc6e598ef9ccbc9276dca69b45875b23f1",
+    "wallet_age_hours": 3000,
+    "tx_count": 500,
+    "first_funder": "0xbb3aec5a92c4bfbfee83e49912d4ac803c7deede",
+    "funder_fanout": 0,
+    "distinct_payers": 80,
+    "repeat_payers": 20,
+    "total_received_usd": 4000,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.2,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 3000h before snapshot (base)",
+      "tx_count": "500 transactions on base",
+      "first_funder": "first funded by 0xbb3aec5a92c4bfbfee83e49912d4ac803c7deede (mixer output)",
+      "distinct_payers": "80 distinct payer addresses, 20 repeat",
+      "total_received_usd": "$4000.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x9b5d471de3c86c986d05bb4d7dc4aee01b297cc3",
+    "wallet_age_hours": 800,
+    "tx_count": 20,
+    "first_funder": "0x5227de47318c170c69e1eaa9aa9356b7679d9495",
+    "funder_fanout": 0,
+    "distinct_payers": 0,
+    "repeat_payers": 0,
+    "total_received_usd": 0,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.5,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 800h before snapshot (base)",
+      "tx_count": "20 transactions on base",
+      "first_funder": "first funded by 0x5227de47318c170c69e1eaa9aa9356b7679d9495 (Coinbase hot wallet)",
+      "distinct_payers": "0 distinct payer addresses, 0 repeat",
+      "total_received_usd": "$0.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x26aa60c9985ec168b43cfbd74af37a15e6184df8",
+    "wallet_age_hours": 1500,
+    "tx_count": 200,
+    "first_funder": null,
+    "funder_fanout": 0,
+    "distinct_payers": 30,
+    "repeat_payers": 5,
+    "total_received_usd": 300,
+    "appears_in_other_listings": 0,
+    "token_concentration": null,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 1500h before snapshot (base)",
+      "tx_count": "200 transactions on base",
+      "distinct_payers": "30 distinct payer addresses, 5 repeat",
+      "total_received_usd": "$300.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x44726a3e317818c7feb2390edb40eb187439e88a",
+    "wallet_age_hours": 400,
+    "tx_count": 50,
+    "first_funder": "0xde4f88e0bf806d7626d9a303a15fccabafe7e415",
+    "funder_fanout": 0,
+    "distinct_payers": 5,
+    "repeat_payers": 0,
+    "total_received_usd": 25,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.6,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 400h before snapshot (base)",
+      "tx_count": "50 transactions on base",
+      "first_funder": "first funded by 0xde4f88e0bf806d7626d9a303a15fccabafe7e415 (fresh wallet)",
+      "distinct_payers": "5 distinct payer addresses, 0 repeat",
+      "total_received_usd": "$25.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xe4091fa239870fe5a0ac84537881605756025749",
+    "wallet_age_hours": 750,
+    "tx_count": 110,
+    "first_funder": "0x821187f5beb586d3a76920e147b9b7b9e68a300c",
+    "funder_fanout": 0,
+    "distinct_payers": 13,
+    "repeat_payers": 2,
+    "total_received_usd": 145,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.5599999999999999,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 750h before snapshot (base)",
+      "tx_count": "110 transactions on base",
+      "first_funder": "first funded by 0x821187f5beb586d3a76920e147b9b7b9e68a300c (fresh wallet)",
+      "distinct_payers": "13 distinct payer addresses, 2 repeat",
+      "total_received_usd": "$145.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x9d416f07aae6378491f8db406eb30658fdc9f6cb",
+    "wallet_age_hours": 1100,
+    "tx_count": 170,
+    "first_funder": "0x36e5b5617196ea3d790bba0895d9f420a36ecb36",
+    "funder_fanout": 0,
+    "distinct_payers": 21,
+    "repeat_payers": 4,
+    "total_received_usd": 265,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.52,
+    "dormancy_days": 2,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 1100h before snapshot (base)",
+      "tx_count": "170 transactions on base",
+      "first_funder": "first funded by 0x36e5b5617196ea3d790bba0895d9f420a36ecb36 (fresh wallet)",
+      "distinct_payers": "21 distinct payer addresses, 4 repeat",
+      "total_received_usd": "$265.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x7b731ab66f182cba2053f6e200c997fb92fc4d7b",
+    "wallet_age_hours": 1450,
+    "tx_count": 230,
+    "first_funder": "0x69830c5371b3777ae1b4c7e47e2fa0d8422827ef",
+    "funder_fanout": 0,
+    "distinct_payers": 29,
+    "repeat_payers": 6,
+    "total_received_usd": 385,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.48,
+    "dormancy_days": 3,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 1450h before snapshot (base)",
+      "tx_count": "230 transactions on base",
+      "first_funder": "first funded by 0x69830c5371b3777ae1b4c7e47e2fa0d8422827ef (fresh wallet)",
+      "distinct_payers": "29 distinct payer addresses, 6 repeat",
+      "total_received_usd": "$385.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xa715a43a392de92477fa67818c34582c6108a9a2",
+    "wallet_age_hours": 1800,
+    "tx_count": 290,
+    "first_funder": "0xbfa1c168a388432a1026951533671c75674a3f95",
+    "funder_fanout": 0,
+    "distinct_payers": 37,
+    "repeat_payers": 8,
+    "total_received_usd": 505,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.43999999999999995,
+    "dormancy_days": 4,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 1800h before snapshot (base)",
+      "tx_count": "290 transactions on base",
+      "first_funder": "first funded by 0xbfa1c168a388432a1026951533671c75674a3f95 (fresh wallet)",
+      "distinct_payers": "37 distinct payer addresses, 8 repeat",
+      "total_received_usd": "$505.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xd1ccbe424b5291d775c95303e5abfeb31c823ca7",
+    "wallet_age_hours": 2150,
+    "tx_count": 350,
+    "first_funder": "0x54598c50b90d4cce4acd560f5b695a4ecc525f63",
+    "funder_fanout": 0,
+    "distinct_payers": 45,
+    "repeat_payers": 10,
+    "total_received_usd": 625,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.39999999999999997,
+    "dormancy_days": 0,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 2150h before snapshot (base)",
+      "tx_count": "350 transactions on base",
+      "first_funder": "first funded by 0x54598c50b90d4cce4acd560f5b695a4ecc525f63 (fresh wallet)",
+      "distinct_payers": "45 distinct payer addresses, 10 repeat",
+      "total_received_usd": "$625.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xeb4119de7bdba5af51fd8905a0d74058448d7735",
+    "wallet_age_hours": 2500,
+    "tx_count": 410,
+    "first_funder": "0x73f282e2e31734e7baed5b985e691572eb5d1150",
+    "funder_fanout": 0,
+    "distinct_payers": 53,
+    "repeat_payers": 12,
+    "total_received_usd": 745,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.36,
+    "dormancy_days": 1,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 2500h before snapshot (base)",
+      "tx_count": "410 transactions on base",
+      "first_funder": "first funded by 0x73f282e2e31734e7baed5b985e691572eb5d1150 (fresh wallet)",
+      "distinct_payers": "53 distinct payer addresses, 12 repeat",
+      "total_received_usd": "$745.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xa286dfdeb74b1b02620963fbd5c8f0583863ea30",
+    "wallet_age_hours": 2850,
+    "tx_count": 470,
+    "first_funder": "0x673478e1f8dfcecef907d4faafdb9f5e9a479ec9",
+    "funder_fanout": 0,
+    "distinct_payers": 61,
+    "repeat_payers": 14,
+    "total_received_usd": 865,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.31999999999999995,
+    "dormancy_days": 2,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 2850h before snapshot (base)",
+      "tx_count": "470 transactions on base",
+      "first_funder": "first funded by 0x673478e1f8dfcecef907d4faafdb9f5e9a479ec9 (fresh wallet)",
+      "distinct_payers": "61 distinct payer addresses, 14 repeat",
+      "total_received_usd": "$865.00 USDC received"
+    }
+  },
+  {
+    "payee": "0xfed5e48bc89be21a1f3cbb959753baa3a2b71f6e",
+    "wallet_age_hours": 3200,
+    "tx_count": 530,
+    "first_funder": "0x1282d99b81f359162f5de9e8510712c1448450df",
+    "funder_fanout": 0,
+    "distinct_payers": 69,
+    "repeat_payers": 16,
+    "total_received_usd": 985,
+    "appears_in_other_listings": 0,
+    "token_concentration": 0.27999999999999997,
+    "dormancy_days": 3,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 3200h before snapshot (base)",
+      "tx_count": "530 transactions on base",
+      "first_funder": "first funded by 0x1282d99b81f359162f5de9e8510712c1448450df (fresh wallet)",
+      "distinct_payers": "69 distinct payer addresses, 16 repeat",
+      "total_received_usd": "$985.00 USDC received"
+    }
+  },
+  {
+    "payee": "0x8e5b47d69e428b53f71797b7f1293d9e9e9dbc1b",
+    "wallet_age_hours": 3550,
+    "tx_count": 590,
+    "first_funder": "0xfdf4f024665a193cb354e8464ba897d80f2d0ed3",
+    "funder_fanout": 0,
+    "distinct_payers": 77,
+    "repeat_payers": 18,
+    "total_received_usd": 1105,
+    "appears_in_other_listings": 1,
+    "token_concentration": 0.24,
+    "dormancy_days": 4,
+    "identity": {
+      "claims_org": null,
+      "claims_product": null,
+      "corroborated": null
+    },
+    "evidence": {
+      "wallet_age_hours": "first inbound tx 3550h before snapshot (base)",
+      "tx_count": "590 transactions on base",
+      "first_funder": "first funded by 0xfdf4f024665a193cb354e8464ba897d80f2d0ed3 (fresh wallet)",
+      "distinct_payers": "77 distinct payer addresses, 18 repeat",
+      "total_received_usd": "$1105.00 USDC received"
+    }
+  }
+]

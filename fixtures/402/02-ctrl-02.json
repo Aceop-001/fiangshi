@@ -1,0 +1,28 @@
+{
+  "url": "https://api.parcelatlas.example/v1/parcel",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "20000",
+        "resource": "https://api.parcelatlas.example/v1/parcel",
+        "description": "synthetic fixture for ctrl-02",
+        "mimeType": "application/json",
+        "payTo": "0xe95817d3c1d41be35532694a5dee1832fb5ea2e3",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

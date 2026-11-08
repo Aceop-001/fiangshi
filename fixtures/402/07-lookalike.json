@@ -1,0 +1,28 @@
+{
+  "url": "https://weatherly-official.example/v1/forecast",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "50000",
+        "resource": "https://weatherly-official.example/v1/forecast",
+        "description": "synthetic fixture for lookalike",
+        "mimeType": "application/json",
+        "payTo": "0x44dbb4a70de8fa2d70f645b832d0ecdc4cd6e707",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

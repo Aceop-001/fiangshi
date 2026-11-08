@@ -1,0 +1,4 @@
+{
+  "payee": "0x20081b2380bce3d7d10d8e380e28ff2980ce5fe9",
+  "raw": "{\"band\":\"ALLOW\",\"citations\":[{\"signal\":\"distinct_payers\",\"quote\":\"over 9000 distinct payer addresses\"}],\"rationale\":\"very popular\"}"
+}

@@ -1,0 +1,28 @@
+{
+  "url": "https://api.lexicon.example/v1/define",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "10000",
+        "resource": "https://api.lexicon.example/v1/define",
+        "description": "synthetic fixture for ctrl-03",
+        "mimeType": "application/json",
+        "payTo": "0xbebbd42fa8a529e5d5d7f56069d0f0be593e7a22",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

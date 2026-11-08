@@ -1,0 +1,28 @@
+{
+  "url": "https://old-quotes.example/v1/quote",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "40000",
+        "resource": "https://old-quotes.example/v1/quote",
+        "description": "synthetic fixture for sleeper",
+        "mimeType": "application/json",
+        "payTo": "0xc71a95046cf28f0095aa45bd718980aeeaa19168",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

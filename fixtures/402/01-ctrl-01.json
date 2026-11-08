@@ -1,0 +1,28 @@
+{
+  "url": "https://api.weatherly.example/v1/forecast",
+  "status": 402,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": {
+    "x402Version": 1,
+    "error": "X-PAYMENT header is required",
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "base",
+        "maxAmountRequired": "50000",
+        "resource": "https://api.weatherly.example/v1/forecast",
+        "description": "synthetic fixture for ctrl-01",
+        "mimeType": "application/json",
+        "payTo": "0x20081b2380bce3d7d10d8e380e28ff2980ce5fe9",
+        "maxTimeoutSeconds": 60,
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    ]
+  }
+}

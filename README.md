@@ -30,6 +30,7 @@ npm run fiangshi -- check https://fresh-oracle.example/v1/price --explain
 - Invalid data (negative age, future creation time, NaN, concentration outside [0,1], a payee funding itself) is cleaned up to "missing", which gives REVIEW and never BLOCK.
 - The reported `vow_fired` is the most severe vow that fired. Ties go to the listed order.
 - Unknown asset decimals give `price = null`, which triggers silence and REVIEW.
+- Receipts are **hash-chained, not signed**. Each one carries `receipt_hash = sha256(canonical)` and the previous receipt's hash, so editing, removing or reordering any receipt fails `fiangshi verify`. There is no signing key to manage or leak.
 
 ## NOT doing
 

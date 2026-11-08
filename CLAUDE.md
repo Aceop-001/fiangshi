@@ -99,3 +99,4 @@ Freeze types before logic. One phase = one commit, never commit red. Never block
 - Vow reported = most severe fired vow; ties broken by listed precedence.
 - Kinship ignores funders labelled CEX (an exchange hot wallet funding many sellers is normal).
 - Invalid numbers (negative, NaN, future timestamps, self-funding) are sanitized to "missing" → silence → REVIEW. Data errors never BLOCK.
+- Receipts are hash-chained (sha256 + prev_hash), NOT cryptographically signed. Decided 2026-11-08: no signature field, no signing key. "Signed" in the mission means tamper-evident via the chain. Do not add signing without asking.

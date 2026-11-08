@@ -1,0 +1,68 @@
+{
+  "mode": "sync",
+  "payees": 2,
+  "days": 365,
+  "ms": 1997,
+  "credits_total": 5,
+  "calls": [
+    {
+      "label": "onchain-sql payee-inbound payees=2",
+      "ms": 1997,
+      "credits": 5,
+      "envelope": {
+        "$schema": "https://api.asksurf.ai/schemas/DataResponseOnchainRow.json",
+        "data": [
+          {
+            "distinct_inbound_senders": 462,
+            "first_inbound_at": 1781518857,
+            "first_inbound_from": "0x5609e41fbd5dc6184ccbd161eafff1060b7660f6",
+            "inbound_count": 3572,
+            "inbound_usd": 2.0715515926102084,
+            "last_inbound_at": 1793954630,
+            "payee": "0x3da40a9ad36640a2c0f533bac368490095574664",
+            "top_token_share": 1
+          },
+          {
+            "distinct_inbound_senders": 101,
+            "first_inbound_at": 1785488767,
+            "first_inbound_from": "0x278ee9a97c8b8e35b12426f2082a0765afba82de",
+            "inbound_count": 351,
+            "inbound_usd": 5.767574048684386,
+            "last_inbound_at": 1793951702,
+            "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+            "top_token_share": 1
+          }
+        ],
+        "meta": {
+          "cached": false,
+          "credits_used": 5,
+          "limit": 2,
+          "offset": 0,
+          "total": 2
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+      "distinct_inbound_senders": 101,
+      "first_inbound_at": 1785488767,
+      "first_inbound_from": "0x278ee9a97c8b8e35b12426f2082a0765afba82de",
+      "inbound_count": 351,
+      "inbound_usd": 5.767574048684386,
+      "last_inbound_at": 1793951702,
+      "top_token_share": 1
+    },
+    {
+      "payee": "0x3da40a9ad36640a2c0f533bac368490095574664",
+      "distinct_inbound_senders": 462,
+      "first_inbound_at": 1781518857,
+      "first_inbound_from": "0x5609e41fbd5dc6184ccbd161eafff1060b7660f6",
+      "inbound_count": 3572,
+      "inbound_usd": 2.0715515926102084,
+      "last_inbound_at": 1793954630,
+      "top_token_share": 1
+    }
+  ]
+}

@@ -60,7 +60,7 @@ function surf(args: string[], stdin?: string): Envelope {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-interface Call {
+export interface Call {
   label: string;
   ms: number;
   credits: number | null;
@@ -77,9 +77,13 @@ async function guardedSurf(label: string, args: string[], body?: object): Promis
   return { label, ms: Date.now() - t, credits: envelope.meta?.credits_used ?? null, envelope };
 }
 
-async function runSync(payees: string[], days: number): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
+export async function runSync(
+  payees: string[],
+  days: number,
+  templates: readonly ("payee-inbound" | "payee-outbound")[] = ["payee-inbound", "payee-outbound"],
+): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
   const calls: Call[] = [];
-  for (const t of ["payee-inbound", "payee-outbound"] as const) {
+  for (const t of templates) {
     calls.push(await guardedSurf(`onchain-sql ${t} payees=${payees.length}`, ["onchain-sql"], { sql: buildSql(payees, days, t), max_rows: 1000 }));
   }
   const byPayee = new Map<string, Record<string, unknown>>(payees.map((p) => [p, { payee: p }]));
@@ -124,7 +128,9 @@ async function main() {
   const redact = (s: string) => (control ? s.replaceAll(control, "<CONTROL>") : s);
 
   const t0 = Date.now();
-  const { calls, rows } = mode === "async" ? await runAsync(payees, days) : await runSync(payees, days);
+  const only = flag("--only"); // inbound | outbound (sync only)
+  const templates = only === "inbound" ? (["payee-inbound"] as const) : only === "outbound" ? (["payee-outbound"] as const) : (["payee-inbound", "payee-outbound"] as const);
+  const { calls, rows } = mode === "async" ? await runAsync(payees, days) : await runSync(payees, days, templates);
   const ms = Date.now() - t0;
   for (const c of calls) console.log(`${c.label.padEnd(44)} credits_used=${c.credits}  ${c.ms}ms`);
   const record = { mode, payees: payees.length, days, ms, credits_total: calls.reduce((a, c) => a + (c.credits ?? 0), 0), calls, rows };

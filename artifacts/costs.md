@@ -9,3 +9,4 @@
 | 2026-11-08T16:24:26.253Z | surf | onchain-sql payee-inbound payees=12 | 4/60 | 5 | ok |
 | 2026-11-08T16:24:30.664Z | surf | onchain-sql payee-outbound payees=12 | 5/60 | 5 | ok |
 | 2026-11-08T16:27:03.734Z | surf | wallet-labels-batch n=23 | 6/60 | 1 | ok |
+| 2026-11-08T16:41:35.400Z | surf | onchain-sql payee-inbound payees=2 | 7/60 | 5 | ok |

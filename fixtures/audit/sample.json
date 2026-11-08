@@ -1,0 +1,1454 @@
+{
+ "method": "Base (eip155:8453) payTo from the x402 Bazaar catalog, deduped, ordered by sha256(payee), first 200",
+ "catalog": {
+  "resources": 34156,
+  "base_resources": 32925,
+  "base_usdc_resources": 32925,
+  "distinct_base_payees": 1923,
+  "endpoints_per_payee": 17.12,
+  "top_payees": [
+   {
+    "payee": "0x2880edfff13100677bf97a3cbdf3bc34771c4e5e",
+    "resources": 6279
+   },
+   {
+    "payee": "0xa2a8df0f7caabea4e120a2568118f141569fc8aa",
+    "resources": 1621
+   },
+   {
+    "payee": "0xb8491f953e6860d3b5840b73c60883ff099ceafa",
+    "resources": 1236
+   },
+   {
+    "payee": "0x5fb2faeaabd58da0ea1e1f64a8c2134c4941efe5",
+    "resources": 1010
+   },
+   {
+    "payee": "0x50ab2018c06c6e4eaa9ba52057eb55ed284912fc",
+    "resources": 828
+   },
+   {
+    "payee": "0x2074c40346ae2a90e0e4a391bcee6f16bf5277f5",
+    "resources": 642
+   },
+   {
+    "payee": "0xabf4fabd7c416fb67202e5f9002389fc75e2a9d0",
+    "resources": 623
+   },
+   {
+    "payee": "0x593857a4a4f619543ea12394137c3004ce841720",
+    "resources": 548
+   },
+   {
+    "payee": "0xb531320805c5bed1d46aeadcf4f008fdf172dbda",
+    "resources": 360
+   },
+   {
+    "payee": "0x4466d4a84b7c49a6a094ec6eef4a0712d6dd125e",
+    "resources": 353
+   }
+  ]
+ },
+ "payees": [
+  {
+   "payee": "0x9811c0900fcb719bbc363a3846d2d6db2771dea8",
+   "resources": 15,
+   "example_url": "https://agents.withzero.xyz/api/v1/crustdata/person/search/autocomplete",
+   "service": "WithZero",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x14df772bd496bbb7f49bc3e992ce13b2c441177f",
+   "resources": 1,
+   "example_url": "https://reader.outbid.sh/scrape",
+   "service": "x402 Reader",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x154b1006435e5cfe2206e7777c1003f9438119b1",
+   "resources": 2,
+   "example_url": "https://x402.blackswan.wtf/smart-agents/flare",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x7d58e3606a71a788633fbf12698d20847cca426c",
+   "resources": 10,
+   "example_url": "https://synaptic.websterberrymarketing.com/agents/10-counterparty-screen",
+   "service": "WebsterBerry Synaptic",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x11dced0487ca3e7d9032029dcb302253ccf4e0de",
+   "resources": 106,
+   "example_url": "https://minty-sprout.onrender.com/v1/base-token-info",
+   "service": "Foundry",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x4466d4a84b7c49a6a094ec6eef4a0712d6dd125e",
+   "resources": 353,
+   "example_url": "https://api.x402node.dev/finance/econ-calendar",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xb790ed3796194e5511c44411cf045f67e069cdc0",
+   "resources": 1,
+   "example_url": "https://bazaar.fronesislabs.com/audit/:tx_hash/deep",
+   "service": "DCL Trust Oracle",
+   "price_usd": 0.5
+  },
+  {
+   "payee": "0x54ebfcf3870439b9db62381848c5dabc05c70d5b",
+   "resources": 4,
+   "example_url": "https://x402.professorsausages.com/gas-oracle/prices",
+   "service": "Multichain Gas Oracle",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0xef2fc5b24339371a659fd0571c9d0a1d63268d4f",
+   "resources": 1,
+   "example_url": "https://billitright.co/run-transport_security",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x0606bc50928d22475ff61d5b2faac86cae8f3a4d",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_2jsxzr4rmorbplaz",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x17b2c55872338727660aa77776a4056a1a3158ec",
+   "resources": 3,
+   "example_url": "https://api.debyko.com/v2/screen",
+   "service": "DEBYKO",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x05b75e13f071a09a26b50a18ce5bd02a0755d76f",
+   "resources": 23,
+   "example_url": "https://api.fastaf.co/x402/v1/serp",
+   "service": "FastAF",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x495ae6921cac6e7cdbf8fff7f62bb678cc1f47e2",
+   "resources": 5,
+   "example_url": "https://api.verdixapi.com/risk/address/lite",
+   "service": "Verdix Address Risk (lite)",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x0eba5d314f4f5dcb7a094953fa9311a45172dd1b",
+   "resources": 5,
+   "example_url": "https://gblin.digital/api/x402/catalog",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x1f0409ccd20a2fb497d4decef4e17e9d0688fea6",
+   "resources": 77,
+   "example_url": "https://usaref.dev/v1/:country/:series",
+   "service": "Usaref - N America reference",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x9287e3102d411029025c7617d75245bfc7920f17",
+   "resources": 107,
+   "example_url": "https://prices.genexxis.com/token-price",
+   "service": "Genexxis Crypto Prices",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0xdedd050dfe4212d52f2a6ed6a2d5d3289de0d5ac",
+   "resources": 2,
+   "example_url": "https://stablebase.dev/api/stablebase/projects/list",
+   "service": "Stablebase",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xa80bbade17e6b2fbaece40c1e17c1d5c07f73e0d",
+   "resources": 2,
+   "example_url": "https://uk-company-check.fly.dev/v1/uk/company/search",
+   "service": null,
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x5deaebaf98034cc0d9abe3757a440b121c42ef0a",
+   "resources": 5,
+   "example_url": "https://pennyregwatch.com/v1/search",
+   "service": "PennyAPI Web Search",
+   "price_usd": 0.004
+  },
+  {
+   "payee": "0x3e7c9ca818f713f19e126e3b7b37b47dc1411570",
+   "resources": 30,
+   "example_url": "https://x402.openwebninja.com/realtime-product-search/v2/product-price-history-v2",
+   "service": null,
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x7d6e22db7c2ee44859061061f99e55257a5ceac1",
+   "resources": 1,
+   "example_url": "https://api.metalend.tech/v1/services",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x02d15e7f25d29743c27021d32a7b280d760b2bc2",
+   "resources": 1,
+   "example_url": "https://crawl-preflight.postnov01.workers.dev/crawl-check/:domain",
+   "service": "Crawl Pre-Flight",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x9b6a1f06ad0b0f5a6d1149133b43395e99dc2c23",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_dxx6g4w56gd4mfov",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xb3e7993ed2fc2c79fff220620240f298bba9bf5b",
+   "resources": 3,
+   "example_url": "https://tollbooth-hello.sjwilliams8.workers.dev/hello",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xe1122ae3bbfa33d6ff21c25692850ca7a58a6740",
+   "resources": 1,
+   "example_url": "https://unlisted.sh/diagnose",
+   "service": "Unlisted",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x2e6e9c7e3a1a286e7b691b53dc90bc8eb703f16d",
+   "resources": 2,
+   "example_url": "https://checker-production-40a5.up.railway.app/quick",
+   "service": "Token Risk Checker",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xb1f64fc8689a17014cf0748e8eead58c5457ec74",
+   "resources": 3,
+   "example_url": "https://topagentx402.vercel.app/api/report",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x318a8bac69c4ec1f9e489ce223b7ce2d719bcd3b",
+   "resources": 1,
+   "example_url": "https://property-risk-passport-api.lifebite-app.workers.dev/v1/property-risk-full",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x9baa4417d1e78f2ed5b09aa4abfb541aeb2cd6ed",
+   "resources": 11,
+   "example_url": "https://rest.coincap.io/v3/agentFriendly/full_assets_by_slug",
+   "service": "CoinCap",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xeb76f3442eaf192ebddbc1f7eebd59cde5e00d35",
+   "resources": 1,
+   "example_url": "https://agentkit-x402-buy.netlify.app/api/eth-price",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x5d83d8f433e72013cebd649665662ee07e030b05",
+   "resources": 123,
+   "example_url": "https://api.ysaere.com/v1/intel/tool-finder",
+   "service": "Ysaere",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x66d7c2f952362bfb24fd7f02a9bec9c754ea83bc",
+   "resources": 72,
+   "example_url": "https://api.strale.io/x402/v2/base64-encode-url",
+   "service": "Strale",
+   "price_usd": 0.0216
+  },
+  {
+   "payee": "0x2f2e1f54109b2525137eeda4a892600ee956d42a",
+   "resources": 42,
+   "example_url": "https://conclavex402p04.pythonanywhere.com/u/time",
+   "service": "World Clock / Time",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x642387268576ac4bf74ee8fcc685e4d4f9f54092",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_27awvgrsarjkqdhk",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xf3fd98a7b363d473a5f65df08c4176c90701e7e5",
+   "resources": 1,
+   "example_url": "https://dineroenlamesa.com/agents/api/delta_neutral_scanner",
+   "service": null,
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0xe8b25a72dd6aef69515452a61ad231c7df2843b7",
+   "resources": 5,
+   "example_url": "https://agentpay.tools/tools/verified_route/call",
+   "service": "AgentPay x402 Trust Oracle",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x5b32c973596078a967562ca652761404f19be0e9",
+   "resources": 36,
+   "example_url": "https://horizonpulse.dev/api/gas",
+   "service": "Horizon Pulse",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x6b2891b824206b0dc9884751fdbaf73e9cce651b",
+   "resources": 11,
+   "example_url": "https://agents.bytemine.ai/functions/v1/api-gateway/company/intel/page",
+   "service": "Bytemine",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xd1e9dd6b705312d6b5f9db43ed90490cf0a2c3ba",
+   "resources": 4,
+   "example_url": "https://x402-pricegap-poc.vercel.app/quote3",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x5c3db195a38f39074d8c891741a82f6d8f2a16cc",
+   "resources": 15,
+   "example_url": "https://x402-seller-0ay3.onrender.com/api/defi/price",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x25e8245f07d5e4873987293dad666afbe56a9608",
+   "resources": 8,
+   "example_url": "https://foundry-par007-machine-revenue-mainnet.inference-chip-index.workers.dev/v2/official/nhtsa-vin-decode",
+   "service": "VIN Decoder (NHTSA vPIC)",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x9f1ca575893c1f88d622bdf1cd578b810f2b878d",
+   "resources": 18,
+   "example_url": "https://api-production-24833.up.railway.app/v1/search",
+   "service": "French Company Search (SIREN)",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xe295b6641b32998537ae0f8e61babf729eaed6e5",
+   "resources": 4,
+   "example_url": "https://anomaly.forgemesh.io/api/mempool-anomaly",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xae2634e709c454f2720c65a0b2f9ba168e431842",
+   "resources": 35,
+   "example_url": "https://chainverdict.xyz/v1/data/block",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x95063cede9c4b02452242543669238e5460087ed",
+   "resources": 2,
+   "example_url": "https://iposignal.xyz/api/agent/ipo-sentiment",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x30b0f327deef5187c11c1502ecd467b47c5ea2e5",
+   "resources": 2,
+   "example_url": "https://scdo.com.au/x402/gpu-share/task",
+   "service": null,
+   "price_usd": 0.56
+  },
+  {
+   "payee": "0xd346b16f2c013d8219350d32e511023d16db9aee",
+   "resources": 17,
+   "example_url": "https://beliefstate.ai/v1/research/search_beliefs",
+   "service": "BeliefState",
+   "price_usd": 1.5
+  },
+  {
+   "payee": "0x63a20fa244d3e6a8902121e99704b7f857dc6ebb",
+   "resources": 13,
+   "example_url": "https://modelprices.xyz/llm/prices/together",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x57e48ca09c36d6e717e0420b7713551064203e32",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_w6o6q4wfk6us2nh7",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x658dc531a7fe637f7ba31c3ddd4c9bf8a27c81e5",
+   "resources": 2,
+   "example_url": "https://agent-proxy.alchemy.com/v1/x402/4013ed2b4f50e768/abc-test-123",
+   "service": null,
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0xdc40cbf86727093c52582405703e5b97d5c64b66",
+   "resources": 1,
+   "example_url": "https://agentcash-fortune-demo3.vercel.app/api/fortune",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x96c353c11c698646d9eabe729a69530a5780040c",
+   "resources": 1,
+   "example_url": "https://companylens.ve1iko.chatgpt.site/v1/company/research",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xed6013a7f5a5cd54e21e5bdf8028a76a4e7b2ee5",
+   "resources": 4,
+   "example_url": "https://percallapi.com/whois",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xfbbe4924a9d36e1de2b90cf4f8ee6e03f978714c",
+   "resources": 14,
+   "example_url": "https://api.wsystem.dev/sanctions/screen",
+   "service": "W System",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xd764f1b590476657c20ab754beace9ebc1d9d0e3",
+   "resources": 4,
+   "example_url": "https://nova-retail-controlled-proof.onrender.com/retail/v1/context/state-ping",
+   "service": null,
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x693d72fc5ad1f09b1c62be3707679cbe334c88df",
+   "resources": 2,
+   "example_url": "https://scribe.vimabrosta.com/v1/domain",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xb5194a98dbdbb7028b585db26b972e7f0f3f826a",
+   "resources": 6,
+   "example_url": "https://hirescrape.com/api/tools/tiktok",
+   "service": null,
+   "price_usd": 0.00225
+  },
+  {
+   "payee": "0x9abb62980f236f6471892494b7ced6e2a8592972",
+   "resources": 1,
+   "example_url": "https://dawn.xoghks.com/api/agent/articles",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x8be8d056d5f0bef850ec9ed5c4a8d647cbe896c0",
+   "resources": 2,
+   "example_url": "https://mini-tollbooth.onrender.com/gas",
+   "service": "TrollBridge",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xa8d392e989962743d949373adbe20a5f62afa808",
+   "resources": 4,
+   "example_url": "https://api.powerstripsecurity.workers.dev/v1/scan",
+   "service": "Power Strip Security",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xbf0df63a4a47e5a72a976ece1d78aefeccc773a0",
+   "resources": 1,
+   "example_url": "https://dicex402.vercel.app/api/dice",
+   "service": "Dice Roller",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x3cedc3cba49c3809ee46b9bf60da75d6607b45ec",
+   "resources": 1,
+   "example_url": "https://x402.agentindex.world/x402-echo",
+   "service": "x402-payment-test",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x9dba414637c611a16bea6f0796bfcbcbdc410df8",
+   "resources": 14,
+   "example_url": "https://x402.twit.sh/tweets/search",
+   "service": null,
+   "price_usd": 0.006
+  },
+  {
+   "payee": "0x26c2308adc8fe5ffe6d4183588dd2dd22ed86071",
+   "resources": 12,
+   "example_url": "https://readfetch.com/v1/text",
+   "service": "readfetch.com",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xc3454182a7667d0cf2047b0a4b691f4035ac9bae",
+   "resources": 1,
+   "example_url": "https://recipients-paywall.onrender.com/episode/1",
+   "service": "recipients[] serial",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xb38bfc5b940b9b650b1bb9d502024bb9665425c2",
+   "resources": 1,
+   "example_url": "https://compliancecheck-x402.fly.dev/v1/ai-regulatory-scan",
+   "service": "ComplianceCheck",
+   "price_usd": 0.5
+  },
+  {
+   "payee": "0x470a1b647d668d3820add26d70c8371557ff4c6b",
+   "resources": 10,
+   "example_url": "https://datastand.dev/api/bazaar/cheapest",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x90b0dc893406d6ea63bb077ed59f5e8340f98d84",
+   "resources": 153,
+   "example_url": "https://x402.freeq.one/tools/markdown",
+   "service": "x402-gateway",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xcb1aae940c1adfd1560962ddda27d2ae4d951620",
+   "resources": 1,
+   "example_url": "https://truevaluerankings.com/premium/custom-ranking",
+   "service": "True Value Rankings",
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x36256c1d592ed0161082b4971988ae880af29a32",
+   "resources": 1,
+   "example_url": "https://functions.miniup.app/caller-e2e-x402/state",
+   "service": "Caller E2E - x402",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x80e0ae84679b7f11be171daadd492fbecf628cd6",
+   "resources": 1,
+   "example_url": "https://canaryguard-402.onrender.com/v1/sanitize",
+   "service": "CanaryGuard 402",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x4eba5ea3cf0f3fc307099317e17e54390f7a4c58",
+   "resources": 3,
+   "example_url": "https://contextiq.trango-compute.com/api/v1/x402-inspector/x402-v2",
+   "service": null,
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x0ff5a6ecef783bba35463ec2f8403b9b5e9e7c86",
+   "resources": 1,
+   "example_url": "https://graphadvocate.com/onchain-x402/address",
+   "service": "Graph Advocate",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x74718dd5a04e0a0a2bfaf3bd06adb27032c67f7f",
+   "resources": 1,
+   "example_url": "https://hl-tool.darren-pi.workers.dev/v1/funding/extremes",
+   "service": "Hyperliquid Funding Extremes",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x6ad19fc3476c57168661327986bbf5ce3e41cd06",
+   "resources": 2,
+   "example_url": "https://reel2text-api.worrellworks2.workers.dev/v1/transcribe",
+   "service": "Penny Reel Transcription",
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x08b11ea90aeb253ef0f954be108a12e6783d8189",
+   "resources": 1,
+   "example_url": "https://context-relay.contextrelay.workers.dev/api/v1/context",
+   "service": "Context Relay",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x00b099ac6a96a789136ac5827168ac0424b0089e",
+   "resources": 1,
+   "example_url": "https://getnightshift.tech/buy/leadnest/p-64efeb32-ff92-4f26-9ab9-101dea01a110",
+   "service": "NIGHTSHIFT",
+   "price_usd": 9
+  },
+  {
+   "payee": "0x1480d7a7a299576b45d1793ec8fb1e68361045b0",
+   "resources": 1,
+   "example_url": "https://delta.rursus.app/v1/sources/inspect",
+   "service": "SourceLens",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x5c08951b999cc133ee4161a3a2b299160f66c42e",
+   "resources": 1,
+   "example_url": "https://agent-ready.dev/api/x402/scan",
+   "service": "Agent Ready",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x93a1f57d2e0dbe4cc882b5dbaebe7f0f16443338",
+   "resources": 2,
+   "example_url": "https://crypto.forgemesh.io/api/kronos/risk",
+   "service": null,
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x239de97929b20f27aa503b236d33420670bf5ad1",
+   "resources": 2,
+   "example_url": "https://aurelius-node-02-socal.onrender.com/api/v1/supply",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x5e901f973c17e5542b4da2a64c7fdc736b2a6e74",
+   "resources": 48,
+   "example_url": "https://www.x402pulse.dev/v1/wallstreet/yield-curve",
+   "service": "x402Pulse",
+   "price_usd": 0.0014
+  },
+  {
+   "payee": "0xfac492a8d7843c9afcca6a1691bccb5425ab14f3",
+   "resources": 12,
+   "example_url": "https://fresh402.kirilllabs.workers.dev/v1/check",
+   "service": "Fresh402 Web Intelligence",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x5b078ab958921613b71bc2a849b092db83f07b46",
+   "resources": 2,
+   "example_url": "https://clinic.sapthumbprint.com/v1/line",
+   "service": "The Clinic",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xa13d363aecccf878ec64f6eb687eb4a771fb0599",
+   "resources": 7,
+   "example_url": "https://api.robinx.io/feed/new",
+   "service": "RobinX",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x0ebb943298cf4bbdbe4673217212a089d3f5ee7e",
+   "resources": 10,
+   "example_url": "https://03s9tr085tfe5agke0tpqng34o.ingress.quanglong.org/x402/wallet-intel",
+   "service": "Akari InvestAI",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0xdec990f28082da7efc9c50df26adba40b66cc4d6",
+   "resources": 9,
+   "example_url": "https://baconservices.com/api/agent-commerce/v1/capabilities/vectorize/execute",
+   "service": "Bacon Services",
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x15fc1c760dd0dfa6159ab08756c656c7198a428b",
+   "resources": 1,
+   "example_url": "https://spawnxchange.com/api/v1/items",
+   "service": "SpawnXchange",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xb708af3bce13517357e498f8ffd277de93db9ef5",
+   "resources": 1,
+   "example_url": "https://xmedia.use.x402atlas.com/tweet",
+   "service": "Twitter/X Tweet Media Downloader",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xdceca23ff8a7145e1b5b35427c9886cf21a67566",
+   "resources": 53,
+   "example_url": "https://api.interzoid.com/getfullnamematch",
+   "service": "Interzoid Data APIs",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xa8be97662353949449c70c8d9d120746f9a25e69",
+   "resources": 20,
+   "example_url": "https://agent-utils-x402-production.revenue-agent-jw.workers.dev/v1/sanctions/address",
+   "service": null,
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x561143bfe9e2d975d92e915b8effeaa54119472a",
+   "resources": 1,
+   "example_url": "https://yieldsignal.vercel.app/signal/usdc-base-yield",
+   "service": null,
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0xeccc9f03eb79c6a5b0fbd919f95656557e6a6173",
+   "resources": 13,
+   "example_url": "https://api.artefaktum.dev/v1/projects",
+   "service": "Artefaktum",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x55d06e282a699710e03088c218a9e79d2b1616fc",
+   "resources": 4,
+   "example_url": "https://x402.hydratrader.ai/v1/cheap-errand",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xef56e1fa792b8f3e87dcb09fa36261d213c10a09",
+   "resources": 19,
+   "example_url": "https://rooms.aurmada.com/x402/v1/ens",
+   "service": "Rooms by Aurmada",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xe46a85e0cb068a80dd2e4553046ddcfe3fac9650",
+   "resources": 1,
+   "example_url": "https://x402-gateway.blackwoodstate8.workers.dev/v1/text-to-speech",
+   "service": "Text to Speech (TTS) | Blackwood",
+   "price_usd": 0.023
+  },
+  {
+   "payee": "0x45a4a9612d4d4e78703a63dc3ef36267a6c17d96",
+   "resources": 2,
+   "example_url": "https://know.fast/v1/x402/know",
+   "service": "know.fast",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xad62f03c7514bb8c51f1ea70c2b75c37404695c8",
+   "resources": 15,
+   "example_url": "https://gateway.spraay.app/bittensor/v1/models",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xb58dd178abac67f6d4894437a7fc725cbddb2075",
+   "resources": 1,
+   "example_url": "https://factline.dev/v1/credits/topup",
+   "service": "Factline",
+   "price_usd": 2
+  },
+  {
+   "payee": "0x421d31725e1e7990662600a780ebbb6c92f1cb09",
+   "resources": 1,
+   "example_url": "https://api.freestylevault.com/v1/rates",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x1fa89e3b7b3ca98afdd801f35e721251149cea3b",
+   "resources": 1,
+   "example_url": "https://x402.911fund.io/alpha/macro",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xb1acd9e0269023546074400a434e703b646aabba",
+   "resources": 1,
+   "example_url": "https://socialintel.dev/v1/user/:username",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xaf45fed0fb0145443acafa4754556bc4d2968d86",
+   "resources": 1,
+   "example_url": "https://x402-gateway.blackwoodstate8.workers.dev/v1/image-gen",
+   "service": "Blackwood State Image Generation",
+   "price_usd": 0.03
+  },
+  {
+   "payee": "0x0360f2276f55a7430667134577d396cd76ffddfe",
+   "resources": 3,
+   "example_url": "https://api.language123.net/v1/tts",
+   "service": "Automaton Media APIs",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x12cf81eec47e5b6437feb4b10e071317f7012437",
+   "resources": 1,
+   "example_url": "https://venzia-complet-ezip.replit.app/api/services/company-research",
+   "service": "VENZIA LAB Company Research",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x6d7a2d65b26a87134c0571fb1baaa248eb0a291b",
+   "resources": 1,
+   "example_url": "https://anansidata.xyz/paid/intel/model-advisor",
+   "service": "Anansi Model Advisor",
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xb36c56a749f81ffeb44a134082dd4744e1d254eb",
+   "resources": 25,
+   "example_url": "https://verdict.kechlab.com/v1/token-check",
+   "service": "Verdict 402",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0xab059f1301d2e0a8e5da278ebb8d9204178c1f5c",
+   "resources": 3,
+   "example_url": "https://audit-site-web.pga-agent.fr/api/base-token-safety",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x6454a645c92b8722ec9a07fce12a582a877b8843",
+   "resources": 18,
+   "example_url": "https://api.limitguard.ai/v1/leads/verify",
+   "service": "Limitguard",
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0xe90316121189715cdc2515b7c2673658b810b751",
+   "resources": 2,
+   "example_url": "https://proxy.suverse.io/v1/data/smart-money-top-wallets",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xd7ed035022f3577a7603c0338bcb334afe2e43c8",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_esofrzjmt7j6765j",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xa238af2e66d9d7301f2d02932931851ddf900dcd",
+   "resources": 1,
+   "example_url": "https://x402-solvers.onrender.com/v1/cycles/probe",
+   "service": "x402-solvers",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x255cdb4e42afefc7120b0388eb78f96d996d387b",
+   "resources": 1,
+   "example_url": "https://riddlex402.vercel.app/api/riddle",
+   "service": "Riddle Oracle",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xd13bd0a4120ba301125290e5cc0c7efd4cb40a55",
+   "resources": 2,
+   "example_url": "https://api.ibanforge.com/v1/bic/:code",
+   "service": "IBANforge",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0xf1643bd00d3c071d9a0c12a4e7d3a17e6e19f8a5",
+   "resources": 89,
+   "example_url": "https://image.kagurazaka.dev/v1/resize",
+   "service": "x402 Image Tools",
+   "price_usd": 0.003
+  },
+  {
+   "payee": "0x9359a3289be2d39cb45e76bc6009e718de38c888",
+   "resources": 3,
+   "example_url": "https://scdoscan.io/x402/mast-drop/tip",
+   "service": null,
+   "price_usd": 1
+  },
+  {
+   "payee": "0x3429dd2c405f03a8a836d650e7dea43e3e9c2401",
+   "resources": 2,
+   "example_url": "https://gate-network.matsutake-lab.workers.dev/v1/gates/twilio.messages.create/preflight",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x85df5380debe236ad6bf49de788243924b080267",
+   "resources": 11,
+   "example_url": "https://library.forgemesh.io/book-metadata",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xa2ad8183209e5d2f7f0d8f995f5601a0bb5100c7",
+   "resources": 14,
+   "example_url": "https://x402.coinstats.app/coins",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x3903f05a17676566958b0a3e0c21e0bd49b66ea0",
+   "resources": 9,
+   "example_url": "https://fiatdock.com/s/svc_39d3e7d8-69ba-47ea-b613-743b28cd826f",
+   "service": "FiatDock Marketplace",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x18301f58600f39acbdbfdfc5c7c04fa1e0d02df9",
+   "resources": 2,
+   "example_url": "https://api.blockchain.co.ba/convert-script",
+   "service": null,
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xf04220c87894e7cbc0273f38c18195dab0db5fe5",
+   "resources": 1,
+   "example_url": "https://stablejobs.dev/api/coresignal/job-search",
+   "service": "StableJobs",
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0xe22f691ed420143bfdab022a14e7d6873b33eef9",
+   "resources": 3,
+   "example_url": "https://x402.agentfund.net/x402/onchain_oracle_price",
+   "service": null,
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xe06651b2db66cb43e14e9432645ecdda24f3846e",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_xhvyzr7an6xhrmux",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x0000000000000000000000000000000000000000",
+   "resources": 1,
+   "example_url": "https://api.cleave.fi/x402/gas",
+   "service": null,
+   "price_usd": 5
+  },
+  {
+   "payee": "0x338d8649efa45b940d6656030faa58d9d01e6983",
+   "resources": 2,
+   "example_url": "https://polymarket-signal-api.pwnker-polymarket-signals.workers.dev/v1/performance",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xecd6edc72f228dcff9a7e7e981fd64bea5a4a395",
+   "resources": 2,
+   "example_url": "https://api.nameintel.io/api/v1/check/trademark",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xd5f96558fcb1f127c77c7d95eea067f526d08618",
+   "resources": 8,
+   "example_url": "https://agents.ai-rook.com/api/ip-lookup",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x22f7e9518dff04a5db1fddaabc0e001b8c425b3a",
+   "resources": 49,
+   "example_url": "https://stationfx.com/economic-data/cross-signal/financial-conditions-composite-nfci-stlfsi",
+   "service": "StationFX",
+   "price_usd": 0.008
+  },
+  {
+   "payee": "0x058d0cc5cc97e61e8a9f38d6d6365bce525921b2",
+   "resources": 69,
+   "example_url": "https://web.cyberwarex.com/fetch",
+   "service": "Agent Web-Access",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x734dd50abb63ea5af3d92b8016825475694bd883",
+   "resources": 9,
+   "example_url": "https://fachada.chelsea-hermes.workers.dev/scan/v1/code/scan",
+   "service": "Code security scan: secrets, vul",
+   "price_usd": 1
+  },
+  {
+   "payee": "0x875a50aff5ca0597015786e99a1fda1835ec2769",
+   "resources": 1,
+   "example_url": "https://api.cardhedger.com/v1/agent/cards/card-search",
+   "service": "Card Hedge",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x51edd63f074eab0b1ab94c7bcf8b1e3ad43f1d2f",
+   "resources": 2,
+   "example_url": "https://x402.presenceoperations.com/services/execution-cost",
+   "service": null,
+   "price_usd": 0.0048
+  },
+  {
+   "payee": "0x22c24daf579629a6d7418e09e9c71e6c8883f8e2",
+   "resources": 8,
+   "example_url": "https://globalrules-api.onrender.com/api/v1/country/BR/timezone",
+   "service": "GlobalRules",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xedcc778c241d32a17a473ccaffcba5620efd86d7",
+   "resources": 1,
+   "example_url": "https://api.quanticdata.io/v1/billing/x402-topup",
+   "service": "QuanticData Data API",
+   "price_usd": 3
+  },
+  {
+   "payee": "0x8883a4955ae31b5e641080dd3bd7f4a04983a5e0",
+   "resources": 5,
+   "example_url": "https://api.koinelix.com/v1/images/generations",
+   "service": "Koinelix Image Generation",
+   "price_usd": 0.021
+  },
+  {
+   "payee": "0x4300bdc396a84e5a9e5612e8ef83c1a589732759",
+   "resources": 1,
+   "example_url": "https://api.agentline.cloud/v1/billing/topup/x402/pay",
+   "service": "AgentLine - AI Phone Service",
+   "price_usd": 1
+  },
+  {
+   "payee": "0x4da5740e8b2df79eed05f25f95f26761a916f0b8",
+   "resources": 1,
+   "example_url": "https://automaton-microcopy-audit.assistance-telegram-relay.workers.dev/api/audit",
+   "service": "Instant Microcopy Audit",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0xc4b838ad5cf8dbd1fb1ae57074ef02e0b2bd6294",
+   "resources": 1,
+   "example_url": "https://twin.unykorn.org/agents/compliance/verify-entity",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x4f0a582068729204d96827febd5c7d47b7874d5c",
+   "resources": 1,
+   "example_url": "https://x402-boj-macro-snapshot.vercel.app/api/boj/macro-snapshot",
+   "service": "x402-boj-macro-snapshot",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x0d68028d06af13379c872fee032568b4be712f22",
+   "resources": 6,
+   "example_url": "https://kushbitx.com/api/agentproof-quick-check",
+   "service": "KushBitx AgentProof",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xacd3b275ae1c5adeef4da7575116f589325d0f7a",
+   "resources": 1,
+   "example_url": "https://deepcounterfeit.com/v1/x402/prebuy/:mint",
+   "service": "DeepCounterfeit",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xe2520f1497ee47645072a6214304807bc3340d58",
+   "resources": 9,
+   "example_url": "https://signals.edge.report/v1/gas",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x015eb036560216b3051339061ff68a207e0fe88f",
+   "resources": 11,
+   "example_url": "https://x402.tokenizen.nl/api/vuln-search",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x3567c566e194dd25ed580ad917160b8700fe7460",
+   "resources": 1,
+   "example_url": "https://api.regressionincoming.fyi/v1/draft-board/half-ppr/%7Bplayer_id%7D",
+   "service": "NFL Preseason Rankings",
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0x995c0abdcd2ad76548e5f7deb54d32549b2b781f",
+   "resources": 8,
+   "example_url": "https://api.predictionmarketdata.io/market-news",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x20dcca105275f53ad67e0576a5b99555bbe591e5",
+   "resources": 1,
+   "example_url": "https://402atlas.com/api/verified",
+   "service": null,
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0x6b1a44391bd30b5702c6092bafa69c5e526a710b",
+   "resources": 8,
+   "example_url": "https://bruk-agent-api.fly.dev/v1/payment-check",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xaa94e1f602ca71695a257c289fb54bd4f9a6ba15",
+   "resources": 1,
+   "example_url": "https://prediction-bot-iggf.onrender.com/sentiment",
+   "service": null,
+   "price_usd": 0.35
+  },
+  {
+   "payee": "0x548fc289526ab2f0391d562a723cda64bbf1abc4",
+   "resources": 11,
+   "example_url": "https://api.hyperextend.xyz/v1/candles/BTC/1m/latest",
+   "service": "hyperextend",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x945fe8cfac235f6c1d5a8e3c5982afd6272ea6f9",
+   "resources": 1,
+   "example_url": "https://app.maginary.ai/api/gens/",
+   "service": null,
+   "price_usd": 0.28
+  },
+  {
+   "payee": "0xb5093b19a6cf2e5135b212074521d1734adad959",
+   "resources": 48,
+   "example_url": "https://compute-api-production-245d.up.railway.app/base64",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xaec32c04b2bbb1fbf7d59a8d9650c5d3cf9ab811",
+   "resources": 1,
+   "example_url": "https://api.xactum.com/v1/verify/price",
+   "service": "XACTUM",
+   "price_usd": 0.03
+  },
+  {
+   "payee": "0x2ecb9e1fcca7a62758c679f11bc3241466d181d8",
+   "resources": 163,
+   "example_url": "https://ca-tax-api-mainnet.lxtap.workers.dev/eth/allowance",
+   "service": "Ethereum Onchain Data",
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+   "resources": 7,
+   "example_url": "https://laso.finance/auth",
+   "service": "Laso Finance",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x64e81e0287ffdf31eb21d0891398899879f1fa6a",
+   "resources": 3,
+   "example_url": "https://data.japanagent.dev/corp/search",
+   "service": null,
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xa816343b4f88742faef03f51ec23eee1367c6f76",
+   "resources": 5,
+   "example_url": "https://api.payperscreen.com/screen-email",
+   "service": "PayPerScreen",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x7914033707876738076f01b462f4aa3e6a17f01f",
+   "resources": 1,
+   "example_url": "https://www.getbags.app/api/agent/link/pl-c5a332aa-4390-4b95-8524-ccf5fad6429c",
+   "service": "Invoice Audit API",
+   "price_usd": 0.25
+  },
+  {
+   "payee": "0x8ecbd65228930060363c70854da7d37d57ffc358",
+   "resources": 1,
+   "example_url": "https://vps.phoneagent.xyz/catalog",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x7eebd75b116a553e02cbaca28cfbd47bc411e6b1",
+   "resources": 3,
+   "example_url": "https://x402.monpham.work/v1/cbs/chat/completions",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x9e2bc144b1f9464623e2be3d790c3548be372656",
+   "resources": 1,
+   "example_url": "https://www.agentfive.ai/api/acquire",
+   "service": "agentfive.ai domain sale",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xf18bd01df01542d5ce1c213abefe353c515b8908",
+   "resources": 5,
+   "example_url": "https://x402-paywall.huntercarver24.workers.dev/later",
+   "service": null,
+   "price_usd": 0.005
+  },
+  {
+   "payee": "0xa059055c2e66f35a04e51ff27a501a903f57cb71",
+   "resources": 1,
+   "example_url": "https://preflight.admapu.xyz/v1/fees",
+   "service": "Treasury Preflight",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0x5a6c77758820182484ea8de614fc65423e80749a",
+   "resources": 1,
+   "example_url": "https://x402-gateway.blackwoodstate8.workers.dev/v1/web-markdown",
+   "service": "Webpage to Markdown | Blackwood",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x1ddde9026d610f7aef8e8c7b22efe8b27ebefc97",
+   "resources": 2,
+   "example_url": "https://t.adctx.com/check",
+   "service": "adctx",
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x153aa87807d8f6deb65bd53b137cee7ad2daccdb",
+   "resources": 3,
+   "example_url": "https://paddock.finance/api/paddock/mcp/liveness",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xc54caf5be3660c0558700b7a64103904ec9c861c",
+   "resources": 2,
+   "example_url": "https://myc-staging.crescadia.com/v1/paid/products/:product_event_id",
+   "service": "MYC Federal Contract Changes",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xcf8a8350cb42a6680005ca7ff9e485bb55fa74fa",
+   "resources": 10,
+   "example_url": "https://flow-kg4x.vercel.app/api/quote",
+   "service": "Flow",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x5e1615b0c779075facd9e04d98e90fd0b98822a4",
+   "resources": 1,
+   "example_url": "https://blackfriday.enterprises/v1/stores/:store/deals",
+   "service": null,
+   "price_usd": 0.25
+  },
+  {
+   "payee": "0x849610c11c1e9b309235932faab6368cee7f7c57",
+   "resources": 7,
+   "example_url": "https://api.flipvo.com/v1/ping",
+   "service": "tollbooth",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xb11f24da6499134baf66858b40398aab2b05fc77",
+   "resources": 1,
+   "example_url": "https://agent-read-proxy.agent-read-proxy.workers.dev/v1/read",
+   "service": "Agent Read Proxy",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xfbf218accbb0d57fc4e8fc3e2a885c910c4c9e94",
+   "resources": 4,
+   "example_url": "https://www.tereno.xyz/api/v1/capabilities/chain.snapshot/invoke",
+   "service": "Tereno Base Chain Snapshot",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xe58628ac8c595645377ff95c8d4de6e47786f900",
+   "resources": 2,
+   "example_url": "https://mosaisley.com/cantina/papers/full",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0x9d2a61830b537e5f4efff1bb8d32dd31a958f823",
+   "resources": 1,
+   "example_url": "https://thumbnailcreator.ai/api/x402/generations",
+   "service": "ThumbnailCreator",
+   "price_usd": 0.26
+  },
+  {
+   "payee": "0x4ec8b510d0c54d7a8f432b9697f3f419033dc629",
+   "resources": 2,
+   "example_url": "https://priceplain.onrender.com/v1/extract",
+   "service": "TableGrab",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x1dd440863e99761823347603d22d5d992dcd3831",
+   "resources": 1,
+   "example_url": "https://hardwarehunter.io/api/x402/pricing/component/:id",
+   "service": "hardwarehunter.io",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x4998d0f55e97598e1711fac4eb196ec318d8e08c",
+   "resources": 1,
+   "example_url": "https://buy.fizzl.eu/v1/buy",
+   "service": "Fizzl Buy",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x408f39b19266022fec03076091e59d1f4f163658",
+   "resources": 1,
+   "example_url": "https://api.agentic-swarm-marketplace.com/x402/v1/query",
+   "service": null,
+   "price_usd": 0.012
+  },
+  {
+   "payee": "0x25ec9b6a6aa6081821b32fd8656bf41368b86a9c",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_dolge7xh3vpkmtqc",
+   "service": null,
+   "price_usd": 0.05
+  },
+  {
+   "payee": "0xe6c34b8e58c8bea609415f4d0c1ce01da48f3a34",
+   "resources": 10,
+   "example_url": "https://api.gadgethumans.com/get-url",
+   "service": "Get URL",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x5498b0aa90cd56f8962cbd136df3d3769c85f149",
+   "resources": 22,
+   "example_url": "https://pulse.facts402.com/v1/pulse/token",
+   "service": "Base Token Social Sentiment",
+   "price_usd": 0.04
+  },
+  {
+   "payee": "0x4a82f147c8a4339409c9097adc1eedfd56e85bfe",
+   "resources": 16,
+   "example_url": "https://bizintel-api.hahavoid0.workers.dev/finance/forex-rate",
+   "service": "BizIntel API",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xc781fd74d97eacf5e2846264d6d1674c2032e5ea",
+   "resources": 2,
+   "example_url": "https://api.premiumpin.com/x402/search",
+   "service": "PremiumPin",
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x055ab9be224bc906db503557d71aa2ef6f502507",
+   "resources": 1,
+   "example_url": "https://engine.beehivewebstudio.com/v1/utah-land",
+   "service": "Beehive AI Engine",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x31f767855ee8f03fe313ab6a3929ebbf16eb42ab",
+   "resources": 5,
+   "example_url": "https://coinslot.dev/api/convert",
+   "service": "Coinslot",
+   "price_usd": 0.002
+  },
+  {
+   "payee": "0xf8b2dd46542175ad46e14e6133340e652665f2ee",
+   "resources": 45,
+   "example_url": "https://api.carbon-cashmere.de/v1/btc-derivatives/coinbase-messages",
+   "service": null,
+   "price_usd": 0.02
+  },
+  {
+   "payee": "0x8666a0796297de08364e0c8cda235463a79de43c",
+   "resources": 1,
+   "example_url": "https://x402.orthogonal.com/rocketreach/searchCompany",
+   "service": null,
+   "price_usd": 0.5
+  },
+  {
+   "payee": "0x2d42f48d8dabd263dfca580480f41316fc3110db",
+   "resources": 2,
+   "example_url": "https://fiatdock.com/s/svc_c6be4b35-25c9-42f8-9c0e-06964ebad6c0",
+   "service": "FiatDock Marketplace",
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0xda2f35d283c42dd60b965322394bc658a5c1769f",
+   "resources": 5,
+   "example_url": "https://app.heinrichstech.com/v1/cdp/echo",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x3bd0fb8e81db49e47ad3e9b6b4479fd54d066a52",
+   "resources": 5,
+   "example_url": "https://ai-to-human.techandtoast.io/api/x402/review-media",
+   "service": "Ask a Human (Tech & Toast)",
+   "price_usd": 8
+  },
+  {
+   "payee": "0xdcbc59a62c3a9c5cec58ac806ebc579fa13d67f7",
+   "resources": 8,
+   "example_url": "https://x402.orthogonal.com/bytemine/b2b-enrich",
+   "service": null,
+   "price_usd": 0.03
+  },
+  {
+   "payee": "0xf2eec9de86274913f85a8aa6427ad65a9b0bc90a",
+   "resources": 1,
+   "example_url": "https://api.teardrop.dev/message:send",
+   "service": "Teardrop",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x7fe8569649758ce2b965fbc6acda2a1e23a1d2c0",
+   "resources": 1,
+   "example_url": "https://aient.ai/x402/signup",
+   "service": "Aient",
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0x6746dff7bdb1ed4940dbe50024795ad97cba09af",
+   "resources": 1,
+   "example_url": "https://api.vrsai.tech/v1/capabilities/package_install_preflight",
+   "service": "vrsai",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xb3ecf17dddeaebdd16b3ebfaa79dc76347e98735",
+   "resources": 7,
+   "example_url": "https://agent-tools-7936.onrender.com/preflight",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x5e383b8fa5a7bd6b7466cc657e2d3d3583b3479e",
+   "resources": 1,
+   "example_url": "https://1yc.dev/bin/v1/:bin",
+   "service": null,
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0x7849ed8a93815fe26a38b5368498b4fc6210be8a",
+   "resources": 6,
+   "example_url": "https://store.cryptotradecalc.com/api/timestamp",
+   "service": null,
+   "price_usd": 0.001
+  },
+  {
+   "payee": "0x1ee42717b1c370dace197a8850bf41a932f3b5a8",
+   "resources": 2,
+   "example_url": "https://api.rxatlas.dev/v1/drugs",
+   "service": "RxAtlas",
+   "price_usd": 0.1
+  },
+  {
+   "payee": "0xc66ee26cae6cd34970f51f644f36d720826d392a",
+   "resources": 6,
+   "example_url": "https://oracles-production.up.railway.app/v1/edgar-ma/status",
+   "service": "Signal Oracle",
+   "price_usd": 0.01
+  },
+  {
+   "payee": "0xa30fde6c7be814363fffa8fbb31ba273a242faf7",
+   "resources": 1,
+   "example_url": "https://centralcity.ai/api/public/x402/off_opwnhfa2z6pcq4ny",
+   "service": null,
+   "price_usd": 0.05
+  }
+ ]
+}

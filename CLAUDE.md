@@ -111,4 +111,12 @@ Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
 - A UNION/join/multi-branch query needs an async job (`onchain-sql-job-create`), which REQUIRES an API key (UNAUTHORIZED without). On the free tier, use the two single-branch sync queries: `scripts/surf/payee-inbound.sql` and `payee-outbound.sql`.
 - Window: 365 days (`block_date >= today() - 365`). Wallet age is therefore a LOWER BOUND (first_seen within the window).
 - Billing is per call by tier, not per payee: SQL measured 5 credits/call whether 2 or 12 payees. Labels: 1 credit per ≤100 addresses (measured). Batch payees; never loop per payee.
-- Entry points: `npx tsx scripts/surf/payee-facts.ts <payee,...> [--tag t]` and `npx tsx scripts/surf/labels.ts <smoke.json> <out.json>`. Both are budget-guarded.
+- Entry points: `npx tsx scripts/surf/payee-facts.ts <payee,...> [--tag t] [--only inbound|outbound]` and `npx tsx scripts/surf/labels.ts <smoke.json> <out.json>`. Both are budget-guarded.
+
+## AUDIT (approved 2026-11-08: 200 payees, free tier)
+1. `npx tsx scripts/enumerate-bazaar.ts` (0 credits; writes data/bazaar/resources.jsonl, which is gitignored)
+2. `npx tsx scripts/audit.ts sample --n 200` (0 credits; sample = Base payees ordered by sha256(payee))
+3. `npx tsx scripts/audit.ts probe` (0 credits; 1 unpaid GET per payee, 1 req/sec)
+4. `npx tsx scripts/audit.ts run` (≈19 credits: 3 SQL at 5 + ≤4 label calls at 1). Refuses if today's free tier (UTC) can't cover it. The free tier resets at 00:00 UTC.
+5. `npx tsx scripts/audit.ts report` → artifacts/audit.md
+Do not change the sample size without asking.

@@ -1,0 +1,32 @@
+{
+  "name": "fiangshi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pre-payment counterparty oracle for x402 agent payments. The model advises, the vows decide.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "fiangshi": "dist/src/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "accept": "tsx scripts/accept.ts",
+    "snapshot": "tsx scripts/build-snapshot.ts",
+    "index": "tsx scripts/build-index.ts",
+    "verify": "tsx scripts/verify-receipt.ts",
+    "fiangshi": "tsx src/cli/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

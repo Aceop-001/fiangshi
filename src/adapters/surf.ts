@@ -21,6 +21,43 @@ export const FundersFile = z.object({
 });
 export type FundersFile = z.infer<typeof FundersFile>;
 
+/** One row of `surf wallet-labels-batch --json` data[] (field names verbatim from `--help`). */
+export interface SurfWalletLabel {
+  address: string;
+  entity_name?: string;
+  entity_type?: string;
+  labels: { label: string; confidence?: number }[];
+}
+
+/** Unlabelled funders with at least this many distinct outbound receivers in the window are treated as exchange-like. */
+export const EXCHANGE_FANOUT_HEURISTIC = 500;
+
+/**
+ * Map Surf labels to funder labels used by provenance + the kinship vow's exclusion.
+ * entity_type "cex" -> cex. Token contracts (entity_type "stablecoin" / "token") are not funders:
+ * they are returned separately so the snapshot can treat that first_funder as missing.
+ * Optional fanout map: unlabelled address with >= EXCHANGE_FANOUT_HEURISTIC distinct receivers -> cex.
+ */
+export function funderLabelsFromSurf(
+  rows: SurfWalletLabel[],
+  outboundReceivers: Record<string, number> = {},
+): { labels: Record<string, FunderLabel>; tokenContracts: string[] } {
+  const labels: Record<string, FunderLabel> = {};
+  const tokenContracts: string[] = [];
+  for (const r of rows) {
+    const a = r.address.toLowerCase();
+    const t = (r.entity_type ?? "").toLowerCase();
+    if (t === "cex") labels[a] = "cex";
+    else if (t === "mixer") labels[a] = "mixer";
+    else if (t === "stablecoin" || t === "token") tokenContracts.push(a);
+  }
+  for (const [addr, n] of Object.entries(outboundReceivers)) {
+    const a = addr.toLowerCase();
+    if (!labels[a] && !tokenContracts.includes(a) && n >= EXCHANGE_FANOUT_HEURISTIC) labels[a] = "cex";
+  }
+  return { labels, tokenContracts };
+}
+
 export interface BatchResult {
   rows: unknown[]; // validated later, per payee
   funders: FundersFile;

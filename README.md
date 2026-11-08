@@ -64,3 +64,10 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - Added `tests/contract.test.ts` (schema round-trips; any missing field gives REVIEW) and `tests/adversarial.test.ts` (12 attacks).
 - 104 tests, all offline.
 - Budget guard: caps per provider, refuses call N+1, writes to `artifacts/costs.md`.
+
+**Phase 3b–3d (Surf, real payees)**
+- Installed surf 1.0.11 using the checksum-verified official installer. Recorded 12 real x402 v2 402s from the Bazaar catalog; all parse after adding v2 support (body or `payment-required` header).
+- Queried payee facts over 2 and 12 real payees: 5 credits per SQL call either way, so **billing is per call, not per payee**. 22 free-tier credits used in total.
+- Validated against BaseScan: first-seen matches to the second and the first funder matches; transfer count is +3.2% (353 vs 342).
+- `wallet-labels-batch` returns `entity_type: cex` (Bybit, Bitrefill). It drives the kinship exclusion, with a fanout-≥500 heuristic for unlabelled funders.
+- `artifacts/capability.md`: component table, schema deltas, $10 arithmetic (≈10,600 payees) and the age-is-a-lower-bound limit.

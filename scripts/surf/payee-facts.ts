@@ -1,10 +1,16 @@
 /**
- * ONE async Surf onchain-sql job for a payee ARRAY. Budget-guarded (counts as 1 surf call).
+ * Payee facts from Surf for a payee ARRAY. Every call is budget-guarded.
  *
- * Usage: npx tsx scripts/surf/payee-facts.ts <payee>[,<payee>...] [--days 365] [--control-env FIANGSHI_CONTROL_PAYEE]
- *   --control-env NAME  adds the address in env var NAME; it is redacted to "<CONTROL>" everywhere it is printed or saved.
- * Writes fixtures/surf/smoke-<YYYY-MM-DD>.json (raw submit / polls / results, control redacted).
- * Polling and result download are free per Surf docs; their meta.credits_used is recorded to prove it.
+ * Modes:
+ *   sync  (default without SURF_API_KEY): 2 synchronous onchain-sql calls per batch — inbound + outbound.
+ *         Works on the unauthenticated free tier. Each branch is single-table, no UNION/OR/lower().
+ *   async (default with SURF_API_KEY):    1 onchain-sql-job-create with the UNION query, then free polls.
+ *         Surf returns UNAUTHORIZED for jobs without a key.
+ *
+ * Usage: npx tsx scripts/surf/payee-facts.ts <payee>[,<payee>...] [--days 365] [--mode sync|async]
+ *          [--control-env NAME] [--tag name]
+ *   --control-env NAME adds the address in env var NAME; redacted to "<CONTROL>" in all output and files.
+ * Writes fixtures/surf/smoke-<tag|date>.json (raw envelopes, control redacted).
  */
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -17,12 +23,19 @@ const ROOT = join(import.meta.dirname, "..", "..");
 const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env.HOME ?? "", ".local", "bin", "surf.exe");
 const ADDR = /^0x[0-9a-f]{40}$/;
 
-export function buildSql(payees: string[], days = 365): string {
+export type Template = "smoke-payees" | "payee-inbound" | "payee-outbound";
+
+export function normalizePayees(payees: string[]): string[] {
   const list = [...new Set(payees.map((p) => p.trim().toLowerCase()))];
   if (list.length === 0) throw new Error("no payees");
   for (const p of list) if (!ADDR.test(p)) throw new Error("invalid payee address (must be 0x + 40 hex)");
+  return list;
+}
+
+export function buildSql(payees: string[], days = 365, template: Template = "smoke-payees"): string {
+  const list = normalizePayees(payees);
   if (!Number.isInteger(days) || days < 1 || days > 3650) throw new Error("days out of range");
-  const tpl = readFileSync(join(ROOT, "scripts", "surf", "smoke-payees.sql"), "utf8")
+  const tpl = readFileSync(join(ROOT, "scripts", "surf", `${template}.sql`), "utf8")
     .split("\n")
     .filter((l) => !l.startsWith("--"))
     .join("\n");
@@ -31,7 +44,7 @@ export function buildSql(payees: string[], days = 365): string {
 
 interface Envelope {
   data?: Record<string, unknown> | Record<string, unknown>[];
-  meta?: { credits_used?: number };
+  meta?: { credits_used?: number; [k: string]: unknown };
   error?: { code: string; message: string };
 }
 
@@ -47,6 +60,54 @@ function surf(args: string[], stdin?: string): Envelope {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+interface Call {
+  label: string;
+  ms: number;
+  credits: number | null;
+  envelope: Envelope;
+}
+
+async function guardedSurf(label: string, args: string[], body?: object): Promise<Call> {
+  const t = Date.now();
+  const envelope = await guarded("surf", label, async () => {
+    const e = surf(args, body ? JSON.stringify(body) : undefined);
+    if (e.error) throw new Error(`${e.error.code}: ${e.error.message}`);
+    return { value: e, units: e.meta?.credits_used ?? null };
+  });
+  return { label, ms: Date.now() - t, credits: envelope.meta?.credits_used ?? null, envelope };
+}
+
+async function runSync(payees: string[], days: number): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
+  const calls: Call[] = [];
+  for (const t of ["payee-inbound", "payee-outbound"] as const) {
+    calls.push(await guardedSurf(`onchain-sql ${t} payees=${payees.length}`, ["onchain-sql"], { sql: buildSql(payees, days, t), max_rows: 1000 }));
+  }
+  const byPayee = new Map<string, Record<string, unknown>>(payees.map((p) => [p, { payee: p }]));
+  for (const c of calls) for (const row of (c.envelope.data as Record<string, unknown>[]) ?? []) Object.assign(byPayee.get(String(row.payee)) ?? {}, row);
+  return { calls, rows: [...byPayee.values()] };
+}
+
+async function runAsync(payees: string[], days: number): Promise<{ calls: Call[]; rows: Record<string, unknown>[] }> {
+  const submit = await guardedSurf(`onchain-sql-job-create payees=${payees.length}`, ["onchain-sql-job-create"], { sql: buildSql(payees, days), max_rows: 1000 });
+  const calls: Call[] = [submit];
+  const job = submit.envelope.data as { job_id: string; status: string };
+  let status = job.status;
+  const t0 = Date.now();
+  while (!["succeeded", "failed", "canceled"].includes(status) && Date.now() - t0 < 300_000) {
+    await sleep(3000);
+    const t = Date.now();
+    const e = surf(["onchain-sql-job-get", job.job_id]); // free per docs; not budget-counted, credits recorded
+    calls.push({ label: "onchain-sql-job-get", ms: Date.now() - t, credits: e.meta?.credits_used ?? null, envelope: e });
+    status = (e.data as { status?: string } | undefined)?.status ?? `error:${e.error?.code}`;
+    if (e.error) break;
+  }
+  if (status !== "succeeded") return { calls, rows: [] };
+  const t = Date.now();
+  const res = surf(["onchain-sql-job-results", job.job_id]);
+  calls.push({ label: "onchain-sql-job-results", ms: Date.now() - t, credits: res.meta?.credits_used ?? null, envelope: res });
+  return { calls, rows: (res.data as Record<string, unknown>[]) ?? [] };
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const flag = (n: string) => {
@@ -54,47 +115,28 @@ async function main() {
     return i >= 0 ? argv[i + 1] : undefined;
   };
   const days = Number(flag("--days") ?? 365);
+  const mode = flag("--mode") ?? (process.env.SURF_API_KEY ? "async" : "sync");
+  const tag = flag("--tag") ?? new Date().toISOString().slice(0, 10);
   const controlEnv = flag("--control-env");
   const control = controlEnv ? (process.env[controlEnv] ?? "").trim().toLowerCase() : "";
   if (controlEnv && !ADDR.test(control)) throw new Error(`${controlEnv} is not set to a valid 0x address`);
-  const payees = (argv[0] && !argv[0].startsWith("--") ? argv[0].split(",") : []).concat(control ? [control] : []);
+  const payees = normalizePayees((argv[0] && !argv[0].startsWith("--") ? argv[0].split(",") : []).concat(control ? [control] : []));
   const redact = (s: string) => (control ? s.replaceAll(control, "<CONTROL>") : s);
 
-  const sql = buildSql(payees, days);
   const t0 = Date.now();
-  const submit = await guarded("surf", `onchain-sql-job-create payees=${payees.length}`, async () => {
-    const e = surf(["onchain-sql-job-create"], JSON.stringify({ sql, max_rows: 1000 }));
-    if (e.error) throw new Error(`${e.error.code}: ${redact(e.error.message)}`);
-    return { value: e, units: e.meta?.credits_used ?? null };
-  });
-  const job = submit.data as { job_id: string; status: string };
-  console.log(`submit: job=${job.job_id} status=${job.status} credits_used=${submit.meta?.credits_used}`);
-
-  const polls: Envelope[] = [];
-  let status = job.status;
-  while (!["succeeded", "failed", "canceled"].includes(status) && Date.now() - t0 < 300_000) {
-    await sleep(3000);
-    const p = surf(["onchain-sql-job-get", job.job_id]);
-    polls.push(p);
-    status = (p.data as { status?: string } | undefined)?.status ?? `error:${p.error?.code}`;
-    console.log(`poll ${polls.length}: status=${status} credits_used=${p.meta?.credits_used}`);
-    if (p.error) break;
-  }
-  const results = status === "succeeded" ? surf(["onchain-sql-job-results", job.job_id]) : null;
+  const { calls, rows } = mode === "async" ? await runAsync(payees, days) : await runSync(payees, days);
   const ms = Date.now() - t0;
-  if (results) console.log(`results: rows=${Array.isArray(results.data) ? results.data.length : 0} credits_used=${results.meta?.credits_used}`);
-
-  const pollCredits = polls.reduce((a, p) => a + (p.meta?.credits_used ?? 0), 0) + (results?.meta?.credits_used ?? 0);
-  const record = { payees: payees.length, days, ms, submit, polls, results, credits: { submit: submit.meta?.credits_used ?? null, polls_and_results: pollCredits } };
+  for (const c of calls) console.log(`${c.label.padEnd(44)} credits_used=${c.credits}  ${c.ms}ms`);
+  const record = { mode, payees: payees.length, days, ms, credits_total: calls.reduce((a, c) => a + (c.credits ?? 0), 0), calls, rows };
   mkdirSync(join(ROOT, "fixtures", "surf"), { recursive: true });
-  const out = join(ROOT, "fixtures", "surf", `smoke-${new Date().toISOString().slice(0, 10)}.json`);
+  const out = join(ROOT, "fixtures", "surf", `smoke-${tag}.json`);
   writeFileSync(out, redact(JSON.stringify(record, null, 2)) + "\n");
-  console.log(redact(JSON.stringify((results?.data as unknown[]) ?? [], null, 2)));
-  console.log(`saved ${out} (${ms}ms, submit credits ${record.credits.submit}, poll+download credits ${pollCredits})`);
+  console.log(redact(JSON.stringify(rows, null, 1)));
+  console.log(`saved ${out} — mode=${mode} payees=${payees.length} credits_total=${record.credits_total} ${ms}ms`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  loadDotEnv(); // control payee may live in .env (gitignored)
+  loadDotEnv(); // control payee / SURF_API_KEY may live in .env (gitignored)
   main().catch((e: Error) => {
     console.error(`payee-facts failed: ${e.message}`);
     process.exit(1);

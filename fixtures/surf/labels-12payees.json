@@ -1,0 +1,71 @@
+{
+  "addresses": 23,
+  "ms": 1884,
+  "envelope": {
+    "$schema": "https://api.asksurf.ai/schemas/DataResponseWalletLabelItem.json",
+    "data": [
+      {
+        "address": "0x480cd46e6fade651a0437deadda53d5c8e7d846a",
+        "entity_name": "Bitrefill",
+        "entity_type": "cex",
+        "labels": [
+          {
+            "confidence": 1,
+            "label": "Hot Wallet"
+          }
+        ]
+      },
+      {
+        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "entity_name": "Circle",
+        "entity_type": "stablecoin",
+        "labels": [
+          {
+            "confidence": 1,
+            "label": "USD Coin (USDC)"
+          }
+        ]
+      },
+      {
+        "address": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+        "labels": [
+          {
+            "confidence": 1,
+            "label": "lasofinance.eth"
+          }
+        ]
+      },
+      {
+        "address": "0xa2adaa6adfce3987cfa04db4d876d9cf7fab00fd",
+        "labels": [
+          {
+            "confidence": 1,
+            "label": "intl.lasofinance.eth"
+          }
+        ]
+      },
+      {
+        "address": "0x6fa5b6d93e2539caea358518d3fe8f75418e5a1d",
+        "entity_name": "Bybit",
+        "entity_type": "cex",
+        "labels": [
+          {
+            "confidence": 1,
+            "label": "SingleOwnerMSCA (Proxy)"
+          }
+        ]
+      },
+      {
+        "address": "0xf42b73d2e4d3912eade2a5f7ab39b54064c2acec",
+        "labels": []
+      }
+    ],
+    "meta": {
+      "cached": false,
+      "credits_used": 1,
+      "limit": 6,
+      "offset": 0,
+      "total": 6
+    }
+  }
+}

@@ -103,3 +103,12 @@ Freeze types before logic. One phase = one commit, never commit red. Never block
 
 ## TOOLING
 surf is installed at `C:\Users\aceop\.local\bin\surf.exe` via the official install.sh (checksum-verified, `surf install --local`). Never search for it. Never reinstall without asking. See notes/INSTALL.md.
+
+Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
+- Structured output: `--json` (alias for `-o json`). Credits are always in `meta.credits_used`.
+- POST commands (`onchain-sql`, `onchain-sql-job-create`, `onchain-sql-preflight`) take a JSON body on stdin: `{"sql": "...", "max_rows": N}` (max_rows 1..10000).
+- Tables are `agent.<name>`. Payee facts come from `agent.base_transfers`. Every query MUST filter on `block_date` (partition key). Never wrap addresses in `lower()`; lowercase the literals instead. Never OR `from`/`to`.
+- A UNION/join/multi-branch query needs an async job (`onchain-sql-job-create`), which REQUIRES an API key (UNAUTHORIZED without). On the free tier, use the two single-branch sync queries: `scripts/surf/payee-inbound.sql` and `payee-outbound.sql`.
+- Window: 365 days (`block_date >= today() - 365`). Wallet age is therefore a LOWER BOUND (first_seen within the window).
+- Billing is per call by tier, not per payee: SQL measured 5 credits/call whether 2 or 12 payees. Labels: 1 credit per ≤100 addresses (measured). Batch payees; never loop per payee.
+- Entry points: `npx tsx scripts/surf/payee-facts.ts <payee,...> [--tag t]` and `npx tsx scripts/surf/labels.ts <smoke.json> <out.json>`. Both are budget-guarded.

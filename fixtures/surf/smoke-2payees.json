@@ -1,0 +1,95 @@
+{
+  "mode": "sync",
+  "payees": 2,
+  "days": 365,
+  "ms": 4725,
+  "credits_total": 10,
+  "calls": [
+    {
+      "label": "onchain-sql payee-inbound payees=2",
+      "ms": 2593,
+      "credits": 5,
+      "envelope": {
+        "$schema": "https://api.asksurf.ai/schemas/DataResponseOnchainRow.json",
+        "data": [
+          {
+            "distinct_inbound_senders": 617,
+            "first_inbound_at": 1774039229,
+            "first_inbound_from": "0xb5273f0f04ab2e42b039f826eba1d8e8ab25a0a6",
+            "inbound_count": 3043,
+            "inbound_usd": 1879.9756170515254,
+            "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26"
+          },
+          {
+            "distinct_inbound_senders": 101,
+            "first_inbound_at": 1785488767,
+            "first_inbound_from": "0x278ee9a97c8b8e35b12426f2082a0765afba82de",
+            "inbound_count": 351,
+            "inbound_usd": 5.767574048684385,
+            "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98"
+          }
+        ],
+        "meta": {
+          "cached": false,
+          "credits_used": 5,
+          "limit": 2,
+          "offset": 0,
+          "total": 2
+        }
+      }
+    },
+    {
+      "label": "onchain-sql payee-outbound payees=2",
+      "ms": 2131,
+      "credits": 5,
+      "envelope": {
+        "$schema": "https://api.asksurf.ai/schemas/DataResponseOnchainRow.json",
+        "data": [
+          {
+            "distinct_outbound_receivers": 292,
+            "first_outbound_at": 1774910313,
+            "outbound_count": 1911,
+            "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26"
+          },
+          {
+            "distinct_outbound_receivers": 2,
+            "first_outbound_at": 1793573867,
+            "outbound_count": 2,
+            "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98"
+          }
+        ],
+        "meta": {
+          "cached": false,
+          "credits_used": 5,
+          "limit": 2,
+          "offset": 0,
+          "total": 2
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26",
+      "distinct_inbound_senders": 617,
+      "first_inbound_at": 1774039229,
+      "first_inbound_from": "0xb5273f0f04ab2e42b039f826eba1d8e8ab25a0a6",
+      "inbound_count": 3043,
+      "inbound_usd": 1879.9756170515254,
+      "distinct_outbound_receivers": 292,
+      "first_outbound_at": 1774910313,
+      "outbound_count": 1911
+    },
+    {
+      "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+      "distinct_inbound_senders": 101,
+      "first_inbound_at": 1785488767,
+      "first_inbound_from": "0x278ee9a97c8b8e35b12426f2082a0765afba82de",
+      "inbound_count": 351,
+      "inbound_usd": 5.767574048684385,
+      "distinct_outbound_receivers": 2,
+      "first_outbound_at": 1793573867,
+      "outbound_count": 2
+    }
+  ]
+}

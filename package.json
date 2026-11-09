@@ -18,7 +18,9 @@
     "snapshot": "tsx scripts/build-snapshot.ts",
     "index": "tsx scripts/build-index.ts",
     "verify": "tsx scripts/verify-receipt.ts",
-    "fiangshi": "tsx src/cli/index.ts"
+    "fiangshi": "tsx src/cli/index.ts",
+    "dev": "tsx src/api/server.ts",
+    "localhost-check": "tsx scripts/localhost-check.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"

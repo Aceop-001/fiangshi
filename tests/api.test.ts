@@ -1,0 +1,116 @@
+/** API surface against a real server on 127.0.0.1 (offline mode: probes replay fixtures, models are mocked). */
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { request } from "node:http";
+import type { Server } from "node:http";
+import { parse402 } from "../src/adapters/probe.js";
+import { demoXPayment, paymentRequired, verifyXPayment } from "../src/adapters/x402.js";
+import { startServer } from "../src/api/server.js";
+import { tmp } from "./helpers.js";
+
+const PAYTO = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"; // EIP-55 example vector (dry-run demo only)
+const FROM = "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359";
+let server: Server;
+let base = "";
+
+function get(path: string, headers: Record<string, string> = {}): Promise<{ status: number; headers: Record<string, string>; body: string }> {
+  return new Promise((resolve, reject) => {
+    const r = request(base + path, { method: "GET", headers }, (res) => {
+      let b = "";
+      res.on("data", (d) => (b += d));
+      res.on("end", () => resolve({ status: res.statusCode ?? 0, headers: res.headers as Record<string, string>, body: b }));
+    });
+    r.on("error", reject);
+    r.end();
+  });
+}
+
+beforeAll(async () => {
+  Object.assign(process.env, { FIANGSHI_PAYTO: PAYTO, FIANGSHI_DATA_DIR: tmp() });
+  server = await startServer(0, "127.0.0.1");
+  const a = server.address();
+  base = `http://127.0.0.1:${typeof a === "object" && a ? a.port : 0}`;
+}, 30_000);
+afterAll(() => new Promise<void>((r) => server.close(() => r())));
+
+describe("x402 seller side", () => {
+  it("the 402 body Fiangshi emits parses with Fiangshi's own probe parser", () => {
+    const pr = paymentRequired("https://x/v1/check", 0.05, PAYTO, "t");
+    const p = parse402({ url: "https://x/v1/check", status: 402, headers: { "payment-required": pr.header }, body: pr.body });
+    expect(p.ok && p.terms).toMatchObject({ price: 0.05, network: "base", payee: PAYTO.toLowerCase() });
+    const h = parse402({ url: "https://x", status: 402, headers: { "payment-required": pr.header }, body: "" }); // header-only form
+    expect(h.ok).toBe(true);
+  });
+  it("X-PAYMENT: well-formed passes; wrong payTo, short value, expired, bad signature fail", () => {
+    const req = paymentRequired("u", 0.05, PAYTO, "t").body.accepts[0]!;
+    expect(verifyXPayment(demoXPayment(req, FROM), req).ok).toBe(true);
+    const bad = (mut: (p: any) => void) => {
+      const p = JSON.parse(Buffer.from(demoXPayment(req, FROM), "base64").toString());
+      mut(p);
+      return verifyXPayment(Buffer.from(JSON.stringify(p)).toString("base64"), req);
+    };
+    expect(bad((p) => (p.payload.authorization.to = FROM)).errors.join()).toMatch(/payTo/);
+    expect(bad((p) => (p.payload.authorization.value = "1")).errors.join()).toMatch(/< required/);
+    expect(bad((p) => (p.payload.authorization.validBefore = "1")).errors.join()).toMatch(/time window/);
+    expect(bad((p) => (p.payload.signature = "0x12")).errors.join()).toMatch(/signature/);
+    expect(verifyXPayment(undefined, req).ok).toBe(false);
+    expect(verifyXPayment(demoXPayment(req, FROM), req).signature_verified).toBe(false); // dry-run: structure only
+  });
+});
+
+describe("HTTP API", () => {
+  it("/health and /v1/index.json: census payees with band, score, receipt id; bands sum", async () => {
+    expect((await get("/health")).status).toBe(200);
+    const j = JSON.parse((await get("/v1/index.json")).body);
+    expect(j.payees.length).toBe(800);
+    expect(j.bands.ALLOW + j.bands.REVIEW + j.bands.BLOCK).toBe(800);
+    expect(j.payees[0]).toHaveProperty("receipt_id");
+  });
+  it("/ is static HTML with no script, headline and both cards", async () => {
+    const r = await get("/");
+    expect(r.status).toBe(200);
+    expect(r.body).not.toMatch(/<script/i);
+    expect(r.body).toContain("800 of 1,923 Base payees, 90-day window");
+    expect(r.body).toContain("cleave.fi");
+    expect(r.body).toContain("Featured · ALLOW");
+  });
+  it("/v1/check without X-PAYMENT -> 402 whose body our parser accepts; with it -> receipt id, dry-run", async () => {
+    const url = "https://api.weatherly.example/v1/forecast"; // offline fixture
+    const r402 = await get(`/v1/check?url=${encodeURIComponent(url)}`);
+    expect(r402.status).toBe(402);
+    const parsed = parse402({ url: "x", status: 402, headers: r402.headers, body: JSON.parse(r402.body) });
+    expect(parsed.ok).toBe(true);
+    const req = JSON.parse(r402.body).accepts[0];
+    const r = await get(`/v1/check?url=${encodeURIComponent(url)}`, { "x-payment": demoXPayment(req, FROM) });
+    expect(r.status).toBe(200);
+    const j = JSON.parse(r.body);
+    expect(j.receipt_id).toMatch(/^[0-9a-f]{64}$/);
+    expect(j.settlement).toBe("dry-run");
+    expect(j.receipt.settlement).toBe("dry-run");
+  });
+  it("/v1/verify: valid receipt true; one flipped byte false", async () => {
+    const j = JSON.parse((await get("/v1/index.json")).body);
+    const id = j.payees[5].receipt_id;
+    expect(JSON.parse((await get(`/v1/verify?id=${id}`)).body).valid).toBe(true);
+    const rec = JSON.parse((await get(`/v1/receipt/${id}`)).body).receipt;
+    const ok = Buffer.from(JSON.stringify(rec)).toString("base64url");
+    expect(JSON.parse((await get(`/v1/verify?receipt=${ok}`)).body).valid).toBe(true);
+    const s = JSON.stringify(rec);
+    const i = s.indexOf('"score":') + 8;
+    const flipped = s.slice(0, i) + (s[i] === "9" ? "8" : "9") + s.slice(i + 1);
+    expect(JSON.parse((await get(`/v1/verify?receipt=${Buffer.from(flipped).toString("base64url")}`)).body).valid).toBe(false);
+  });
+  it("/v1/payee/:addr is paid (402), /v1/badge is image/svg+xml", async () => {
+    const j = JSON.parse((await get("/v1/index.json")).body);
+    const addr = j.payees[0].payee;
+    expect((await get(`/v1/payee/${addr}`)).status).toBe(402);
+    const b = await get(`/v1/badge/${addr}.svg`);
+    expect(b.status).toBe(200);
+    expect(b.headers["content-type"]).toMatch(/image\/svg\+xml/);
+  });
+  it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
+    const saved = process.env.FIANGSHI_PAYTO;
+    delete process.env.FIANGSHI_PAYTO;
+    expect((await get(`/v1/payee/0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed`)).status).toBe(503);
+    process.env.FIANGSHI_PAYTO = saved;
+  });
+});

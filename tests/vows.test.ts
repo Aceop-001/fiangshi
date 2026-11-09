@@ -15,13 +15,23 @@ const table: { name: string; s: PayeeSignals; price: number | null; fires: VowNa
   { name: "0 payers & price $0.51 -> history REVIEW", s: clean({ distinct_payers: 0 }), price: 0.51, fires: ["history"], band: "REVIEW" },
   { name: "0 payers & price $0.50 -> no history", s: clean({ distinct_payers: 0 }), price: 0.5, fires: [], band: "ALLOW" },
   {
-    name: "uncorroborated claim & age 100h -> identity BLOCK",
+    name: "uncorroborated claim & age 100h -> identity REVIEW (V5, any age)",
     s: clean({ wallet_age_hours: 100, identity: { claims_org: "Acme", claims_product: null, corroborated: false } }),
+    price: 0.05, fires: ["identity"], band: "REVIEW",
+  },
+  {
+    name: "uncorroborated claim & age 5000h -> still identity REVIEW (no age gate)",
+    s: clean({ wallet_age_hours: 5000, identity: { claims_org: "Acme", claims_product: null, corroborated: false } }),
+    price: 0.05, fires: ["identity"], band: "REVIEW",
+  },
+  {
+    name: "contradicted claim (a label names someone else) -> identity BLOCK",
+    s: clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: false, contradicted: true } }),
     price: 0.05, fires: ["identity"], band: "BLOCK",
   },
   {
-    name: "uncorroborated claim & age 168h -> no identity vow",
-    s: clean({ wallet_age_hours: 168, identity: { claims_org: "Acme", claims_product: null, corroborated: false } }),
+    name: "no claim -> no identity vow",
+    s: clean({ identity: { claims_org: null, claims_product: null, corroborated: null } }),
     price: 0.05, fires: [], band: "ALLOW",
   },
   { name: "missing tx_count -> silence REVIEW", s: clean({ tx_count: null }), price: 0.05, fires: ["silence"], band: "REVIEW" },

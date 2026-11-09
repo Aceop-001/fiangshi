@@ -28,7 +28,10 @@ const DAYS = 90;
 setWindowDays(DAYS);
 
 interface Case { id: string; archetype: string; payee: string; url: string | null; construction: string; expected_band: string; expected_vow: string | null; expected_cost_usd?: number; note?: string }
-const { cases } = JSON.parse(readFileSync(join(ROOT, "fixtures", "lab", "cases.json"), "utf8")) as { cases: Case[] };
+const argv = process.argv.slice(2);
+const casesFile = argv.includes("--cases") ? argv[argv.indexOf("--cases") + 1]! : "cases.json";
+const reuseB1 = argv.includes("--reuse-b1"); // reuse the v1 live query for the random burner address (0 Surf credits)
+const { cases } = JSON.parse(readFileSync(join(ROOT, "fixtures", "lab", casesFile), "utf8")) as { cases: Case[] };
 const samplePath = join(ROOT, "fixtures", "audit", "sample-census.json");
 const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
 const cp = JSON.parse(readFileSync(checkpointPath(samplePath, DAYS), "utf8"));
@@ -86,7 +89,13 @@ for (const c of cases) {
       const g = payToRaw ? v6({ payTo: payToRaw, asset: terms?.asset }) : { band: null, rule: null, reason: "" };
       // signals
       let s: PayeeSignals;
-      if (c.archetype === "burner") {
+      if (c.archetype === "burner" && reuseB1) {
+        const v1 = JSON.parse(readFileSync(join(ROOT, "fixtures", "lab", "results.json"), "utf8")) as { results: { id: string; actual: { probe?: string } }[] };
+        const note = v1.results.find((r) => r.id === "B1")?.actual.probe ?? "";
+        const now = Math.floor(Date.now() / 1000);
+        s = signalsFromSurf({ payee: c.payee } as SurfPayeeRow, { now, windowStart: now - DAYS * 86400, tokenContracts: census.tokenContracts });
+        probeNote += `; reused the v1 live inbound query (fixtures/lab/results.json: ${note.split("; ").pop()}): no transfers`;
+      } else if (c.archetype === "burner") {
         const before = surfBalance();
         const q = await runSync([c.payee], DAYS, ["payee-inbound"]);
         const after = surfBalance();
@@ -124,6 +133,7 @@ for (const c of cases) {
           snapshot_id: hashOf({ lab: "w90", census_at: ranAt }),
           checked_at: new Date().toISOString(),
           settlement: currentSettlement(),
+          enrichment: full.enrichment,
         });
         row = {
           band: d.verdict.band,
@@ -136,6 +146,7 @@ for (const c of cases) {
           identity: full.signals.identity,
           probe: probeNote,
           dolphin: full.extraction ? { claims: full.extraction.claims, error: full.extraction.error ?? null } : null,
+          enrichment: full.enrichment,
           receipt_hash: receipt.receipt_hash,
           model_calls: modelCalls.length - mc0,
         };
@@ -153,5 +164,5 @@ for (const c of cases) {
   results.push({ ...c, actual: row, surf_credits: surfCredits, cost_usd: +usd.toFixed(6), ms, outcome, why: pass ? null : `${row.band !== c.expected_band ? `band ${row.band} ≠ expected ${c.expected_band}` : ""}${row.band !== c.expected_band && !vowOk ? "; " : ""}${vowOk ? "" : `intended vow ${c.expected_vow ?? "none"} ${c.expected_vow ? "did not fire" : "but"} (fired: ${fired.join(", ") || "none"})`}` });
   console.log(`${c.id} ${c.archetype.padEnd(14)} expected ${c.expected_band}/${c.expected_vow ?? "-"} -> actual ${row.band}/${fired.join(",") || "-"}  ${outcome}  ${ms}ms  $${usd.toFixed(5)}${surfCredits ? ` (${surfCredits} credits)` : ""}`);
 }
-const out = writeNoClobber(join(ROOT, "fixtures", "lab", "results.json"), JSON.stringify({ ran_at: new Date().toISOString(), serv_model: env("SERV_MODEL"), census_at: ranAt, results }, null, 2) + "\n");
+const out = writeNoClobber(join(ROOT, "fixtures", "lab", "results.json"), JSON.stringify({ ran_at: new Date().toISOString(), cases_file: casesFile, serv_model: env("SERV_MODEL"), census_at: ranAt, results }, null, 2) + "\n");
 console.log(`results -> ${out}`);

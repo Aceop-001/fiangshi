@@ -30,7 +30,7 @@ describe("score components: boundaries 0 / mid / 1 / missing", () => {
 
   it("I identity v3: 0 claims 0 · self-claim 0.25 · +1 source 0.5 · +2 sources 0.75", () => {
     const anon = { claims_org: null, claims_product: null, corroborated: null };
-    expect(identityScore(clean({ identity: anon }))).toBe(0);
+    expect(identityScore(clean({ identity: anon }))).toBeNull(); // optional: no claim -> no identity weight (renormalised)
     expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: false, sources: [] } }))).toBe(0.25);
     expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true, sources: ["host"] } }))).toBe(0.5);
     expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true, sources: ["host", "label"] } }))).toBe(0.75);

@@ -64,18 +64,21 @@ export const RULES: Record<VowName, Rule> = {
     reason: `distinct_payers=${s.distinct_payers}, price=$${price} (review if 0 payers and > $${HISTORY_PRICE_USD})`,
     signal: "distinct_payers",
   }),
+  /** V5 (2026-11-09): contradicted claim -> BLOCK; uncorroborated claim -> REVIEW at ANY age; no claim -> no vow. */
   identity: ({ signals: s }) => {
-    const claims = Boolean(s.identity.claims_org || s.identity.claims_product);
+    const claim = s.identity.claims_org ?? s.identity.claims_product;
+    const contradicted = Boolean(claim) && s.identity.contradicted === true;
+    const uncorroborated = Boolean(claim) && s.identity.corroborated !== true;
     return {
-      fired:
-        claims &&
-        s.identity.corroborated !== true &&
-        s.wallet_age_hours !== null &&
-        s.wallet_age_hours < IDENTITY_AGE_H,
-      band: "BLOCK",
-      reason: claims
-        ? `claims "${s.identity.claims_org ?? s.identity.claims_product}", corroborated=${s.identity.corroborated}, age ${s.wallet_age_hours}h (block if uncorroborated and < ${IDENTITY_AGE_H}h)`
-        : "no identity claims",
+      fired: contradicted || uncorroborated,
+      band: contradicted ? "BLOCK" : "REVIEW",
+      reason: !claim
+        ? "no identity claim (identity weight renormalised away)"
+        : contradicted
+          ? `claims "${claim}" but a Surf label names a different entity`
+          : uncorroborated
+            ? `claims "${claim}" with no independent corroboration (URL host/path, label)`
+            : `claims "${claim}", corroborated by ${(s.identity.sources ?? []).join("+") || "legacy flag"}`,
       signal: "identity",
     };
   },

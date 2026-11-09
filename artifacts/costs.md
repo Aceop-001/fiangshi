@@ -218,3 +218,27 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 | 2026-11-09T03:51:55.060Z | serv | adjudicate 0xd6fce152 | 18/100 | 1020 | ok |
 | 2026-11-09T03:51:55.064Z | dolphin | extract 041db2b1 | 26/30 | - | error: Error |
 | 2026-11-09T03:52:03.082Z | dolphin | extract 041db2b1 | 27/30 | - | error: Error |
+| 2026-11-09T07:31:40.136Z | serv | adjudicate 0xdcd07b3f | 19/100 | 614 | ok |
+| 2026-11-09T07:31:43.750Z | serv | adjudicate 0xdcd07b3f | 20/100 | 649 | ok |
+| 2026-11-09T07:31:46.998Z | dolphin | extract 083a7c49 | 28/30 | - | error: Error |
+| 2026-11-09T07:31:59.010Z | dolphin | extract 083a7c49 | 29/30 | - | error: Error |
+| 2026-11-09T07:32:11.517Z | dolphin | extract 88bc6ea4 | 30/30 | - | error: Error |
+| 2026-11-09T07:32:23.534Z | dolphin | extract 88bc6ea4 | 31/30 | - | REFUSED |
+| 2026-11-09T07:32:25.158Z | dolphin | extract e13a17dd | 31/30 | - | REFUSED |
+| 2026-11-09T07:32:26.790Z | dolphin | extract 2fe9b583 | 31/30 | - | REFUSED |
+| 2026-11-09T07:32:27.375Z | dolphin | extract aaebd7b0 | 31/30 | - | REFUSED |
+| 2026-11-09T07:32:28.671Z | dolphin | extract 041db2b1 | 31/30 | - | REFUSED |
+| 2026-11-09T07:32:51.624Z | serv | adjudicate 0xdcd07b3f | 21/100 | 618 | ok |
+| 2026-11-09T07:32:54.180Z | serv | adjudicate 0xdcd07b3f | 22/100 | 648 | ok |
+| 2026-11-09T07:32:57.694Z | dolphin | extract 083a7c49 | 31/200 | - | error: Error |
+| 2026-11-09T07:33:09.715Z | dolphin | extract 083a7c49 | 32/200 | - | error: Error |
+| 2026-11-09T07:33:22.657Z | dolphin | extract 88bc6ea4 | 33/200 | - | error: Error |
+| 2026-11-09T07:33:34.665Z | dolphin | extract 88bc6ea4 | 34/200 | - | error: Error |
+| 2026-11-09T07:33:48.153Z | dolphin | extract e13a17dd | 35/200 | - | error: Error |
+| 2026-11-09T07:34:00.157Z | dolphin | extract e13a17dd | 36/200 | - | error: Error |
+| 2026-11-09T07:34:12.969Z | dolphin | extract 2fe9b583 | 37/200 | - | error: Error |
+| 2026-11-09T07:34:24.986Z | dolphin | extract 2fe9b583 | 38/200 | - | error: Error |
+| 2026-11-09T07:34:37.597Z | dolphin | extract aaebd7b0 | 39/200 | - | error: Error |
+| 2026-11-09T07:34:49.606Z | dolphin | extract aaebd7b0 | 40/200 | - | error: Error |
+| 2026-11-09T07:35:02.549Z | dolphin | extract 041db2b1 | 41/200 | - | error: Error |
+| 2026-11-09T07:35:14.555Z | dolphin | extract 041db2b1 | 42/200 | - | error: Error |

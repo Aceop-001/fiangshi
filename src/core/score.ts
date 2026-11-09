@@ -77,8 +77,11 @@ export function revenue(s: PayeeSignals): number | null {
  * I identity v3 (2026-11-09): 0 claims -> 0 · self-claim only -> 0.25 · + 1 independent source -> 0.5 · + 2 -> 0.75.
  * A self-claim is never scored below having no claim at all. See src/core/identity.ts for the sources.
  */
-export function identityScore(s: PayeeSignals): number {
-  return identityLevel(Boolean(s.identity.claims_org || s.identity.claims_product), s.identity.sources, s.identity.corroborated);
+export function identityScore(s: PayeeSignals): number | null {
+  const hasClaim = Boolean(s.identity.claims_org || s.identity.claims_product);
+  // 2026-11-09: identity is OPTIONAL enrichment. No claim = no identity weight (renormalised away), never a penalty.
+  if (!hasClaim) return null;
+  return identityLevel(true, s.identity.sources, s.identity.corroborated);
 }
 
 /** Payers counted toward E: distinct inbound senders, minus the first funder when it is a labelled exchange. */
@@ -123,8 +126,24 @@ export function components(s: PayeeSignals, labels: Record<string, FunderLabel>,
 }
 
 /** Missing components contribute 0. Result rounded to 2dp, in [0,100]. */
+/** Components whose absence is renormalised away (optional enrichment). All others are REQUIRED: missing counts 0. */
+export const OPTIONAL_COMPONENTS: readonly ComponentKey[] = ["I"];
+
 export function score(c: Components): number {
   let total = 0;
-  for (const k of Object.keys(WEIGHTS) as ComponentKey[]) total += WEIGHTS[k] * (c[k] ?? 0);
+  let weight = 0;
+  for (const k of Object.keys(WEIGHTS) as ComponentKey[]) {
+    if (c[k] === null && OPTIONAL_COMPONENTS.includes(k)) continue; // optional and unavailable: drop its weight
+    total += WEIGHTS[k] * (c[k] ?? 0);
+    weight += WEIGHTS[k];
+  }
+  total = weight > 0 ? (total * 100) / weight : 0;
+  // Optional components can only ADD. If present, a component may not score below its own absence
+  // (renormalised away). Reconciles "no claim -> renormalise" with "a self-claim is never penalised for existing".
+  for (const k of OPTIONAL_COMPONENTS) {
+    if (c[k] === null) continue;
+    const without = score({ ...c, [k]: null });
+    if (without > total) total = without;
+  }
   return round2(total);
 }

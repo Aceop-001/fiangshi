@@ -87,7 +87,7 @@ const iso = (t: number) => new Date(t * 1000).toISOString();
  */
 export function signalsFromSurf(
   r: SurfPayeeRow,
-  ctx: { now: number; windowStart: number; tokenContracts: string[]; identity?: { claims_org: string | null; claims_product?: string | null; corroborated: boolean | null; sources?: string[] } },
+  ctx: { now: number; windowStart: number; tokenContracts: string[]; identity?: { claims_org: string | null; claims_product?: string | null; corroborated: boolean | null; sources?: string[]; contradicted?: boolean } },
 ): PayeeSignals {
   const times = [r.first_inbound_at, r.first_outbound_at].filter((x): x is number => typeof x === "number" && x > 0);
   const lasts = [r.last_inbound_at, r.last_outbound_at].filter((x): x is number => typeof x === "number" && x > 0);
@@ -118,7 +118,7 @@ export function signalsFromSurf(
     token_asset_share: typeof r.top_token_share === "number" ? r.top_token_share : null,
     top_payer_share: typeof r.top_payer_share === "number" ? r.top_payer_share : null,
     dormancy_days: last !== null ? Math.max(0, (ctx.now - last) / 86_400) : null,
-    identity: { claims_org: ctx.identity?.claims_org ?? null, claims_product: ctx.identity?.claims_product ?? null, corroborated: ctx.identity?.corroborated ?? null, ...(ctx.identity?.sources ? { sources: ctx.identity.sources } : {}) },
+    identity: { claims_org: ctx.identity?.claims_org ?? null, claims_product: ctx.identity?.claims_product ?? null, corroborated: ctx.identity?.corroborated ?? null, ...(ctx.identity?.sources ? { sources: ctx.identity.sources } : {}), ...(ctx.identity?.contradicted ? { contradicted: true } : {}) },
     evidence,
   };
 }

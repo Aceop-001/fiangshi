@@ -52,3 +52,10 @@ export function identityLevel(hasClaim: boolean, sources: string[] | undefined, 
   const n = sources ? new Set(sources).size : corroborated === true ? 1 : 0;
   return n === 0 ? 0.25 : n === 1 ? 0.5 : 0.75;
 }
+
+/** A Surf label names an entity, and NONE of its tokens appear in the claim: the claim is contradicted (V5 BLOCK). */
+export function contradicts(claims: (string | null | undefined)[], labelName: string | null | undefined): boolean {
+  const ct = tokens(claims.filter(Boolean).join(" "));
+  const lt = tokens(labelName);
+  return ct.length > 0 && lt.length > 0 && !lt.some((w) => ct.includes(w));
+}

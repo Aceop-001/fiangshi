@@ -31,6 +31,8 @@ export const Identity = z.object({
   corroborated: z.boolean().nullable(),
   /** identity v3: independent corroboration sources (host, path, catalog, label, model_agreement). */
   sources: z.array(z.string()).optional(),
+  /** a Surf label names a DIFFERENT entity than the claim (V5 BLOCK). */
+  contradicted: z.boolean().optional(),
 });
 export type Identity = z.infer<typeof Identity>;
 
@@ -86,6 +88,8 @@ export const Receipt = z.object({
   prev_hash: z.union([hex, z.literal("genesis")]),
   receipt_hash: hex,
   settlement: Settlement,
+  /** optional enrichment (Dolphin identity extraction). "incomplete" never changes the band; the reason says why. */
+  enrichment: z.object({ status: z.enum(["complete", "incomplete", "skipped"]), reason: z.string().nullable() }).optional(),
 });
 export type Receipt = z.infer<typeof Receipt>;
 

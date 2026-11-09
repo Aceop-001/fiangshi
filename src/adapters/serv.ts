@@ -94,8 +94,8 @@ export const modelCalls: ModelCallMeta[] = [];
 export const modelTimeoutMs = (provider?: "serv" | "dolphin") =>
   num(provider === "serv" ? "FIANGSHI_SERV_TIMEOUT_MS" : provider === "dolphin" ? "FIANGSHI_DOLPHIN_TIMEOUT_MS" : "_", NaN) ||
   num("FIANGSHI_MODEL_TIMEOUT_MS", provider === "dolphin" ? DOLPHIN_TIMEOUT_DEFAULT_MS : PROBE_TIMEOUT_MS);
-/** Dolphin: 8 s per attempt, ONE retry on timeout, then REVIEW (2026-11-09: 4 of 6 hunt checks hit the old 15 s cap). */
-export const DOLPHIN_TIMEOUT_DEFAULT_MS = 8000;
+/** Dolphin: 12 s per attempt, ONE retry on timeout only, then proceed with enrichment incomplete (never a verdict cap). */
+export const DOLPHIN_TIMEOUT_DEFAULT_MS = 12000;
 
 interface ChatJson {
   choices?: { message?: { content?: string | null }; finish_reason?: string }[];

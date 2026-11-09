@@ -21,8 +21,8 @@ const cases: [string, string, string | undefined][] = [
   ["https://fresh-oracle.example/v1/price", "BLOCK", "age"],
   ["https://swarm-a.example/v1/search", "BLOCK", "kinship"],
   ["https://weatherly-official.example/v1/forecast", "BLOCK", "identity"],
-  // identity v3 (2026-11-09): an anonymous payee with 0 payers now scores 43.05 < 50 -> BLOCK by score; the history vow still fires
-  ["https://premium-signals.example/v1/alpha", "BLOCK", "history"],
+  // no claim -> identity renormalised away (50.64): REVIEW via history again
+  ["https://premium-signals.example/v1/alpha", "REVIEW", "history"],
   ["https://unknown-seller.example/v1/data", "REVIEW", "silence"],
 ];
 

@@ -47,15 +47,25 @@ const anon = () => {
 const servAllow = (s: ReturnType<typeof clean>) => JSON.stringify({ band: "ALLOW", citations: [{ signal: "tx_count", quote: s.evidence.tx_count }], rationale: "mature" });
 
 describe("parallel SERV + Dolphin", () => {
-  it("Dolphin times out -> REVIEW (degraded), SERV's citations preserved", async () => {
+  it("Dolphin ALWAYS times out -> an otherwise-clean payee still reaches ALLOW, enrichment incomplete, no vow fires", async () => {
     const s = anon();
     stub("ok", "hang", servAllow(s));
     const r = await evaluateFull(TERMS, s, LABELS, "Acme - the API");
-    expect(r.decision.verdict.band).toBe("REVIEW");
-    expect(r.decision.verdict.degraded).toBe(true);
-    expect(r.decision.modelRawBand).toBe("ALLOW");
+    expect(r.decision.verdict.band).toBe("ALLOW");
+    expect(r.decision.verdict.degraded).toBe(false);
+    expect(r.decision.vows.filter((v) => v.fired)).toEqual([]);
+    expect(r.enrichment).toMatchObject({ status: "incomplete" });
+    expect(r.enrichment.reason).toMatch(/timeout/);
     expect(r.decision.verdict.citations).toContainEqual({ signal: "tx_count", quote: s.evidence.tx_count });
-    expect(r.extraction?.claims).toBeNull();
+  });
+
+  it("inverse: Surf data missing -> V1 silence REVIEW regardless of Dolphin succeeding", async () => {
+    const s = { ...anon(), tx_count: null, distinct_payers: null };
+    stub("ok", "ok", servAllow(s));
+    const r = await evaluateFull(TERMS, s, LABELS, "Acme - the API");
+    expect(r.enrichment.status).toBe("complete");
+    expect(r.decision.vows.find((v) => v.vow === "silence")?.fired).toBe(true);
+    expect(r.decision.verdict.band).toBe("REVIEW");
   });
 
   it("SERV times out -> REVIEW (degraded), Dolphin's claims preserved as evidence", async () => {
@@ -122,11 +132,11 @@ describe("Dolphin: one retry on timeout only", () => {
     await extractIdentity("retry-bio-3", async () => { n++; throw new Error("dolphin: HTTP 402"); }, tmp());
     expect(n).toBe(1);
   });
-  it("default Dolphin timeout is 8 s", async () => {
+  it("default Dolphin timeout is 12 s", async () => {
     const { modelTimeoutMs } = await import("../src/adapters/serv.js");
     delete process.env.FIANGSHI_DOLPHIN_TIMEOUT_MS;
     delete process.env.FIANGSHI_MODEL_TIMEOUT_MS;
-    expect(modelTimeoutMs("dolphin")).toBe(8000);
+    expect(modelTimeoutMs("dolphin")).toBe(12000);
   });
 });
 

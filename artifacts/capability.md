@@ -187,3 +187,14 @@ Free-tier arithmetic at 50 payees per batch:
 **Effect on the 800-payee census** (`npx tsx scripts/audit.ts report --days 90`): ALLOW 15 → **15**, REVIEW 492 → **449**, BLOCK 293 → **336**. The ALLOW count matches, but the set changed: every v3 ALLOW now carries a corroborated self-claim (`npx tsx scripts/show-allow.ts`).
 
 **Gate result: `api.you.com` is REVIEW (75.33)**, so the "still ALLOW" gate fails. It has no catalog listing name, which means 0 claims and I = 0. Predicted by `scripts/sim-identity-v3.ts` and accepted on 2026-11-09. Regression test: "Acme" at acme.example.com scores ≥ the same payee with no listing (`tests/identity.test.ts`).
+
+## Optional enrichment and V5 at any age (2026-11-09, "phase3b-fix")
+
+1. **Dolphin is optional enrichment:** 12 s per attempt, one retry on timeout only. A failure no longer caps the band and never fires silence. The receipt carries `enrichment: {status: "incomplete", reason}`. **Required** signals are the Surf snapshot fields; missing any of them still fires V1 silence (REVIEW).
+2. **Identity with no claim is renormalised away.** I is dropped and the score is computed over the remaining 85 weight points.
+3. **Reconciling rule (flagged):** "no claim → renormalise" and "a self-claim is never penalised for existing" conflict. Renormalised, a payee with no claim scores at its other components' average, while a listed payee adds 15 × I with I ≤ 0.75. So any listing would score below no listing whenever the other components average more than I. Resolution: **optional components can only add**. A payee with a claim scores max(with I, renormalised without I). Both rules hold, and an uncorroborated claim is still caught by V5.
+4. **V5 identity:** an uncorroborated claim → REVIEW at **any** age. A contradicted claim (a Surf label names a different entity, with no shared token) → BLOCK. No claim → no vow.
+
+**Effect on the 800-payee census:** **44 ALLOW / 469 REVIEW / 287 BLOCK**, up from 15 / 449 / 336. The jump in ALLOW is anonymous-but-healthy payees (no listing, so I is renormalised away) such as `api.you.com` (88.63). Every ALLOW still passed all six vows. V5 now fires on 64 payees (REVIEW).
+
+**Lab (`artifacts/lab.md`):** 9/9 cases match their pre-written v2 expectations. All three real controls reached ALLOW while Dolphin timed out on every attempt, with the receipts stamped `enrichment: incomplete`.

@@ -13,7 +13,7 @@ import { appendReceipt, ledgerPath } from "./ledger/store.js";
 import { sealReceipt } from "./core/receipt.js";
 import { getSnapshot } from "./snapshot.js";
 import { v6 } from "./core/v6.js";
-import { corroborate } from "./core/identity.js";
+import { contradicts, corroborate } from "./core/identity.js";
 
 export function emptySignals(payee: string): PayeeSignals {
   return {
@@ -66,10 +66,13 @@ export async function evaluate(terms: Terms | null, signals: PayeeSignals, label
   return decide(signals, price, labels, advice);
 }
 
+export type Enrichment = { status: "complete" | "incomplete" | "skipped"; reason: string | null };
+
 export interface FullEvaluation {
   decision: Decision;
   signals: PayeeSignals; // after merging Dolphin identity claims
   extraction: ExtractResult | null; // null = no seller text to extract from
+  enrichment: Enrichment;
   ms: { serv: number; dolphin: number | null; total: number };
 }
 
@@ -77,7 +80,8 @@ export interface FullEvaluation {
  * Full adjudication: SERV (verdict advice) and Dolphin (identity extraction) run IN PARALLEL, each under its own
  * timeout (FIANGSHI_SERV_TIMEOUT_MS / FIANGSHI_DOLPHIN_TIMEOUT_MS). Neither can raise the band. Fail closed:
  *  - SERV fails   -> degraded REVIEW (as before); Dolphin's claims are still merged and kept as evidence.
- *  - Dolphin fails (extraction was attempted) -> band capped at REVIEW, degraded; SERV's citations are kept.
+ *  - Dolphin fails -> OPTIONAL enrichment incomplete: no band cap, no silence, identity weight renormalised away;
+ *    the receipt carries enrichment:"incomplete" and the reason. SERV's citations are kept.
  * Dolphin claims only fill identity fields that are empty; they are never treated as corroborated.
  */
 export async function evaluateFull(
@@ -105,16 +109,19 @@ export async function evaluateFull(
       ...signals,
       identity: (() => {
         const sources = corroborate({ claims: [c.claims_org, c.claims_product], claimFrom: "dolphin", url: idCtx.url, catalogName: idCtx.catalogName, labelName: idCtx.labelName });
-        return { claims_org: c.claims_org, claims_product: c.claims_product, corroborated: sources.length > 0, sources };
+        return { claims_org: c.claims_org, claims_product: c.claims_product, corroborated: sources.length > 0, sources, contradicted: contradicts([c.claims_org, c.claims_product], idCtx.labelName) };
       })(),
       evidence: { ...signals.evidence, identity: signals.evidence.identity ?? `dolphin extract: org=${c.claims_org ?? "null"}, product=${c.claims_product ?? "null"}` },
     };
   }
   const d = decide(merged, price, labels, advice);
-  if (extraction && !extraction.claims) {
-    d.verdict = { ...d.verdict, band: minBand(d.verdict.band, "REVIEW"), degraded: true };
-  }
-  return { decision: d, signals: merged, extraction, ms: { serv: Math.round(servMs), dolphin: dolphinMs === null ? null : Math.round(dolphinMs), total: Math.round(performance.now() - t0) } };
+  // Dolphin is OPTIONAL enrichment: a failure never caps the band and never fires silence; it is stamped on the receipt.
+  const enrichment: Enrichment = !extraction
+    ? { status: "skipped", reason: "no seller listing text to extract identity from" }
+    : extraction.claims
+      ? { status: "complete", reason: null }
+      : { status: "incomplete", reason: extraction.error ?? "identity extraction failed" };
+  return { decision: d, signals: merged, extraction, enrichment, ms: { serv: Math.round(servMs), dolphin: dolphinMs === null ? null : Math.round(dolphinMs), total: Math.round(performance.now() - t0) } };
 }
 
 /** A V6 BLOCK decided at probe time: no score, no model, no data call. */

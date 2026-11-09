@@ -28,7 +28,7 @@ import { computeFanout } from "../src/snapshot.js";
 import { costLine, guarded } from "./budget.js";
 import { writeNoClobber } from "../src/fsutil.js";
 import { v6 } from "../src/core/v6.js";
-import { corroborate } from "../src/core/identity.js";
+import { contradicts, corroborate } from "../src/core/identity.js";
 import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -556,11 +556,11 @@ export interface ReportInputs {
 export function censusIdentity(
   p: SamplePayee,
   l: SurfWalletLabel | undefined,
-): { claims_org: string | null; claims_product: string | null; corroborated: boolean | null; sources: string[] } | undefined {
+): { claims_org: string | null; claims_product: string | null; corroborated: boolean | null; sources: string[]; contradicted?: boolean } | undefined {
   const self = p.service?.trim() || null;
   if (self) {
     const sources = corroborate({ claims: [self], claimFrom: "catalog", url: p.example_url, labelName: l?.entity_name ?? null });
-    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources };
+    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources, contradicted: contradicts([self], l?.entity_name) };
   }
   if (l?.entity_name) {
     const sources = ["label", ...corroborate({ claims: [l.entity_name], claimFrom: "label", url: p.example_url })];
@@ -767,6 +767,16 @@ export function auditReport(inp: ReportInputs): string {
       L.push(`## Post-hoc V6: null / sink payee`, ``);
       L.push(`**\`${sp?.example_url ?? "(endpoint)"}\`** asks for **$${sp?.price_usd ?? "?"}** paid to **\`${ZERO}\`**, the zero address. Its live 402 confirmed the \`payTo\`. Funds sent there are unrecoverable.`, ``);
       L.push(`The rubric scored it **${huntScore ?? z.r.score}** on live data (ALLOW range), because burns from many senders look like a mature, busy, well-diversified wallet. **V6 now overrides that score:** it is BLOCKed at probe time with a sealed $0.00 receipt, before any Surf, SERV or Dolphin call. In this report it is ${z.r.band} (${z.r.fired.includes("null_payee") ? "null_payee fired" : "V6 did not fire?"}).`, ``);
+      {
+        // price drift on the live endpoint, from the lab's live probe (fixtures/lab/results*.json, case B5)
+        const labDir = join(ROOT, "fixtures", "lab");
+        const labFiles = existsSync(labDir) ? readdirSync(labDir).filter((f) => /^results(-attempt\d+)?\.json$/.test(f)).sort((a, b) => a.length - b.length || a.localeCompare(b)) : [];
+        const last = labFiles.length ? (JSON.parse(readFileSync(join(labDir, labFiles[labFiles.length - 1]!), "utf8")) as { ran_at: string; results: { id: string; actual: { probe?: string } }[] }) : null;
+        const b5 = last?.results.find((r) => r.id === "B5")?.actual.probe;
+        const live = b5 ? /\$([0-9.]+)/.exec(b5)?.[1] : undefined;
+        if (live && sp?.price_usd !== undefined && Number(live) !== sp.price_usd)
+          L.push(`**Price moved:** the catalog and the first probe said **$${sp.price_usd?.toFixed(2)}**. The live probe on ${last!.ran_at.slice(0, 10)} (lab case B5) returned **$${Number(live).toFixed(2)}**, still to the zero address. It still BLOCKs at $0.00.`, ``);
+      }
       L.push(`V6 rules: zero address (any form) · known burn sinks · \`payTo\` equal to the payment-asset contract · invalid EIP-55 checksum, all BLOCK. A payee with no contract code and zero outbound transfers is REVIEW only; this needs an \`eth_getCode\` source, which is not wired yet. The vow set is now frozen at six.`, ``);
       L.push(`*For a buyer:* a perfect-looking score on a burn address was the rubric's worst blind spot. A deterministic address check now catches it before any money or credits are spent.`, ``);
     }

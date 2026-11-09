@@ -1,0 +1,90 @@
+{
+  "written_at": "2026-11-09T03:49:21.067Z",
+  "window_days": 90,
+  "note": "Expected verdicts written BEFORE any run. Do not edit after running.",
+  "cases": [
+    {
+      "id": "B1",
+      "archetype": "burner",
+      "payee": "0xdcd07b3fef5399be9c818146bf399e05112d8a3b",
+      "url": null,
+      "construction": "freshly generated random address (crypto.randomBytes(20), generated 2026-11-09T03:49:21.066Z); never funded: Fiangshi cannot fund wallets (no custody). One live inbound SQL call proves it has no history.",
+      "expected_band": "BLOCK",
+      "expected_vow": "age",
+      "note": "May legitimately land on the silence path (no history at all). Reported as-is; history is not faked."
+    },
+    {
+      "id": "B2",
+      "archetype": "sybil-funder",
+      "payee": "0x54ebfcf3870439b9db62381848c5dabc05c70d5b",
+      "url": "https://x402.professorsausages.com/gas-oracle/prices",
+      "construction": "cached census row (90d): first funder shared with 3+ other catalog payees, funder not labelled exchange/relayer",
+      "expected_band": "BLOCK",
+      "expected_vow": "kinship"
+    },
+    {
+      "id": "B3",
+      "archetype": "sleeper",
+      "payee": "synthetic:sleeper",
+      "url": "https://old-quotes.example/v1/quote",
+      "construction": "SYNTHETIC fixture (fixtures/payees.json sleeper): no live census payee is established AND dormant >=60d (0 of 800), and the history vow fired on 0 of 800",
+      "expected_band": "REVIEW",
+      "expected_vow": "history"
+    },
+    {
+      "id": "B4",
+      "archetype": "anon-claimant",
+      "payee": "0x11dced0487ca3e7d9032029dcb302253ccf4e0de",
+      "url": "https://minty-sprout.onrender.com/v1/base-token-info",
+      "construction": "cached census row: catalog self-claim \"Foundry\" with no corroborating source (host/path/label), 202h old",
+      "expected_band": "REVIEW",
+      "expected_vow": "identity"
+    },
+    {
+      "id": "B5",
+      "archetype": "void",
+      "payee": "0x0000000000000000000000000000000000000000",
+      "url": "https://api.cleave.fi/x402/gas",
+      "construction": "LIVE probe of the real endpoint: payTo is the zero address",
+      "expected_band": "BLOCK",
+      "expected_vow": "null_payee",
+      "expected_cost_usd": 0
+    },
+    {
+      "id": "B6",
+      "archetype": "silent",
+      "payee": "0x7914033707876738076f01b462f4aa3e6a17f01f",
+      "url": "https://www.getbags.app/api/agent/link/pl-c5a332aa-4390-4b95",
+      "construction": "cached census row: no transfers in the 90d window (all on-chain signals missing)",
+      "expected_band": "REVIEW",
+      "expected_vow": "silence"
+    },
+    {
+      "id": "C1",
+      "archetype": "control",
+      "payee": "0x255cdb4e42afefc7120b0388eb78f96d996d387b",
+      "url": "https://riddlex402.vercel.app/api/riddle",
+      "construction": "real v3 census ALLOW (85.39), claim Riddle Oracle corroborated by host+path",
+      "expected_band": "ALLOW",
+      "expected_vow": null
+    },
+    {
+      "id": "C2",
+      "archetype": "control",
+      "payee": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+      "url": "https://laso.finance/auth",
+      "construction": "real v3 census ALLOW (80.75), claim Laso Finance corroborated by host",
+      "expected_band": "ALLOW",
+      "expected_vow": null
+    },
+    {
+      "id": "C3",
+      "archetype": "control",
+      "payee": "0xd6fce15298fc9d60f867d9455d497177da9bfb0a",
+      "url": "https://x402.tbs-digital.com/weather/current",
+      "construction": "real v3 census ALLOW (86.64), claim TBS Weather & Climate API corroborated by host+path",
+      "expected_band": "ALLOW",
+      "expected_vow": null
+    }
+  ]
+}

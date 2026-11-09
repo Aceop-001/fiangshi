@@ -1,0 +1,7 @@
+{
+  "measured_at": "2026-11-09T07:48:43.195Z",
+  "warm_p50_ms": 372,
+  "cold_ms": 266,
+  "tests_passed": 219,
+  "accept": "11/11"
+}

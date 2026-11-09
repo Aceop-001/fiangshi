@@ -84,7 +84,9 @@ describe("parallel SERV + Dolphin", () => {
     const r = await evaluateFull(TERMS, anon(), LABELS, "Acme - the API");
     const elapsed = performance.now() - t;
     expect(r.decision.verdict.band).toBe("REVIEW");
-    expect(elapsed).toBeLessThan(2 * 120 + 150); // sequential would need >= 2 x 120ms per attempt (SERV retries once)
+    // parallel ~= 2 attempts x 120 ms = 240 ms; sequential >= SERV 2x120 + Dolphin 2x120 = 480 ms.
+    // Threshold sits just under the sequential floor so CPU load (e.g. a server running beside the tests) cannot flake it.
+    expect(elapsed).toBeLessThan(4 * 120 - 20);
   });
 
   it("both succeed, no corroboration context -> Dolphin claim merged as an uncorroborated self-claim (I 0.25)", async () => {

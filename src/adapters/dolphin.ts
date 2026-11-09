@@ -70,9 +70,19 @@ export interface ExtractResult {
 }
 
 /** Never throws. Malformed output, timeout, empty body, HTTP error -> claims null (identity stays unclaimed). */
+/** A timed-out extraction is remembered for this long, so a slow provider is not paid for again on every check. */
+export const negativeTtlS = () => Number(process.env.FIANGSHI_DOLPHIN_NEGATIVE_TTL_S ?? 3600);
+
 export async function extractIdentity(text: string, transport: Transport = liveTransport, dir = join(dataDir(), "cache", "dolphin")): Promise<ExtractResult> {
   const path = join(dir, `${sha256(text)}.json`);
+  const failPath = join(dir, `${sha256(text)}.timeout.json`);
   if (existsSync(path)) return { claims: IdentityClaims.parse(JSON.parse(readFileSync(path, "utf8"))), cached: true, calls: 0 };
+  // negative cache: only TIMEOUTS (a slow provider), only for the TTL. Never stored as claims; never a success.
+  if (existsSync(failPath)) {
+    const f = JSON.parse(readFileSync(failPath, "utf8")) as { at: string; error: string };
+    const ageS = (Date.now() - Date.parse(f.at)) / 1000;
+    if (ageS >= 0 && ageS < negativeTtlS()) return { claims: null, cached: false, calls: 0, error: `cached failure (${Math.round(ageS)}s ago, TTL ${negativeTtlS()}s): ${f.error}` };
+  }
   let raw: unknown;
   try {
     try {
@@ -83,7 +93,12 @@ export async function extractIdentity(text: string, transport: Transport = liveT
       raw = await transport(text);
     }
   } catch (e) {
-    return { claims: null, cached: false, calls: 0, error: (e as Error).message };
+    const msg = (e as Error).message;
+    if (/timeout/i.test(msg)) {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(failPath, JSON.stringify({ at: new Date().toISOString(), error: msg }));
+    }
+    return { claims: null, cached: false, calls: 0, error: msg };
   }
   const parsed = IdentityClaims.safeParse(raw);
   if (!parsed.success) return { claims: null, cached: false, calls: 1, error: "schema: dolphin output does not match IdentityClaims" };

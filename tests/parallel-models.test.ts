@@ -149,3 +149,34 @@ describe("identity v3 in the live pipeline", () => {
     expect(r.signals.identity).toMatchObject({ claims_org: "Acme", corroborated: true, sources: ["host"] });
   });
 });
+
+describe("Dolphin negative cache (timeouts only, TTL)", () => {
+  it("a timed-out extraction is not re-attempted within the TTL; a non-timeout failure is", async () => {
+    const { extractIdentity } = await import("../src/adapters/dolphin.js");
+    const dir = tmp();
+    let n = 0;
+    const slow = async () => { n++; throw new Error("dolphin: timeout after 12000ms"); };
+    await extractIdentity("neg-bio", slow, dir);
+    expect(n).toBe(2); // first call: attempt + one retry
+    const again = await extractIdentity("neg-bio", slow, dir);
+    expect(n).toBe(2); // no new attempt
+    expect(again.claims).toBeNull();
+    expect(again.error).toMatch(/cached failure/);
+    let m = 0;
+    const refused = async () => { m++; throw new Error("dolphin: HTTP 402"); };
+    await extractIdentity("neg-bio-2", refused, dir);
+    await extractIdentity("neg-bio-2", refused, dir);
+    expect(m).toBe(2); // not negatively cached
+  });
+  it("after the TTL the provider is tried again", async () => {
+    const { extractIdentity } = await import("../src/adapters/dolphin.js");
+    const dir = tmp();
+    process.env.FIANGSHI_DOLPHIN_NEGATIVE_TTL_S = "0";
+    let n = 0;
+    const slow = async () => { n++; throw new Error("dolphin: timeout after 12000ms"); };
+    await extractIdentity("neg-bio-3", slow, dir);
+    await extractIdentity("neg-bio-3", slow, dir);
+    expect(n).toBe(4);
+    delete process.env.FIANGSHI_DOLPHIN_NEGATIVE_TTL_S;
+  });
+});

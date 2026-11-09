@@ -169,3 +169,30 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 | + refused funder pass + partial labels (balance → 72) | 252 | 800 | $0.00189 |
 | planning estimate (190 credits / 1,923 payees) | 190 | 1923 | $0.00059 |
 
+| 2026-11-09T03:25:40.432Z | surf | wallet-labels-batch n=20 | 89/150 | 1 | ok |
+| 2026-11-09T03:25:43.893Z | surf | wallet-labels-batch n=3 | 90/150 | 1 | ok |
+| 2026-11-09T03:29:12.587Z | serv | adjudicate 0x93053f1e | 6/100 | 1035 | ok |
+| 2026-11-09T03:29:12.590Z | dolphin | extract 64c9ed48 | 10/30 | - | error: Error |
+| 2026-11-09T03:29:20.606Z | dolphin | extract 64c9ed48 | 11/30 | - | error: Error |
+| 2026-11-09T03:29:29.072Z | serv | adjudicate 0xcfa26f13 | 7/100 | 875 | ok |
+| 2026-11-09T03:29:29.086Z | dolphin | extract 03d43601 | 12/30 | 292 | ok |
+| 2026-11-09T03:29:31.953Z | serv | adjudicate 0xcfa26f13 | 8/100 | 896 | ok |
+| 2026-11-09T03:29:40.671Z | serv | adjudicate 0xc327d0ae | 9/100 | 1010 | ok |
+| 2026-11-09T03:29:40.675Z | dolphin | extract 7897b429 | 13/30 | - | error: Error |
+| 2026-11-09T03:29:48.701Z | dolphin | extract 7897b429 | 14/30 | 200 | ok |
+| 2026-11-09T03:29:51.755Z | dolphin | extract 64c9ed48 | 15/30 | 289 | ok |
+
+## Rules (frozen 2026-11-09)
+
+- **Keyed label calls cost 4 credits** by balance delta (27 calls, 184 → 72), although `meta.credits_used` reports 1.
+- **Never send more than 20 addresses per label call.** At 50 and 100, Surf returns exit 4 `INTERNAL_ERROR` (unbilled).
+- **Keyed SQL calls cost 4 credits**, although meta reports 5.
+- **Killed calls and scan refusals are billed** (4 credits each, no rows).
+- **A V6 BLOCK costs $0.00:** no data or model call is made.
+
+## Latency (from fixtures/audit/allow-hunt-w90-attempt3.json and -attempt4.json)
+
+| run | p50 full check | notes |
+|---|---|---|
+| cold | 10,990 ms | Dolphin 8 s × (1 + 1 retry) worst case; SERV 1.6–10.5 s |
+| warm | 1,151 ms | cached models 2–3 ms; probe 0.4–1.1 s |

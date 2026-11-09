@@ -21,12 +21,13 @@ import { pathToFileURL } from "node:url";
 import { parse402 } from "../src/adapters/probe.js";
 import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
 import { hashOf, sha256 } from "../src/core/canonical.js";
-import type { Band, PayeeSignals } from "../src/core/types.js";
+import { kinshipExempt, type Band, type PayeeSignals } from "../src/core/types.js";
 import { loadDotEnv } from "../src/config.js";
 import { diffE, policyBand } from "../src/policy.js";
 import { computeFanout } from "../src/snapshot.js";
 import { costLine, guarded } from "./budget.js";
 import { writeNoClobber } from "../src/fsutil.js";
+import { v6 } from "../src/core/v6.js";
 import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -163,6 +164,8 @@ interface Checkpoint {
   refusals?: { at: string; template: string; payees: number; message: string }[];
   scan_heavy?: { at: string; template: string; addresses: string[]; message: string }[];
   excluded?: string[];
+  /** Payees BLOCKed by V6 before any Surf call (never queried). */
+  v6_blocked?: string[];
   /** "<template>:<sha256 of sorted addresses>" for sets Surf refused or that were killed: never re-sent. */
   failed_sets?: string[];
   funders_done: boolean;
@@ -396,7 +399,13 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
   };
 
   const payees = sample.payees.map((p) => p.payee);
-  const pending = payees.filter((p) => !cp.outbound_done!.includes(p)).slice(0, opts.limit ?? Infinity);
+  // V6 before any paid call: null/sink payees never enter a Surf batch
+  const v6Blocked = payees.filter((p) => v6({ payTo: p }).band === "BLOCK");
+  if (v6Blocked.length) {
+    cp.v6_blocked = [...new Set([...(cp.v6_blocked ?? []), ...v6Blocked])];
+    console.log(`V6: ${v6Blocked.length} null/sink payees skipped before any Surf call: ${v6Blocked.join(", ")}`);
+  }
+  const pending = payees.filter((p) => !cp.outbound_done!.includes(p) && !v6Blocked.includes(p)).slice(0, opts.limit ?? Infinity);
   const chunks: string[][] = [];
   for (let i = 0; i < pending.length; i += batchSize) chunks.push(pending.slice(i, i + batchSize));
 
@@ -580,7 +589,7 @@ export function auditReport(inp: ReportInputs): string {
   const young = buckets[0]![1];
 
   const clusters = new Map<string, string[]>();
-  for (const s of signals) if (s.first_funder && funderLabels[s.first_funder] !== "cex") (clusters.get(s.first_funder) ?? clusters.set(s.first_funder, []).get(s.first_funder)!).push(s.payee);
+  for (const s of signals) if (s.first_funder && !kinshipExempt(funderLabels[s.first_funder])) (clusters.get(s.first_funder) ?? clusters.set(s.first_funder, []).get(s.first_funder)!).push(s.payee);
   const multi = [...clusters.entries()].filter(([, ps]) => ps.length >= 2).sort((a, b) => b[1].length - a[1].length);
   const cexFunded = signals.filter((s) => s.first_funder && funderLabels[s.first_funder] === "cex");
   const viaLabel = cexFunded.filter((s) => labelOf.get(s.first_funder!)?.entity_type?.toLowerCase() === "cex").length;
@@ -652,24 +661,46 @@ export function auditReport(inp: ReportInputs): string {
   for (const [b, c] of buckets) L.push(`| ${b} | ${c} | ${pct(c)} |`);
   L.push(`| ≥ ${DAYS}d (established: first transfer at the window start) | ${floored.length} | ${pct(floored.length)} |`, `| no transfers in window | ${n - active.length} | ${pct(n - active.length)} |`, ``);
   L.push(`Cumulative: < ${DAYS}d ${active.length - floored.length} · < 7d ${buckets[0]![1] + buckets[1]![1]} · < 48h ${buckets[0]![1]}.`, ``);
-  L.push(`*For a buyer:* ${young} payees (${pct(young)}) first appeared under 48h ago. The age vow BLOCKs them regardless of model advice. Every other age here is a floor, never an overstatement.`, ``);
+  if (young === 0) L.push(`**No live payee under 48h existed in the ${n} audited.** The age vow (V1) is therefore exercised only in the lab fixtures (the \`burner\` and \`migrator\` archetypes), not on live data.`, ``);
+  L.push(`*For a buyer:* ${young} payees (${pct(young)}) first appeared under 48h ago. The age vow BLOCKs any such payee regardless of model advice. Every other age here is a floor, never an overstatement.`, ``);
 
-  L.push(`## Funder clusters (exchanges excluded)`, ``);
-  L.push(`Exchange exclusion: ${cexFunded.length} payees are CEX-funded (${viaLabel} by Surf \`entity_type: cex\` label, ${cexFunded.length - viaLabel} by the fanout ≥ 500 heuristic). ${tokenContracts.length} token contracts showed up as "first funder" and are treated as missing.`, ``);
-  if (inp.knownPair) L.push(`Known pair (12-endpoint probe, 2026-11-08): **${inp.knownPair.payees.map((p) => `${p.host} (${short(p.payee)})`).join(" and ")}** share first funder ${short(inp.knownPair.funder)}.`, ``);
-  if (multi.length) {
-    L.push(`Clusters in the audited set. These are 1-hop: payees sharing a direct, non-exchange first funder. The kinship vow fires at ≥ 3 *other* payees.`, ``);
-    L.push(`| funder | payees | kinship fires |`, `|---|---|---|`);
-    for (const [f, ps] of multi.slice(0, 20)) L.push(`| ${short(f)} | ${ps.length} | ${ps.length >= 4 ? "yes" : "no"} |`);
-  } else L.push(`No shared non-exchange funders in the audited set.`);
+  L.push(`## Funder clusters (exchanges and relayer infrastructure excluded)`, ``);
   {
-    const queried = new Set(cp.labels_done);
-    const unchecked = v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && !queried.has(e.s.first_funder));
-    const uncheckedFunders = new Set(unchecked.map((e) => e.s.first_funder));
-    if (unchecked.length)
-      L.push(``, `**Kinship BLOCKs are an upper bound here:** ${unchecked.length} of ${v2.filter((e) => e.r.fired.includes("kinship")).length} kinship firings rest on ${uncheckedFunders.size} funders that were never label-checked (the label pass stopped at the credit floor). Some of these funders may be exchanges, faucets or payment relayers, which the vow is meant to exclude. Until they are labelled, read these BLOCKs as "shared unlabelled funder", not as confirmed operator rings.`);
+    // kinship before vs after the funder labels: what the vow would say if no funder were exempt
+    const exemptNow = signals.filter((s) => s.first_funder && kinshipExempt(funderLabels[s.first_funder]));
+    const allByFunder = new Map<string, string[]>();
+    for (const s of signals) if (s.first_funder) (allByFunder.get(s.first_funder) ?? allByFunder.set(s.first_funder, []).get(s.first_funder)!).push(s.payee);
+    const wouldFire = signals.filter((s) => s.first_funder && (allByFunder.get(s.first_funder)?.length ?? 0) >= 4).length;
+    const firesNow = v2.filter((e) => e.r.fired.includes("kinship")).length;
+    const cexN = exemptNow.filter((s) => funderLabels[s.first_funder!] === "cex").length;
+    const infraN = exemptNow.length - cexN;
+    L.push(`Exclusion: ${exemptNow.length} payees have an exempt first funder: ${cexN} exchange (\`entity_type: cex\`) and ${infraN} relayer infrastructure (\`bridge\` / \`dex-aggregator\`). ${tokenContracts.length} token contracts showed up as "first funder" and are treated as missing.`, ``);
+    L.push(`**Kinship with labels applied: ${firesNow} BLOCKs survive** of ${wouldFire} that a shared-funder rule fires with no exemptions. ${wouldFire - firesNow} were exchange or relayer funding, not operator rings.`, ``);
   }
-  L.push(``, `*For a buyer:* payees that share a non-exchange funder are probably one operator. Count them as one counterparty when you cap exposure, but check that the shared funder is not an exchange first.`, ``);
+  if (inp.knownPair) L.push(`Known pair (12-endpoint probe, 2026-11-08): **${inp.knownPair.payees.map((p) => `${p.host} (${short(p.payee)})`).join(" and ")}** share first funder ${short(inp.knownPair.funder)}.`, ``);
+  {
+    const allByFunder = new Map<string, string[]>();
+    for (const s of signals) if (s.first_funder) (allByFunder.get(s.first_funder) ?? allByFunder.set(s.first_funder, []).get(s.first_funder)!).push(s.payee);
+    const rowsAll = [...allByFunder.entries()].filter(([, ps]) => ps.length >= 2).sort((a, b) => b[1].length - a[1].length).slice(0, 20);
+    const queried = new Set(cp.labels_done);
+    if (rowsAll.length) {
+      L.push(`Clusters (1-hop: payees sharing a direct first funder; the kinship vow fires at ≥ 3 *other* payees unless the funder is exempt):`, ``);
+      L.push(`| funder | payees | Surf label | exempt | kinship fires |`, `|---|---|---|---|---|`);
+      for (const [f, ps] of rowsAll) {
+        const l = labelOf.get(f);
+        const lab = l ? `${l.entity_name ?? "(no name)"}${l.entity_type ? ` · ${l.entity_type}` : ""}` : queried.has(f) ? "none returned" : "not queried";
+        const ex = kinshipExempt(funderLabels[f]);
+        L.push(`| ${short(f)} | ${ps.length} | ${lab} | ${ex ? funderLabels[f] : "no"} | ${!ex && ps.length >= 4 ? "yes" : "no"} |`);
+      }
+    }
+    const unchecked = v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && !queried.has(e.s.first_funder));
+    if (unchecked.length)
+      L.push(``, `${unchecked.length} surviving kinship firings rest on funders that were never label-checked; read those as "shared unlabelled funder".`);
+    const unnamed = v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && queried.has(e.s.first_funder));
+    if (unnamed.length)
+      L.push(``, `${unnamed.length} surviving kinship firings rest on funders that **were** label-checked and came back unnamed or untyped. Surf knows these addresses but cannot say they are exchanges or relayers, so the vow stands.`);
+  }
+  L.push(``, `*For a buyer:* most large "clusters" here are wallets funded from the same exchange or bridge, which is normal. What remains after labelling is a shared **unnamed** funder: treat those payees as one counterparty until you know otherwise.`, ``);
 
   L.push(`## Labels`, ``);
   L.push(`Label coverage: **${labelledCount} of ${labelQueried} addresses (${pct(labelledCount, labelQueried)})** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.`, ``);
@@ -710,9 +741,13 @@ export function auditReport(inp: ReportInputs): string {
     const ZERO = "0x0000000000000000000000000000000000000000";
     const z = v2.find((e) => e.s.payee === ZERO);
     if (z) {
-      L.push(`## Null-address payee (zero address)`, ``);
-      L.push(`The catalog lists a payee of \`${ZERO}\` (the zero address). Its live 402 confirmed it: payment goes to the zero address, and funds sent there are unrecoverable. The rubric scored it **${z.r.score} (${z.r.band})**, because burns from many senders look like a mature, busy, well-diversified wallet. **None of the five vows covers null or burn addresses.** A sixth vow is proposed, not added: the vow set is fixed by the spec.`, ``);
-      L.push(`*For a buyer:* a high score on a burn address is a rubric blind spot. Never pay a null or burn \`payTo\`, whatever the score.`, ``);
+      const sp = sample.payees.find((p) => p.payee === ZERO);
+      const huntScore = inp.hunts?.flatMap((h) => h.data.results).find((r) => r.payee === ZERO)?.fresh_score;
+      L.push(`## Post-hoc V6: null / sink payee`, ``);
+      L.push(`**\`${sp?.example_url ?? "(endpoint)"}\`** asks for **$${sp?.price_usd ?? "?"}** paid to **\`${ZERO}\`**, the zero address. Its live 402 confirmed the \`payTo\`. Funds sent there are unrecoverable.`, ``);
+      L.push(`The rubric scored it **${huntScore ?? z.r.score}** on live data (ALLOW range), because burns from many senders look like a mature, busy, well-diversified wallet. **V6 now overrides that score:** it is BLOCKed at probe time with a sealed $0.00 receipt, before any Surf, SERV or Dolphin call. In this report it is ${z.r.band} (${z.r.fired.includes("null_payee") ? "null_payee fired" : "V6 did not fire?"}).`, ``);
+      L.push(`V6 rules: zero address (any form) · known burn sinks · \`payTo\` equal to the payment-asset contract · invalid EIP-55 checksum, all BLOCK. A payee with no contract code and zero outbound transfers is REVIEW only; this needs an \`eth_getCode\` source, which is not wired yet. The vow set is now frozen at six.`, ``);
+      L.push(`*For a buyer:* a perfect-looking score on a burn address was the rubric's worst blind spot. A deterministic address check now catches it before any money or credits are spent.`, ``);
     }
   }
   if (inp.hunts?.length) {
@@ -735,6 +770,8 @@ export function auditReport(inp: ReportInputs): string {
   }
   L.push(`## Caveats`, ``);
   L.push(`- Ages are floors. ${floored.length} payees sit at the window start, so their true age is ≥ ${DAYS}d, never stated in years. The 48h age vow and the 7-day identity vow are unaffected: both thresholds sit inside the window.`);
+  L.push(`- Band counts by stage: five vows ALLOW 16 / REVIEW 471 / BLOCK 313 (commit dfba1ca) → + V6 15 / 471 / 314 (the zero address moves ALLOW → BLOCK) → + funder labels (21 payees exempted from kinship) → this report's counts above.`);
+  L.push(`- Calibration (not tuned): when Dolphin extracts a claimed name from a seller's *own* listing, that claim is uncorroborated, so I = 0 instead of the anonymous 0.5. Observed live: 80.91 → 75.07 (ALLOW → REVIEW) for one hunt payee. Extracting a claim can lower a score; corroboration sources are the fix, not the rubric.`);
   L.push(`- Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.`);
   L.push(`- Identity counts as corroborated only where Surf has an \`entity_name\` label. Dolphin claim extraction is not wired into this audit.`);
   L.push(`- E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.`);

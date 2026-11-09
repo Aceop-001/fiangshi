@@ -75,7 +75,13 @@ export async function extractIdentity(text: string, transport: Transport = liveT
   if (existsSync(path)) return { claims: IdentityClaims.parse(JSON.parse(readFileSync(path, "utf8"))), cached: true, calls: 0 };
   let raw: unknown;
   try {
-    raw = await transport(text);
+    try {
+      raw = await transport(text);
+    } catch (e) {
+      // exactly one retry, and only for a timeout (a malformed or refused reply is not retried)
+      if (!/timeout/i.test((e as Error).message)) throw e;
+      raw = await transport(text);
+    }
   } catch (e) {
     return { claims: null, cached: false, calls: 0, error: (e as Error).message };
   }

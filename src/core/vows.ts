@@ -1,6 +1,7 @@
-/** Five deterministic vows. Pure. They run after the model and may only lower the band. */
+/** Six deterministic vows. Pure. They run after the model and may only lower the band. */
 import {
   REQUIRED_SIGNALS,
+  kinshipExempt,
   VOW_NAMES,
   bandRank,
   type Band,
@@ -8,11 +9,17 @@ import {
   type PayeeSignals,
   type VowName,
 } from "./types.js";
+import { v6 } from "./v6.js";
 
 export interface VowInput {
   signals: PayeeSignals; // sanitized
   price: number | null;
   funder_labels: Record<string, FunderLabel>;
+  /** V6 inputs (optional): raw-case payTo for EIP-55, payment asset, contract-code and outbound facts. */
+  payTo_raw?: string;
+  asset?: string | null;
+  has_code?: boolean;
+  outbound_count?: number | null;
 }
 export interface VowRow {
   vow: VowName;
@@ -30,6 +37,11 @@ export const IDENTITY_AGE_H = 7 * 24;
 type Rule = (i: VowInput) => Omit<VowRow, "vow">;
 
 export const RULES: Record<VowName, Rule> = {
+  /** V6 null/sink payee. Also gated at probe time in check(), before any paid call. */
+  null_payee: (i) => {
+    const r = v6({ payTo: i.payTo_raw ?? i.signals.payee, asset: i.asset, hasCode: i.has_code, outboundCount: i.outbound_count });
+    return { fired: r.band !== null, band: r.band ?? "BLOCK", reason: r.rule ? `${r.rule}: ${r.reason}` : r.reason, signal: "payee" };
+  },
   age: ({ signals: s }) => ({
     fired: s.wallet_age_hours !== null && s.wallet_age_hours < AGE_MIN_H,
     band: "BLOCK",
@@ -41,7 +53,7 @@ export const RULES: Record<VowName, Rule> = {
       s.funder_fanout !== null &&
       s.funder_fanout >= KINSHIP_MIN &&
       s.first_funder !== null &&
-      funder_labels[s.first_funder] !== "cex",
+      !kinshipExempt(funder_labels[s.first_funder]),
     band: "BLOCK",
     reason: `funder shared with ${s.funder_fanout} other catalog payees (block if >= ${KINSHIP_MIN}, <=2 hops, non-CEX)`,
     signal: "first_funder",

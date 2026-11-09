@@ -12,6 +12,7 @@ import { PayeeSignals, minBand, type Receipt, type Snapshot, type Terms } from "
 import { appendReceipt, ledgerPath } from "./ledger/store.js";
 import { sealReceipt } from "./core/receipt.js";
 import { getSnapshot } from "./snapshot.js";
+import { v6 } from "./core/v6.js";
 
 export function emptySignals(payee: string): PayeeSignals {
   return {
@@ -110,12 +111,52 @@ export async function evaluateFull(
   return { decision: d, signals: merged, extraction, ms: { serv: Math.round(servMs), dolphin: dolphinMs === null ? null : Math.round(dolphinMs), total: Math.round(performance.now() - t0) } };
 }
 
+/** A V6 BLOCK decided at probe time: no score, no model, no data call. */
+function v6Decision(reason: string): Decision {
+  return {
+    verdict: { band: "BLOCK", score: 0, vow_fired: "null_payee", citations: [{ signal: "payee", quote: reason }], degraded: false, model: "none (V6 probe-time gate)" },
+    components: { M: null, P: null, R: null, I: null, E: null, C: null },
+    score: 0,
+    scoreBand: "BLOCK",
+    modelBand: "BLOCK",
+    modelRawBand: null,
+    validation: null,
+    attempts: 0,
+    vows: [{ vow: "null_payee", fired: true, band: "BLOCK", reason, signal: "payee" }],
+  };
+}
+
 export async function check(url: string, opts: CheckOpts = {}): Promise<CheckResult> {
   const t0 = performance.now();
-  const snap = opts.snapshot ?? (await getSnapshot());
   const pr = await probe(url);
   const terms = pr.ok ? pr.terms : null;
   const payee = terms?.payee ?? "unknown";
+
+  // V6 at PROBE TIME: a null/sink payTo is BLOCKed with a sealed receipt before any snapshot, Surf or model call ($0.00).
+  if (pr.ok) {
+    const g = v6({ payTo: pr.payTo_raw, asset: pr.terms.asset });
+    if (g.band === "BLOCK") {
+      const decision = v6Decision(`${g.rule}: ${g.reason}`);
+      const body: ReceiptBody = {
+        payee,
+        url,
+        terms_hash: pr.terms.terms_hash,
+        price: pr.terms.price,
+        band: "BLOCK",
+        score: 0,
+        vow_fired: "null_payee",
+        evidence: decision.verdict.citations,
+        model: { verdict: null, extractor: "none", degraded: false },
+        snapshot_id: hashOf({ gate: "v6", rule: g.rule }),
+        checked_at: (opts.now ?? new Date()).toISOString(),
+        settlement: currentSettlement(),
+      };
+      const receipt = opts.ledger === false ? sealReceipt(body, "genesis") : appendReceipt(body, opts.ledger ?? ledgerPath());
+      return { url, terms, probe_error: null, signals: emptySignals(payee), decision, receipt, snapshot_id: body.snapshot_id, ms: performance.now() - t0 };
+    }
+  }
+
+  const snap = opts.snapshot ?? (await getSnapshot());
   const row = snap.payload.payees.find((p) => p.payee === payee);
   const signals = row ? coerceSignals(row, payee) : emptySignals(payee);
   const decision = await evaluate(terms, signals, snap.payload.funder_labels);

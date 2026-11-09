@@ -59,7 +59,8 @@ function fromHeader(headers: Record<string, string>): unknown {
   }
 }
 
-export type ProbeResult = { ok: true; terms: Terms; raw: RawResponse } | { ok: false; error: string; raw: RawResponse | null };
+/** payTo_raw keeps the case exactly as the 402 sent it (Terms.payee is lowercased); V6 needs it for EIP-55. */
+export type ProbeResult = { ok: true; terms: Terms; raw: RawResponse; payTo_raw: string } | { ok: false; error: string; raw: RawResponse | null };
 
 export function priceUsd(network: string, asset: string, atomic: string): number | null {
   const a = ASSETS[`${network}:${asset.toLowerCase()}`];
@@ -97,7 +98,7 @@ export function parse402(raw: RawResponse): ProbeResult {
     network,
     payee: req.payTo.toLowerCase(),
   };
-  return { ok: true, terms: { ...base, terms_hash: termsHash(base) }, raw };
+  return { ok: true, terms: { ...base, terms_hash: termsHash(base) }, raw, payTo_raw: req.payTo.trim() };
 }
 
 export function loadFixtures402(dir = join(fixturesDir(), "402")): RawResponse[] {

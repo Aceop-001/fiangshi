@@ -62,6 +62,7 @@ export function provenance(s: PayeeSignals, labels: Record<string, FunderLabel>)
   const label = labels[s.first_funder];
   if (label === "cex") return 1;
   if (label === "mixer") return 0;
+  if (label === "infra") return 0.6; // bridge / aggregator / relayer: neutral, like a fresh funder
   if (s.funder_fanout === null) return null;
   return s.funder_fanout >= 1 ? 0.2 : 0.6; // shared vs fresh funder
 }

@@ -26,3 +26,26 @@ describe("Surf wallet labels -> kinship exclusion (real fixture)", () => {
     expect(funderLabelsFromSurf([], { "0xabc": 499 }).labels["0xabc"]).toBeUndefined();
   });
 });
+
+import { provenance } from "../src/core/score.js";
+
+describe("relayer infrastructure (entity_type bridge / dex-aggregator) — observed 2026-11-09", () => {
+  const rows: SurfWalletLabel[] = [
+    { address: "0xF70DA97812CB96ACDF810712AA562DB8DFA3DBEF", entity_name: "Relay.link", entity_type: "bridge", labels: [{ label: "Bridge Solver" }] },
+    { address: "0x0a2854fbbd9b3ef66f17d47284e7f899b9509330", entity_name: "MetaMask", entity_type: "dex-aggregator", labels: [{ label: "Spender" }] },
+  ];
+  it("maps to infra", () => {
+    const { labels } = funderLabelsFromSurf(rows);
+    expect(labels["0xf70da97812cb96acdf810712aa562db8dfa3dbef"]).toBe("infra");
+    expect(labels["0x0a2854fbbd9b3ef66f17d47284e7f899b9509330"]).toBe("infra");
+  });
+  it("an infra funder shared by 10 payees does NOT fire kinship", () => {
+    const { labels } = funderLabelsFromSurf(rows);
+    const s = clean({ first_funder: "0xf70da97812cb96acdf810712aa562db8dfa3dbef", funder_fanout: 10 });
+    expect(evaluateVows({ signals: s, price: 0.05, funder_labels: labels }).find((r) => r.vow === "kinship")!.fired).toBe(false);
+  });
+  it("infra provenance is neutral (0.6), not exchange credit (1.0)", () => {
+    const { labels } = funderLabelsFromSurf(rows);
+    expect(provenance(clean({ first_funder: "0xf70da97812cb96acdf810712aa562db8dfa3dbef" }), labels)).toBe(0.6);
+  });
+});

@@ -9,7 +9,7 @@ import { loadFixtures402, parse402 } from "./adapters/probe.js";
 import { fetchSignalsBatch, type FundersFile } from "./adapters/surf.js";
 import { canonical, hashOf } from "./core/canonical.js";
 import { sanitize } from "./core/score.js";
-import { PayeeSignals, Snapshot, type FunderLabel, type SnapshotPayload, type Terms } from "./core/types.js";
+import { PayeeSignals, Snapshot, kinshipExempt, type FunderLabel, type SnapshotPayload, type Terms } from "./core/types.js";
 
 export const snapshotPath = () => join(dataDir(), "snapshot.json");
 
@@ -19,7 +19,7 @@ function ancestors(funder: string | null, funders: FundersFile): string[] {
   const out = [funder];
   const parent = funders.edges[funder];
   if (parent) out.push(parent.toLowerCase());
-  return out.filter((a) => funders.labels[a] !== "cex");
+  return out.filter((a) => !kinshipExempt(funders.labels[a]));
 }
 
 /** For each payee: number of OTHER catalog payees sharing a non-CEX funder within <=2 hops. */

@@ -94,3 +94,37 @@ describe("parallel SERV + Dolphin", () => {
     expect(r.decision.verdict.degraded).toBe(false);
   });
 });
+
+describe("Dolphin: one retry on timeout only", () => {
+  it("a timeout then a valid reply -> claims (one retry used)", async () => {
+    const { extractIdentity } = await import("../src/adapters/dolphin.js");
+    let n = 0;
+    const t = async () => {
+      n++;
+      if (n === 1) throw new Error("dolphin: timeout after 8000ms");
+      return { claims_org: "Acme", claims_product: null, claims_age_claim: null };
+    };
+    const r = await extractIdentity("retry-bio", t, tmp());
+    expect(n).toBe(2);
+    expect(r.claims?.claims_org).toBe("Acme");
+  });
+  it("two timeouts -> no claims (REVIEW downstream), exactly 2 attempts", async () => {
+    const { extractIdentity } = await import("../src/adapters/dolphin.js");
+    let n = 0;
+    const r = await extractIdentity("retry-bio-2", async () => { n++; throw new Error("dolphin: timeout after 8000ms"); }, tmp());
+    expect(n).toBe(2);
+    expect(r.claims).toBeNull();
+  });
+  it("a non-timeout failure is NOT retried", async () => {
+    const { extractIdentity } = await import("../src/adapters/dolphin.js");
+    let n = 0;
+    await extractIdentity("retry-bio-3", async () => { n++; throw new Error("dolphin: HTTP 402"); }, tmp());
+    expect(n).toBe(1);
+  });
+  it("default Dolphin timeout is 8 s", async () => {
+    const { modelTimeoutMs } = await import("../src/adapters/serv.js");
+    delete process.env.FIANGSHI_DOLPHIN_TIMEOUT_MS;
+    delete process.env.FIANGSHI_MODEL_TIMEOUT_MS;
+    expect(modelTimeoutMs("dolphin")).toBe(8000);
+  });
+});

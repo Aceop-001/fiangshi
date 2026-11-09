@@ -12,7 +12,7 @@ Fiangshi is a pre-payment counterparty oracle for x402 agent payments. Given a p
 
 ## NON-NEGOTIABLES
 - FAIL CLOSED. Missing signal, timeout >15s, schema violation, model failure => REVIEW. Never ALLOW by default. Never BLOCK without a machine-checkable reason.
-- VOWS OVERRIDE THE MODEL. Five deterministic rules run AFTER the model and may only lower the verdict. The model has zero authority to raise it.
+- VOWS OVERRIDE THE MODEL. Six deterministic rules run AFTER the model (V6 also runs at probe time, before any spend) and may only lower the verdict. The model has zero authority to raise it.
 - NO CUSTODY. Fiangshi never holds funds, signs, or sends transactions.
 - TRACEABILITY. Every number in README/artifacts reproducible by a committed script. No script, no number.
 - NO INVENTED API FIELDS. Run --help / read docs before every integration; copy names verbatim. If a field is missing: stop and ask.
@@ -49,14 +49,17 @@ score = 25M + 20P + 20R + 15I + 10E + 10C
 - E exposure (concentration) · C corroboration (extracted field coverage)
 Bands: >=80 ALLOW · 50-79 REVIEW · <50 BLOCK
 
-## VOWS (pure functions, table-driven tests, precedence as listed)
+## VOWS (pure functions, table-driven tests, precedence as listed) — FROZEN AT SIX (2026-11-09)
 | vow | rule | band |
 |---|---|---|
+| null_payee (V6) | payTo is the zero address (any form), a known burn sink, the payment-asset contract, or fails EIP-55 checksum. Gated at PROBE TIME, before any paid call: sealed $0.00 receipt | BLOCK |
+| null_payee (V6) | no contract code AND zero outbound transfers (needs an eth_getCode source; not wired) | REVIEW |
 | age | payee age < 48h | BLOCK |
-| kinship | funder shared with >=3 other catalog payees (<=2 hops) | BLOCK |
+| kinship | funder shared with >=3 other catalog payees (<=2 hops); exchange (`cex`) and relayer infrastructure (`infra`: bridge, dex-aggregator) funders exempt | BLOCK |
 | history | distinct_payers == 0 AND price > $0.50 | REVIEW |
 | identity | claims uncorroborated AND age < 7 days | BLOCK |
 | silence | any required signal missing | REVIEW |
+Do not add, remove or reorder vows without asking.
 
 ## PIPELINE — implement in order, each gated by tests
 1. Probe: unpaid GET, parse 402 (headers + body), terms_hash = sha256(canonical).
@@ -79,7 +82,7 @@ SERV_REASONING_API_KEY, SERV_BASE_URL=https://inference-api.openserv.ai/v1, DOLP
 ## DEFINITION OF DONE
 - [ ] check on a real endpoint <5s, usable offline from cache
 - [ ] receipt verifies; tampering any field breaks verify
-- [ ] 5 vows tested; model cannot override a vow; degraded path tested
+- [ ] 6 vows tested; model cannot override a vow; degraded path tested; V6 BLOCK makes zero paid calls
 - [ ] snapshot rebuilds with <=5 data calls; costs.md written
 - [ ] matrix: 5 archetypes + 10 controls, all controls ALLOW
 - [ ] index lists >=100 payees, static, no JS
@@ -110,7 +113,9 @@ Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
 - Tables are `agent.<name>`. Payee facts come from `agent.base_transfers`. Every query MUST filter on `block_date` (partition key). Never wrap addresses in `lower()`; lowercase the literals instead. Never OR `from`/`to`.
 - A UNION/join/multi-branch query needs an async job (`onchain-sql-job-create`), which REQUIRES an API key (UNAUTHORIZED without). On the free tier, use the two single-branch sync queries: `scripts/surf/payee-inbound.sql` and `payee-outbound.sql`.
 - Window: 365 days (`block_date >= today() - 365`). Wallet age is therefore a LOWER BOUND (first_seen within the window).
-- Billing is per call by tier, not per payee: SQL measured 5 credits/call whether 2 or 12 payees. Labels: 1 credit per ≤100 addresses (measured). Batch payees; never loop per payee.
+- Billing is per call by tier, not per payee. Trust the BALANCE delta, not meta.credits_used: keyed SQL = 4 credits (meta says 5); keyed labels = 4 credits (meta says 1). Batch payees; never loop per payee.
+- wallet-labels-batch FAILS above ~20 addresses (exit 4, {"error_code":"INTERNAL_ERROR","success":false}) though docs say 100: never send more than 20 per call.
+- A call killed at the per-call timeout is STILL BILLED (4 credits, no rows). Refusals (SYNC_QUERY_REQUIRES_ASYNC, async QUERY_FAILED) are billed too. Never re-send a failed address set; bisect it.
 - Scoring: E v2 uses `top_payer_share` + distinct payers (see artifacts/capability.md "E signal: v1 → v2"). `token_asset_share` is informational only.
 - Models: SERV = POST {SERV_BASE_URL}/chat/completions with `max_completion_tokens` + `response_format` json_schema (strict). Dolphin = https://lighthouse.dphn.ai/run/text-v/v1, model deepseek-ai/DeepSeek-V4.1-Flash. Smoke: `npx tsx scripts/smoke.ts serv|dolphin`.
 - Entry points: `npx tsx scripts/surf/payee-facts.ts <payee,...> [--tag t] [--only inbound|outbound]` and `npx tsx scripts/surf/labels.ts <smoke.json> <out.json>`. Both are budget-guarded.

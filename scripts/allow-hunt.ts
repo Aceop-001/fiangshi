@@ -18,6 +18,7 @@ import { hashOf } from "../src/core/canonical.js";
 import { WEIGHTS, components, type ComponentKey } from "../src/core/score.js";
 import { evaluateVows } from "../src/core/vows.js";
 import { loadDotEnv } from "../src/config.js";
+import { kinshipExempt } from "../src/core/types.js";
 import { appendReceipt } from "../src/ledger/store.js";
 import { writeNoClobber } from "../src/fsutil.js";
 import { currentSettlement } from "../src/adapters/x402.js";
@@ -37,7 +38,14 @@ const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
 const cp = JSON.parse(readFileSync(checkpointPath(samplePath, days), "utf8"));
 const ranAt = (cp.calls as { label: string; at: string }[]).filter((c) => c.label.startsWith("onchain-sql")).map((c) => c.at).sort().pop()!;
 const base = scoredSet(sample, cp, ranAt);
-const top = [...base.scored].sort((a, b) => b.r.score - a.r.score).slice(0, 3);
+// V6 payees are gated before any paid call, so they never enter the hunt.
+// Ranking ONLY (never the band): score, then distinct payers, then inbound USD, then address — the rubric saturates and ties.
+const rank = (a: (typeof base.scored)[number], b: (typeof base.scored)[number]) =>
+  b.r.score - a.r.score ||
+  (b.s.distinct_payers ?? -1) - (a.s.distinct_payers ?? -1) ||
+  (b.s.total_received_usd ?? -1) - (a.s.total_received_usd ?? -1) ||
+  a.s.payee.localeCompare(b.s.payee);
+const top = base.scored.filter((e) => !e.r.fired.includes("null_payee")).sort(rank).slice(0, 3);
 console.log(`top 3 of ${base.scored.length} by census score:`, top.map((t) => `${t.s.payee.slice(0, 10)} ${t.r.score} ${t.r.band}`).join(" · "));
 
 // fresh data (same window) for exactly these 3
@@ -86,7 +94,7 @@ for (const t of top) {
   const row = (fresh.rows.find((r) => r.payee === p) ?? { payee: p }) as unknown as SurfPayeeRow;
   const l = labels.find((x) => x.address.toLowerCase() === p);
   let s = signalsFromSurf(row, { now, windowStart: now - days * 86400, tokenContracts, identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined });
-  s = { ...s, funder_fanout: s.first_funder ? (base.signals.filter((o) => o.payee !== p && o.first_funder === s.first_funder && funderLabels[s.first_funder!] !== "cex").length) : null };
+  s = { ...s, funder_fanout: s.first_funder ? (base.signals.filter((o) => o.payee !== p && o.first_funder === s.first_funder && !kinshipExempt(funderLabels[s.first_funder!])).length) : null };
   const sellerText = [sp.service, sp.example_url].filter(Boolean).join(" — ");
   const full = await evaluateFull(terms, s, funderLabels, sellerText || null);
   const d = full.decision;

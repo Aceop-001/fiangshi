@@ -69,48 +69,52 @@ Parser fix (validate each `accepts[]` entry on its own instead of the whole arra
 
 Cumulative: < 90d 697 · < 7d 63 · < 48h 0.
 
-*For a buyer:* 0 payees (0.0%) first appeared under 48h ago. The age vow BLOCKs them regardless of model advice. Every other age here is a floor, never an overstatement.
+**No live payee under 48h existed in the 800 audited.** The age vow (V1) is therefore exercised only in the lab fixtures (the `burner` and `migrator` archetypes), not on live data.
 
-## Funder clusters (exchanges excluded)
+*For a buyer:* 0 payees (0.0%) first appeared under 48h ago. The age vow BLOCKs any such payee regardless of model advice. Every other age here is a floor, never an overstatement.
 
-Exchange exclusion: 0 payees are CEX-funded (0 by Surf `entity_type: cex` label, 0 by the fanout ≥ 500 heuristic). 0 token contracts showed up as "first funder" and are treated as missing.
+## Funder clusters (exchanges and relayer infrastructure excluded)
+
+Exclusion: 21 payees have an exempt first funder: 10 exchange (`entity_type: cex`) and 11 relayer infrastructure (`bridge` / `dex-aggregator`). 0 token contracts showed up as "first funder" and are treated as missing.
+
+**Kinship with labels applied: 243 BLOCKs survive** of 264 that a shared-funder rule fires with no exemptions. 21 were exchange or relayer funding, not operator rings.
 
 Known pair (12-endpoint probe, 2026-11-08): **crypto.apitoll.cloud (0x3da40a…4664) and edgar.apitoll.cloud (0x58bdad…6b6c)** share first funder 0x5609e4…60f6.
 
-Clusters in the audited set. These are 1-hop: payees sharing a direct, non-exchange first funder. The kinship vow fires at ≥ 3 *other* payees.
+Clusters (1-hop: payees sharing a direct first funder; the kinship vow fires at ≥ 3 *other* payees unless the funder is exempt):
 
-| funder | payees | kinship fires |
-|---|---|---|
-| 0xc533bf…2d7a | 48 | yes |
-| 0x2b2c20…80d8 | 39 | yes |
-| 0x4b5c71…34f6 | 33 | yes |
-| 0x644678…e6d5 | 21 | yes |
-| 0xa1d1c0…1978 | 14 | yes |
-| 0x87db3c…f8cf | 12 | yes |
-| 0xc59e74…98dc | 11 | yes |
-| 0x843b54…c4a7 | 10 | yes |
-| 0xf70da9…dbef | 7 | yes |
-| 0x171d80…0fca | 7 | yes |
-| 0x1ded5e…0649 | 6 | yes |
-| 0x8a1a03…aa53 | 6 | yes |
-| 0x27abcd…248c | 6 | yes |
-| 0x4c4138…f807 | 5 | yes |
-| 0x6867ef…e48a | 5 | yes |
-| 0xee7ae8…4055 | 5 | yes |
-| 0xa52594…c6c5 | 5 | yes |
-| 0x753249…06c0 | 4 | yes |
-| 0x7dd813…17d2 | 4 | yes |
-| 0xc9c7b3…1670 | 4 | yes |
+| funder | payees | Surf label | exempt | kinship fires |
+|---|---|---|---|---|
+| 0xc533bf…2d7a | 48 | none returned | no | yes |
+| 0x2b2c20…80d8 | 39 | none returned | no | yes |
+| 0x4b5c71…34f6 | 33 | (no name) | no | yes |
+| 0x644678…e6d5 | 21 | none returned | no | yes |
+| 0xa1d1c0…1978 | 14 | none returned | no | yes |
+| 0x87db3c…f8cf | 12 | none returned | no | yes |
+| 0xc59e74…98dc | 11 | none returned | no | yes |
+| 0x843b54…c4a7 | 10 | none returned | no | yes |
+| 0xf70da9…dbef | 7 | Relay.link · bridge | infra | no |
+| 0x171d80…0fca | 7 | none returned | no | yes |
+| 0x1ded5e…0649 | 6 | none returned | no | yes |
+| 0x8a1a03…aa53 | 6 | none returned | no | yes |
+| 0x27abcd…248c | 6 | (no name) | no | yes |
+| 0x4c4138…f807 | 5 | none returned | no | yes |
+| 0x6867ef…e48a | 5 | Kraken · cex | cex | no |
+| 0xee7ae8…4055 | 5 | Binance · cex | cex | no |
+| 0xa52594…c6c5 | 5 | (no name) | no | yes |
+| 0x753249…06c0 | 4 | none returned | no | yes |
+| 0x7dd813…17d2 | 4 | none returned | no | yes |
+| 0xc9c7b3…1670 | 4 | none returned | no | yes |
 
-**Kinship BLOCKs are an upper bound here:** 264 of 264 kinship firings rest on 23 funders that were never label-checked (the label pass stopped at the credit floor). Some of these funders may be exchanges, faucets or payment relayers, which the vow is meant to exclude. Until they are labelled, read these BLOCKs as "shared unlabelled funder", not as confirmed operator rings.
+243 surviving kinship firings rest on funders that **were** label-checked and came back unnamed or untyped. Surf knows these addresses but cannot say they are exchanges or relayers, so the vow stands.
 
-*For a buyer:* payees that share a non-exchange funder are probably one operator. Count them as one counterparty when you cap exposure, but check that the shared funder is not an exchange first.
+*For a buyer:* most large "clusters" here are wallets funded from the same exchange or bridge, which is normal. What remains after labelling is a shared **unnamed** funder: treat those payees as one counterparty until you know otherwise.
 
 ## Labels
 
-Label coverage: **9 of 440 addresses (2.0%)** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.
+Label coverage: **16 of 463 addresses (3.5%)** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.
 
-**Partial label pass:** labels were queried for 440 of 1291 addresses (payees + first funders). The run stopped at the credit floor. Keyed label calls cost 4 credits by balance delta, while `meta.credits_used` reports 1.
+**Partial label pass:** labels were queried for 463 of 1291 addresses (payees + first funders). The run stopped at the credit floor. Keyed label calls cost 4 credits by balance delta, while `meta.credits_used` reports 1.
 
 **Fanout heuristic not applied:** funder-outbound refused for 497 funders (funder set failed in an earlier run; not re-sent); fanout heuristic not applied, exchanges excluded by Surf label only.
 
@@ -121,9 +125,9 @@ Label coverage: **9 of 440 addresses (2.0%)** returned a Surf label (payees + th
 | call | count | credits / call (measured) | documented |
 |---|---|---|---|
 | on-chain SQL (sync) | 33 | 5 | 4 |
-| wallet-labels-batch | 22 | 1 | 4 |
+| wallet-labels-batch | 24 | 1 | 4 |
 
-Total **187 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
+Total **189 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
 
 **Metering:** Surf's `meta.credits_used` reports 5 per keyed synchronous SQL call, but the account balance drops by 4. This audit uses the balance delta (`chunk_costs` in the checkpoint) as the source of truth.
 
@@ -139,21 +143,25 @@ None: no payee was excluded. Every failed **payee** query was resolved by bisect
 
 | band | payees | share |
 |---|---|---|
-| ALLOW | 16 | 2.0% |
-| REVIEW | 471 | 58.9% |
-| BLOCK | 313 | 39.1% |
+| ALLOW | 15 | 1.9% |
+| REVIEW | 492 | 61.5% |
+| BLOCK | 293 | 36.6% |
 
-Vows fired: kinship 264 · silence 35.
+Vows fired: kinship 243 · silence 35 · null_payee 1.
 
-E v1 → v2: **31 of 800 payees changed band** (v1 {"ALLOW":0,"REVIEW":472,"BLOCK":328} → v2 {"ALLOW":16,"REVIEW":471,"BLOCK":313}). 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
+E v1 → v2: **31 of 800 payees changed band** (v1 {"ALLOW":1,"REVIEW":491,"BLOCK":308} → v2 {"ALLOW":15,"REVIEW":492,"BLOCK":293}). 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
 
 *For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.
 
-## Null-address payee (zero address)
+## Post-hoc V6: null / sink payee
 
-The catalog lists a payee of `0x0000000000000000000000000000000000000000` (the zero address). Its live 402 confirmed it: payment goes to the zero address, and funds sent there are unrecoverable. The rubric scored it **82.83 (ALLOW)**, because burns from many senders look like a mature, busy, well-diversified wallet. **None of the five vows covers null or burn addresses.** A sixth vow is proposed, not added: the vow set is fixed by the spec.
+**`https://api.cleave.fi/x402/gas`** asks for **$5** paid to **`0x0000000000000000000000000000000000000000`**, the zero address. Its live 402 confirmed the `payTo`. Funds sent there are unrecoverable.
 
-*For a buyer:* a high score on a burn address is a rubric blind spot. Never pay a null or burn `payTo`, whatever the score.
+The rubric scored it **80.91** on live data (ALLOW range), because burns from many senders look like a mature, busy, well-diversified wallet. **V6 now overrides that score:** it is BLOCKed at probe time with a sealed $0.00 receipt, before any Surf, SERV or Dolphin call. In this report it is BLOCK (null_payee fired).
+
+V6 rules: zero address (any form) · known burn sinks · `payTo` equal to the payment-asset contract · invalid EIP-55 checksum, all BLOCK. A payee with no contract code and zero outbound transfers is REVIEW only; this needs an `eth_getCode` source, which is not wired yet. The vow set is now frozen at six.
+
+*For a buyer:* a perfect-looking score on a burn address was the rubric's worst blind spot. A deterministic address check now catches it before any money or credits are spent.
 
 ## ALLOW hunt (top 3 by score, full pipeline)
 
@@ -175,13 +183,31 @@ Top 3 audited payees by policy score, re-checked through the full pipeline: live
 | 0xcfa26f…4dbe | stablesocial.dev/api/sc/instagram/user/r | REVIEW (75.07) | REVIEW | **REVIEW** | silence: missing: price | ok | 14760 ms (SERV 5, Dolphin 14365) |
 | 0xc327d0…815f | api.you.com/v1/search | ALLOW (82.57) | ALLOW | **ALLOW** ✓ | none | ok | 11930 ms (SERV 5, Dolphin 4234) |
 
-Binding constraint: of 6 checks, 4 were capped to REVIEW because Dolphin timed out (fail-closed extractor), not because of the rubric. Latency is dominated by Dolphin: SERV answers in about 2–3 s, or milliseconds from cache. In parallel, a full check costs about max(SERV, Dolphin), not their sum.
+**allow-hunt-w90-attempt3.json** (2026-11-09T03:29:49.847Z): 1/3 survived · p50 full check 10990 ms · Surf data: census rows reused (collected 2026-11-09T02:57:19.701Z); no Surf re-query (credit floor).
+
+| payee | endpoint | score band | model | final | vows / degraded | Dolphin | full check |
+|---|---|---|---|---|---|---|---|
+| 0x93053f…f13f | api.nansen.ai/api/v1/profiler/address/cu | ALLOW (80.91) | ALLOW | **REVIEW** | none · degraded | dolphin: timeout after 8000ms | 16617 ms (SERV 3505, Dolphin 16034) |
+| 0xcfa26f…4dbe | stablesocial.dev/api/sc/instagram/user/r | REVIEW (75.07) | REVIEW | **REVIEW** | silence: missing: price | ok | 10990 ms (SERV 10543, Dolphin 2978) |
+| 0xc327d0…815f | api.you.com/v1/search | ALLOW (82.57) | ALLOW | **ALLOW** ✓ | none | ok | 10228 ms (SERV 1639, Dolphin 9176) |
+
+**allow-hunt-w90-attempt4.json** (2026-11-09T03:29:56.076Z): 1/3 survived · p50 full check 1151 ms · Surf data: census rows reused (collected 2026-11-09T02:57:19.701Z); no Surf re-query (credit floor).
+
+| payee | endpoint | score band | model | final | vows / degraded | Dolphin | full check |
+|---|---|---|---|---|---|---|---|
+| 0x93053f…f13f | api.nansen.ai/api/v1/profiler/address/cu | REVIEW (75.07) | ALLOW | **REVIEW** | none | ok | 3253 ms (SERV 3, Dolphin 2741) |
+| 0xcfa26f…4dbe | stablesocial.dev/api/sc/instagram/user/r | REVIEW (75.07) | REVIEW | **REVIEW** | silence: missing: price | ok | 420 ms (SERV 2, Dolphin 2) |
+| 0xc327d0…815f | api.you.com/v1/search | ALLOW (82.57) | ALLOW | **ALLOW** ✓ | none | ok | 1151 ms (SERV 2, Dolphin 2) |
+
+Binding constraint: of 12 checks, 5 were capped to REVIEW because Dolphin timed out (fail-closed extractor), not because of the rubric. Latency is dominated by Dolphin: SERV answers in about 2–3 s, or milliseconds from cache. In parallel, a full check costs about max(SERV, Dolphin), not their sum.
 
 *For a buyer:* an ALLOW here survived every deterministic check and the model's advice on live data. A slow identity extractor costs you an ALLOW (REVIEW), never a false ALLOW.
 
 ## Caveats
 
 - Ages are floors. 84 payees sit at the window start, so their true age is ≥ 90d, never stated in years. The 48h age vow and the 7-day identity vow are unaffected: both thresholds sit inside the window.
+- Band counts by stage: five vows ALLOW 16 / REVIEW 471 / BLOCK 313 (commit dfba1ca) → + V6 15 / 471 / 314 (the zero address moves ALLOW → BLOCK) → + funder labels (21 payees exempted from kinship) → this report's counts above.
+- Calibration (not tuned): when Dolphin extracts a claimed name from a seller's *own* listing, that claim is uncorroborated, so I = 0 instead of the anonymous 0.5. Observed live: 80.91 → 75.07 (ALLOW → REVIEW) for one hunt payee. Extracting a claim can lower a score; corroboration sources are the fix, not the rubric.
 - Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.
 - Identity counts as corroborated only where Surf has an `entity_name` label. Dolphin claim extraction is not wired into this audit.
 - E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.

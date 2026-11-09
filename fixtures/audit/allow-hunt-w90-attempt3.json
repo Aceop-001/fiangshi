@@ -1,0 +1,131 @@
+{
+  "at": "2026-11-09T03:29:49.847Z",
+  "window_days": 90,
+  "sample": "sample-census.json",
+  "ranked_from": 800,
+  "surf_data": "census rows reused (collected 2026-11-09T02:57:19.701Z); no Surf re-query (credit floor)",
+  "surf_calls": [],
+  "labels_call": {
+    "credits": 0,
+    "ms": 0
+  },
+  "p50_full_check_ms": 10990,
+  "survivors": 1,
+  "results": [
+    {
+      "payee": "0x93053f1e7a5efeda532fe69cbbe43cbec3a0f13f",
+      "url": "https://api.nansen.ai/api/v1/profiler/address/current-balance",
+      "census_score": 82.83,
+      "census_band": "ALLOW",
+      "probe": "402 parsed, payee matches catalog",
+      "fresh_score": 80.91,
+      "score_band": "ALLOW",
+      "model_band": "ALLOW",
+      "final_band": "REVIEW",
+      "vow_fired": null,
+      "vows_fired": [],
+      "degraded": true,
+      "survived_allow": false,
+      "components": {
+        "M": 25,
+        "P": 12,
+        "R": 20,
+        "I": 7.5,
+        "E": 10,
+        "C": 8.33
+      },
+      "dolphin": {
+        "claims": null,
+        "error": "dolphin: timeout after 8000ms"
+      },
+      "latency_ms": {
+        "probe": 582,
+        "serv": 3505,
+        "dolphin": 16034,
+        "models_parallel": 16035,
+        "full_check": 16617
+      },
+      "receipt_hash": "91f3573ef808190d64dcb0e3632cede39705c299e69081d48abf0477890022a0"
+    },
+    {
+      "payee": "0xcfa26f13c6c18307033ece13bbb8f470da5b4dbe",
+      "url": "https://stablesocial.dev/api/sc/instagram/user/reels",
+      "census_score": 82.83,
+      "census_band": "ALLOW",
+      "probe": "probe: status 405, expected 402",
+      "fresh_score": 75.07,
+      "score_band": "REVIEW",
+      "model_band": "REVIEW",
+      "final_band": "REVIEW",
+      "vow_fired": "silence",
+      "vows_fired": [
+        "silence: missing: price"
+      ],
+      "degraded": false,
+      "survived_allow": false,
+      "components": {
+        "M": 25,
+        "P": 12,
+        "R": 20,
+        "I": 0,
+        "E": 10,
+        "C": 10
+      },
+      "dolphin": {
+        "claims": {
+          "claims_org": "StableSocial",
+          "claims_product": null,
+          "claims_age_claim": null
+        },
+        "error": null
+      },
+      "latency_ms": {
+        "probe": 447,
+        "serv": 10543,
+        "dolphin": 2978,
+        "models_parallel": 10543,
+        "full_check": 10990
+      },
+      "receipt_hash": "accad312dc4a8ffc2b0e329fd785a8ab84e9fcb222626a5a1ef749ba9d8e70d3"
+    },
+    {
+      "payee": "0xc327d0aeb5f65b514b193b5e5a95cc6f4060815f",
+      "url": "https://api.you.com/v1/search",
+      "census_score": 82.83,
+      "census_band": "ALLOW",
+      "probe": "402 parsed, payee matches catalog",
+      "fresh_score": 82.57,
+      "score_band": "ALLOW",
+      "model_band": "ALLOW",
+      "final_band": "ALLOW",
+      "vow_fired": null,
+      "vows_fired": [],
+      "degraded": false,
+      "survived_allow": true,
+      "components": {
+        "M": 25,
+        "P": 12,
+        "R": 20,
+        "I": 7.5,
+        "E": 10,
+        "C": 10
+      },
+      "dolphin": {
+        "claims": {
+          "claims_org": null,
+          "claims_product": null,
+          "claims_age_claim": null
+        },
+        "error": null
+      },
+      "latency_ms": {
+        "probe": 1052,
+        "serv": 1639,
+        "dolphin": 9176,
+        "models_parallel": 9176,
+        "full_check": 10228
+      },
+      "receipt_hash": "3fea4f44c14235931a39db1dd9e7680e19149b73bbdf2c677c346beef337da3b"
+    }
+  ]
+}

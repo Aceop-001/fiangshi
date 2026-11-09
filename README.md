@@ -18,7 +18,7 @@ npm run fiangshi -- check https://fresh-oracle.example/v1/price --explain
 2. **Snapshot**: one batched data pass over the deduped payees. `snapshot_id = sha256(payload)`.
 3. **Score**: `25M + 20P + 20R + 15I + 10E + 10C`. ≥80 ALLOW, 50–79 REVIEW, <50 BLOCK.
 4. **Model** (SERV): strict JSON. Every citation must name an existing evidence key and quote an exact, non-empty substring. Invalid output gets one stricter retry, then the verdict is degraded.
-5. **Vows**: these run last and can only lower the band. The rules are age, kinship, history, identity and silence.
+5. **Vows** (six, frozen): null_payee (V6), age, kinship, history, identity, silence. They run last and can only lower the band. **V6 also runs at probe time**: a null or sink `payTo` (zero address, burn sink, the payment-asset contract, bad EIP-55 checksum) is BLOCKed with a sealed $0.00 receipt before any Surf, SERV or Dolphin call is made.
 6. **Receipt**: canonical JSON, sha256, `prev_hash` chain, kept in `data/ledger.jsonl`.
 
 ## Design decisions (where the spec is silent)
@@ -116,3 +116,20 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **Bands (E v2, two-tier M for the 90-day dataset):** 16 ALLOW · 471 REVIEW · 313 BLOCK. E v1 → v2 changed 31 bands. All 264 kinship BLOCKs rest on unlabelled funders, so they're reported as an upper bound.
 - **ALLOW hunt (full pipeline, SERV + Dolphin in parallel):** attempt 1 0/3 (Dolphin timed out), attempt 2 1/3. `api.you.com` survived as ALLOW end to end; p50 full check about 15 s, dominated by Dolphin.
 - **Finding:** the top score is the zero address. A live 402 asks for $5 to `0x000…0` and scores 80.9, because no vow covers null or burn payees. A sixth vow is proposed, not added.
+
+## Latency (full check: live probe → SERV ∥ Dolphin → vows → receipt)
+
+| | p50 over 3 payees | what dominates |
+|---|---|---|
+| cold (no model caches) | **10,990 ms** | Dolphin (8 s per attempt, one retry on timeout, then REVIEW) and SERV (1.6–10.5 s) |
+| warm (both cached) | **1,151 ms** | the live unpaid probe; cached model calls take 2–3 ms |
+| V6 BLOCK | probe only | no Surf, SERV or Dolphin call; sealed $0.00 receipt |
+
+From `fixtures/audit/allow-hunt-w90-attempt3.json` (cold) and `-attempt4.json` (warm), 2026-11-09. SERV and Dolphin run in parallel, so a check costs about the slower of the two, not their sum.
+
+**Phase 3l (V6 + cluster resolution + latency)**
+- **V6 null/sink payee, enforced at probe time:** zero address, burn sinks, `payTo` equal to the asset contract, and bad EIP-55 checksums BLOCK before any spend. Keccak-256 is in-repo and checked against published vectors. A test asserts that a V6 BLOCK makes zero paid calls. The vow set is frozen at six.
+- **Post-hoc V6:** `api.cleave.fi/x402/gas` ($5 to the zero address, rubric 80.9) is now BLOCKed.
+- **Labelling the 23 cluster funders** (2 calls, 8 credits, floor 56 for this step only): 2 exchanges (Kraken, Binance), 2 relayers (Relay.link bridge, MetaMask aggregator) and 3 unnamed. Kinship falls from 264 to 243. The six largest clusters stay unnamed by Surf.
+- **Dolphin:** 8 s timeout with one retry, then REVIEW. Cold p50 is 10,990 ms and warm p50 is 1,151 ms. The hunt ranking gets a tie-breaker (score, payers, inbound USD, address); it ranks only and never sets the band.
+- **Bands (six vows + labels):** 15 ALLOW · 492 REVIEW · 293 BLOCK. `api.you.com` remains ALLOW end to end, cold and warm.

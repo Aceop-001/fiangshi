@@ -8,7 +8,7 @@ export const BANDS = ["BLOCK", "REVIEW", "ALLOW"] as const; // ordered: lowest -
 export const Band = z.enum(BANDS);
 export type Band = z.infer<typeof Band>;
 
-export const VOW_NAMES = ["age", "kinship", "history", "identity", "silence"] as const; // precedence order
+export const VOW_NAMES = ["null_payee", "age", "kinship", "history", "identity", "silence"] as const; // precedence order (null_payee added 2026-11-09)
 export const VowName = z.enum(VOW_NAMES);
 export type VowName = z.infer<typeof VowName>;
 
@@ -96,7 +96,10 @@ export const RawResponse = z.object({
 });
 export type RawResponse = z.infer<typeof RawResponse>;
 
-export const FunderLabel = z.enum(["cex", "mixer"]);
+/** cex = exchange hot wallet; infra = bridge / DEX-aggregator / relayer (2026-11-09); mixer = mixer output. */
+export const FunderLabel = z.enum(["cex", "mixer", "infra"]);
+/** Funders whose many-to-one funding is normal infrastructure, not an operator ring: excluded from kinship. */
+export const kinshipExempt = (l: string | undefined) => l === "cex" || l === "infra";
 export type FunderLabel = z.infer<typeof FunderLabel>;
 
 /** data/snapshot.json. snapshot_id = sha256(canonical(payload)). built_at is outside the hash. */

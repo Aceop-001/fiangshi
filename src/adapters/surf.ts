@@ -31,6 +31,8 @@ export interface SurfWalletLabel {
 
 /** Unlabelled funders with at least this many distinct outbound receivers in the window are treated as exchange-like. */
 export const EXCHANGE_FANOUT_HEURISTIC = 500;
+/** Surf entity_type values treated as relayer infrastructure (observed 2026-11-09: "bridge", "dex-aggregator"). */
+export const INFRA_TYPES: readonly string[] = ["bridge", "dex-aggregator", "relayer", "facilitator"];
 
 /**
  * Map Surf labels to funder labels used by provenance + the kinship vow's exclusion.
@@ -48,6 +50,7 @@ export function funderLabelsFromSurf(
     const a = r.address.toLowerCase();
     const t = (r.entity_type ?? "").toLowerCase();
     if (t === "cex") labels[a] = "cex";
+    else if (INFRA_TYPES.includes(t)) labels[a] = "infra";
     else if (t === "mixer") labels[a] = "mixer";
     else if (t === "stablecoin" || t === "token") tokenContracts.push(a);
   }

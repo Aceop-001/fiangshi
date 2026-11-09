@@ -1,13 +1,14 @@
 /** check(url): probe -> snapshot lookup -> score -> model advice -> vows -> receipt -> ledger. */
 import { probe } from "./adapters/probe.js";
 import { adjudicate } from "./adapters/serv.js";
+import { extractIdentity, liveTransport, type ExtractResult } from "./adapters/dolphin.js";
 import { currentSettlement } from "./adapters/x402.js";
 import { hashOf } from "./core/canonical.js";
 import { decide, type Decision } from "./core/decide.js";
 import { sanitize, components, score } from "./core/score.js";
 import { evaluateVows } from "./core/vows.js";
 import type { ReceiptBody } from "./core/receipt.js";
-import { PayeeSignals, type Receipt, type Snapshot, type Terms } from "./core/types.js";
+import { PayeeSignals, minBand, type Receipt, type Snapshot, type Terms } from "./core/types.js";
 import { appendReceipt, ledgerPath } from "./ledger/store.js";
 import { sealReceipt } from "./core/receipt.js";
 import { getSnapshot } from "./snapshot.js";
@@ -61,6 +62,52 @@ export async function evaluate(terms: Terms | null, signals: PayeeSignals, label
   const silence = evaluateVows({ signals, price, funder_labels: labels }).find((r) => r.vow === "silence")!.fired;
   const advice = await adjudicate({ terms, signals, score: sc, silence });
   return decide(signals, price, labels, advice);
+}
+
+export interface FullEvaluation {
+  decision: Decision;
+  signals: PayeeSignals; // after merging Dolphin identity claims
+  extraction: ExtractResult | null; // null = no seller text to extract from
+  ms: { serv: number; dolphin: number | null; total: number };
+}
+
+/**
+ * Full adjudication: SERV (verdict advice) and Dolphin (identity extraction) run IN PARALLEL, each under its own
+ * timeout (FIANGSHI_SERV_TIMEOUT_MS / FIANGSHI_DOLPHIN_TIMEOUT_MS). Neither can raise the band. Fail closed:
+ *  - SERV fails   -> degraded REVIEW (as before); Dolphin's claims are still merged and kept as evidence.
+ *  - Dolphin fails (extraction was attempted) -> band capped at REVIEW, degraded; SERV's citations are kept.
+ * Dolphin claims only fill identity fields that are empty; they are never treated as corroborated.
+ */
+export async function evaluateFull(
+  terms: Terms | null,
+  signals: PayeeSignals,
+  labels: Snapshot["payload"]["funder_labels"],
+  sellerText: string | null,
+): Promise<FullEvaluation> {
+  const t0 = performance.now();
+  const price = terms?.price ?? null;
+  const sc = score(components(signals, labels));
+  const silence = evaluateVows({ signals, price, funder_labels: labels }).find((r) => r.vow === "silence")!.fired;
+  let servMs = 0;
+  let dolphinMs: number | null = null;
+  const [advice, extraction] = await Promise.all([
+    adjudicate({ terms, signals, score: sc, silence }).finally(() => (servMs = performance.now() - t0)),
+    sellerText ? extractIdentity(sellerText, liveTransport).finally(() => (dolphinMs = performance.now() - t0)) : Promise.resolve(null),
+  ]);
+  let merged = signals;
+  if (extraction?.claims && !signals.identity.claims_org && !signals.identity.claims_product) {
+    const c = extraction.claims;
+    merged = {
+      ...signals,
+      identity: { claims_org: c.claims_org, claims_product: c.claims_product, corroborated: signals.identity.corroborated },
+      evidence: { ...signals.evidence, identity: signals.evidence.identity ?? `dolphin extract: org=${c.claims_org ?? "null"}, product=${c.claims_product ?? "null"}` },
+    };
+  }
+  const d = decide(merged, price, labels, advice);
+  if (extraction && !extraction.claims) {
+    d.verdict = { ...d.verdict, band: minBand(d.verdict.band, "REVIEW"), degraded: true };
+  }
+  return { decision: d, signals: merged, extraction, ms: { serv: Math.round(servMs), dolphin: dolphinMs === null ? null : Math.round(dolphinMs), total: Math.round(performance.now() - t0) } };
 }
 
 export async function check(url: string, opts: CheckOpts = {}): Promise<CheckResult> {

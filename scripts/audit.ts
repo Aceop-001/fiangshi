@@ -153,6 +153,7 @@ interface Checkpoint {
   /** Payees whose inbound / outbound query has returned and been persisted (stage sizes may differ between runs). */
   inbound_done?: string[];
   outbound_done?: string[];
+  chunk_costs?: { at: string; payees: number; credits: number | null }[];
   funders_done: boolean;
   funder_rows: SurfPayeeRow[];
   labels_done: string[];
@@ -297,18 +298,27 @@ export interface RunOpts {
   verify?: boolean;
   /** Only payee queries this invocation (funders + labels wait until every payee is done). */
   payeesOnly?: boolean;
+  /** "sync" forces synchronous calls even with a key (async has an undocumented scan ceiling, 2026-11-09). */
+  mode?: "sync" | "async";
+  /** Keyed runs: stop if one chunk's measured cost (balance delta) exceeds this. */
+  maxChunkCredits?: number;
+  /** Run funders + labels for the payees audited so far, even if the sample is not complete (partial census). */
+  finish?: boolean;
+  /** Funder-outbound chunk size (default max(batch, 300)). */
+  funderChunk?: number;
 }
 
 async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Promise<Checkpoint> {
   const { batch: batchSize, gateMs } = opts;
   const keyed = Boolean(process.env.SURF_API_KEY);
+  const asyncMode = keyed && opts.mode !== "sync";
   const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
   const costsPath = join(ROOT, "artifacts", "costs.md");
   const cp: Checkpoint = existsSync(cpPath)
     ? (JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint)
     : { sample: basename(samplePath), mode: keyed ? "async" : "sync", batch: batchSize, payee_rows: {}, batches_done: [], funders_done: false, funder_rows: [], labels_done: [], labels: [], calls: [], stopped: null };
   cp.stopped = null;
-  cp.mode = keyed ? "async" : "sync";
+  cp.mode = asyncMode ? "async" : "sync";
   cp.inbound_done ??= [];
   cp.outbound_done ??= [];
   const save = () => writeFileSync(cpPath, JSON.stringify(cp, null, 1) + "\n");
@@ -337,7 +347,7 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
     need(COST.sql, t);
     let r: Awaited<ReturnType<typeof runSync>>;
     try {
-      r = keyed ? await runAsync(addrs, DAYS, t) : await runSync(addrs, DAYS, [t]);
+      r = asyncMode ? await runAsync(addrs, DAYS, t) : await runSync(addrs, DAYS, [t]);
     } catch (e) {
       const msg = (e as Error).message;
       if (isStopError(msg)) throw new StopRun(`Surf refused ${t} (${addrs.length} addresses): ${msg}. Checkpoint saved; not retried.`);
@@ -350,12 +360,12 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
     const pollCredits = polls.reduce((a, c) => a + (c.credits ?? 0), 0);
     const problems = verifyStageRows(addrs, r.rows, t);
     console.log(`  ${t}: ${addrs.length} addresses -> ${r.rows.length} rows${job.job_id ? `, job ${job.job_id}` : ""}, submit ${submit?.credits ?? "?"} credits, ${polls.length} polls/results ${pollCredits} credits, schema ${problems.length ? "PROBLEMS" : "ok"}`);
-    if (keyed && r.rows.length === 0 && addrs.length > 0) problems.push("async job returned no rows (did not succeed?)");
+    if (asyncMode && r.rows.length === 0 && addrs.length > 0) problems.push("async job returned no rows (did not succeed?)");
     if (opts.verify && (pollCredits > 0 || problems.length)) throw new StopRun(`stage verification failed for ${t}: ${[pollCredits > 0 ? `polling cost ${pollCredits} credits` : "", ...problems].filter(Boolean).join("; ")}`);
     return r;
   };
   const gateCheck = (label: string, ms: number) => {
-    if (!keyed && ms > gateMs) throw new StopRun(`${label} took ${ms}ms > ${gateMs}ms gate (30s sync timeout with 20% margin). Saved; re-run with a smaller --batch.`);
+    if (!asyncMode && ms > gateMs) throw new StopRun(`${label} took ${ms}ms > ${gateMs}ms gate. Saved; re-run with a smaller --batch.`);
   };
 
   const payees = sample.payees.map((p) => p.payee);
@@ -366,6 +376,7 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
   try {
     for (const [ci, chunk] of chunks.entries()) {
       console.log(`chunk ${ci + 1}/${chunks.length}: ${chunk.length} payees (${payees.length - payees.filter((p) => !cp.outbound_done!.includes(p)).length}/${payees.length} done before)`);
+      const balBefore = keyed && opts.maxChunkCredits !== undefined ? surfBalance() : null;
       for (const t of ["payee-inbound", "payee-outbound"] as const) {
         const doneList = t === "payee-inbound" ? cp.inbound_done! : cp.outbound_done!;
         const todo = chunk.filter((p) => !doneList.includes(p));
@@ -377,25 +388,35 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
         save();
         gateCheck(`chunk ${ci + 1} ${t}`, Math.max(...r.calls.map((c) => c.ms)));
       }
+      if (balBefore !== null) {
+        const balAfter = surfBalance();
+        const spent = balAfter === null ? null : balBefore - balAfter;
+        cp.chunk_costs = [...(cp.chunk_costs ?? []), { at: new Date().toISOString(), payees: chunk.length, credits: spent }];
+        save();
+        console.log(`  chunk ${ci + 1} cost ${spent ?? "?"} credits (balance ${balAfter ?? "?"}; limit ${opts.maxChunkCredits})`);
+        if (spent === null) throw new StopRun(`could not read balance after chunk ${ci + 1}; stopping (fail closed).`);
+        if (spent > opts.maxChunkCredits!) throw new StopRun(`chunk ${ci + 1} cost ${spent} credits > ${opts.maxChunkCredits} (estimate +20%). Stopped.`);
+      }
     }
-    const allDone = payees.every((p) => cp.outbound_done!.includes(p));
-    if (opts.payeesOnly || !allDone) {
-      console.log(`payee queries: ${cp.outbound_done!.length}/${payees.length} done${allDone ? "" : "; funders + labels wait until all payees are done"}`);
+    const audited = payees.filter((p) => cp.outbound_done!.includes(p));
+    const allDone = audited.length === payees.length;
+    if (opts.payeesOnly || (!allDone && !opts.finish)) {
+      console.log(`payee queries: ${audited.length}/${payees.length} done${allDone ? "" : "; funders + labels wait (pass --finish for a partial census)"}`);
       save();
       return cp;
     }
-    const funders = [...new Set(Object.values(cp.payee_rows).map((r) => String(r.first_inbound_from ?? "")).filter((a) => ADDR.test(a)))];
+    const funders = [...new Set(audited.map((p) => String(cp.payee_rows[p]?.first_inbound_from ?? "")).filter((a) => ADDR.test(a)))];
     if (!cp.funders_done && funders.length) {
       console.log(`funders: ${funders.length}`);
       const rows: SurfPayeeRow[] = [];
       // Funder outbound is one light aggregate: chunk at 300 so a 200-payee free-tier run needs ONE call (29 credits total, fits 30/day).
-      const fChunk = Math.max(batchSize, 300);
+      const fChunk = opts.funderChunk ?? Math.max(batchSize, 300);
       for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlCall(funders.slice(i, i + fChunk), "payee-outbound")).rows as unknown as SurfPayeeRow[]));
       cp.funder_rows = rows;
       cp.funders_done = true;
       save();
     }
-    const addrs = [...new Set([...payees, ...funders])].filter((a) => !cp.labels_done.includes(a));
+    const addrs = [...new Set([...audited, ...funders])].filter((a) => !cp.labels_done.includes(a));
     for (let i = 0; i < addrs.length; i += 100) {
       const chunk = addrs.slice(i, i + 100);
       need(COST.labels, "wallet-labels-batch");
@@ -616,6 +637,10 @@ async function main() {
       minCredits: minC ? Number(minC) : undefined,
       verify: rest.includes("--verify"),
       payeesOnly: rest.includes("--payees-only"),
+      mode: flag("--mode") === "sync" ? "sync" : flag("--mode") === "async" ? "async" : undefined,
+      maxChunkCredits: flag("--max-chunk-credits") ? Number(flag("--max-chunk-credits")) : undefined,
+      finish: rest.includes("--finish"),
+      funderChunk: flag("--funder-chunk") ? Number(flag("--funder-chunk")) : undefined,
     });
   } else if (cmd === "report") {
     const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;

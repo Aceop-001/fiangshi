@@ -50,7 +50,7 @@ interface Envelope {
 }
 
 function surf(args: string[], stdin?: string): Envelope {
-  const r = spawnSync(SURF, [...args, "--json"], { input: stdin, encoding: "utf8", timeout: 60_000 });
+  const r = spawnSync(SURF, [...args, "--json"], { input: stdin, encoding: "utf8", timeout: Number(process.env.FIANGSHI_SURF_CALL_TIMEOUT_MS) || 60_000, killSignal: "SIGKILL" });
   const out = (r.stdout || "").trim();
   try {
     return JSON.parse(out) as Envelope;

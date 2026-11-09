@@ -85,3 +85,24 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **Paid gate:** `audit.ts gate` (5 credits) asserts `top_payer_share` is a float in [0,1] on 5 known payees and not all 1.0, before any batch. On failure it writes `artifacts/audit-failure.md`.
 - **Fixture guard:** `tests/fixture-integrity.test.ts` and accept gate G11 require ≥12 non-empty real 402s that all parse. `npm run accept` is now 11/11.
 - E v2 kept as is (0 / 4.46 / 10 in tests). `.env` confirmed ignored by git (`git check-ignore`).
+
+## Pricing (v2)
+
+| check | cost (measured) | cost (conservative) | price | env |
+|---|---|---|---|---|
+| **cold**: payee not in the snapshot (3 Surf SQL + labels + SERV + Dolphin) | $0.0799 | $0.1159 | **$0.15** | `FIANGSHI_PRICE_CHECK_COLD` |
+| **cached**: snapshot hit (SERV + Dolphin only) | $0.0019 | — | **$0.05** | `FIANGSHI_PRICE_CHECK` |
+
+- The conservative column takes Surf's `meta.credits_used` at face value (5 per SQL call) and labels at the documented 4. The measured column uses the balance delta (4 per SQL call) and labels at 1.
+- Surf bills per call, so the census is what makes cached checks cheap. At 50 payees per call the Surf share falls to $0.00156 a payee.
+- The 100-payee census so far cost **$0.00192 per payee**, failures included ($0.00096 for the chunk calls alone). The planning estimate was $0.00059.
+- All figures come from `npx tsx scripts/pricing.ts`; full tables are in `artifacts/costs.md`.
+
+## Provider quirks (found on live calls, 2026-11-08/09)
+
+- **Dolphin (DeepSeek V4.1 Flash) returns an undocumented `reasoning` field.** On the first live call it used all 200 output tokens, leaving the JSON answer empty (`finish_reason=length`). Fiangshi failed closed: no claims, nothing cached. The token cap is now 1,024; that reply took 475 output tokens.
+- **SERV returns no cost field.** Chat completions carries `usage` tokens only; cost appears in the console. Fiangshi computes cost as tokens × the price from `/models`, which gives pricing in cents per million (`"input": 100` = $1.00/M). The model list is under `items[]` with `modelId`, not OpenAI's `data[].id`.
+- **SERV's "reasoning" is not a response field on chat completions.** A reasoning trace exists only on `/v1/responses`, for OpenAI models. Fiangshi requires its own `rationale` field through strict `json_schema` instead.
+- **Surf async has a scan ceiling that preflight does not show, and the rejection is billed.** Preflight accepted a 50-payee inbound query (15.45 M of a 150 M-row budget, 2.21 of 17.2 GB). The same SQL as an async job was rejected in 45 ms with `QUERY_FAILED: scans too many rows or bytes`, and 4 credits were charged.
+- **Surf sync refusals are billed too.** `SYNC_QUERY_REQUIRES_ASYNC` (122 M rows estimated for 50 payees) cost 4 credits. A slow sync query can also leave the next call refused with `SQL_QUERY_IN_FLIGHT`.
+- **Surf's `meta.credits_used` overstates keyed sync calls.** It reports 5, but the balance drops by 4.

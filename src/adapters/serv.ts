@@ -91,7 +91,8 @@ export interface ModelCallMeta {
   raw: unknown;
 }
 export const modelCalls: ModelCallMeta[] = [];
-export const modelTimeoutMs = () => num("FIANGSHI_MODEL_TIMEOUT_MS", PROBE_TIMEOUT_MS);
+export const modelTimeoutMs = (provider?: "serv" | "dolphin") =>
+  num(provider === "serv" ? "FIANGSHI_SERV_TIMEOUT_MS" : provider === "dolphin" ? "FIANGSHI_DOLPHIN_TIMEOUT_MS" : "_", NaN) || num("FIANGSHI_MODEL_TIMEOUT_MS", PROBE_TIMEOUT_MS);
 
 interface ChatJson {
   choices?: { message?: { content?: string | null }; finish_reason?: string }[];
@@ -115,7 +116,7 @@ export async function chatCompletion(
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(modelTimeoutMs()),
+      signal: AbortSignal.timeout(modelTimeoutMs(provider)),
     });
     meta.status = res.status;
     if (!res.ok) throw new Error(`${provider}: HTTP ${res.status}`); // never echo the body: it may reflect the key
@@ -138,7 +139,7 @@ export async function chatCompletion(
     return { text: content, meta };
   } catch (e) {
     const err = e as Error;
-    meta.error = err.name === "TimeoutError" || err.name === "AbortError" ? `${provider}: timeout after ${modelTimeoutMs()}ms` : err.message;
+    meta.error = err.name === "TimeoutError" || err.name === "AbortError" ? `${provider}: timeout after ${modelTimeoutMs(provider)}ms` : err.message;
     throw new Error(meta.error);
   } finally {
     meta.ms = Date.now() - t0;

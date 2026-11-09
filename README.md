@@ -15,7 +15,7 @@ npm run dev                 # API + index on http://127.0.0.1:8787
 npm run localhost-check     # 10-step end-to-end check (starts its own server; stop `npm run dev` first)
 ```
 
-`npm test` and `npm run accept` run fully offline from committed fixtures, with no keys and a no-network preload. `npm run localhost-check` probes two real endpoints live and needs `SERV_REASONING_API_KEY` in `.env` for the ALLOW step. Without the key, SERV fails closed, the check degrades to REVIEW, and step 5 fails, as designed.
+`npm test` and `npm run accept` run fully offline from committed fixtures, with no keys and a no-network preload. `npm run localhost-check` probes two real endpoints live and needs `SERV_REASONING_API_KEY` in `.env` for the ALLOW step. Without the key, SERV fails closed, the check degrades to REVIEW, and steps 5–6 fail (8/10), as designed. Fresh-clone result on 2026-11-09 with keys and empty caches: 10/10, cold step 5 in 24.4 s (Dolphin timed out twice, so `enrichment: incomplete`, still ALLOW).
 
 ## The six vows (frozen)
 
@@ -51,7 +51,7 @@ An earlier brief quoted 15 / 449 / 336 for the headline. Those figures don't com
 | | latency | price |
 |---|---|---|
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
-| cached check (payee in the census) | **warm p50 372 ms** (`artifacts/demo-stats.json`, 3 calls including the live probe) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
+| cached check (payee in the census) | **warm p50 294 ms** (`artifacts/demo-stats.json`, 3 calls including the live probe) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | cold check (payee not in the census: Surf + SERV + Dolphin) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.15** (`FIANGSHI_PRICE_CHECK_COLD`) |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |
 
@@ -113,3 +113,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-09 Phase 3b-fix.** Dolphin became optional enrichment (12 s, one retry, `enrichment: incomplete`). V5 now REVIEWs an uncorroborated claim at any age and BLOCKs a contradicted one. Lab 9/9.
 - **2026-11-09 Phase 3c–3e.** Static index page, an API with a real x402 v2 402 and dry-run settlement, and `npm run localhost-check` (10/10). The no-network preload now allows loopback, after phase3d had been committed with accept red.
 - **2026-11-09 Phase 3f.** This README, LICENSE, `.nvmrc`, and a fresh-clone test.
+- **2026-11-09 Phase 3g.** `localhost-check` forces live mode for its own server, whatever `.env` says. Fresh clone: test 219/219, accept 11/11, localhost-check 10/10 with keys (8/10 keyless, failing closed). Local bundle refreshed. No remote.

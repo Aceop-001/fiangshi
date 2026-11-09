@@ -53,7 +53,8 @@ async function startServer(): Promise<ChildProcess> {
   }
   const child = spawn(process.execPath, ["--import", "tsx", "src/api/server.ts"], {
     cwd: ROOT,
-    env: { ...process.env, PORT: String(PORT), HOST: "127.0.0.1", FIANGSHI_PAYTO: payTo, NODE_NO_WARNINGS: "1" },
+    // live check: real unpaid probes and real models, whatever .env says about offline/mock mode
+    env: { ...process.env, PORT: String(PORT), HOST: "127.0.0.1", FIANGSHI_PAYTO: payTo, FIANGSHI_OFFLINE: "0", SNAPSHOT_SOURCE: "live", MOCK_MODELS: "", NODE_NO_WARNINGS: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let err = "";
@@ -84,6 +85,7 @@ let acceptLine = "";
 try {
   server = await startServer();
   console.log(`server up on ${BASE} (payTo ${payTo === DEMO_PAYTO ? "dry-run demo vector; set FIANGSHI_PAYTO for yours" : "from FIANGSHI_PAYTO"})`);
+  if (!process.env.SERV_REASONING_API_KEY) console.log("note: SERV_REASONING_API_KEY is not set: SERV fails closed, so step 5 will be REVIEW (degraded), not ALLOW");
 
   await step("1 GET /health -> 200", async () => {
     const r = await get("/health");

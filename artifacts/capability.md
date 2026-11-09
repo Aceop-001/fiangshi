@@ -138,3 +138,32 @@ Reference values from tests (`tests/score.test.ts`):
 Band change measured on cached data (`npx tsx scripts/e-diff.ts`, 0 credits):
 - **Synthetic fixtures, 31 payees:** 1 changed. `0x44726a3e` went BLOCK (47.86) → REVIEW (50.08). v1 {ALLOW 10, REVIEW 13, BLOCK 8} → v2 {ALLOW 10, REVIEW 14, BLOCK 7}.
 - **Real cached rows, 12 payees:** not measurable. Neither input was in the earlier query, so both versions return REVIEW via the silence vow. The real count comes from the audit run, where `artifacts/audit.md` reports v1 vs v2 for every audited payee.
+
+Two buyers cannot be scored as reliable revenue — intentional. With two payers, the larger holds ≥50% of inbound USD, so the concentration factor is ≤0.71 and breadth is log10(3)/2 = 0.24, giving at most about 1.7 of 10 points.
+
+## First unattended audit attempt (2026-11-09 02:01 UTC, free tier)
+
+| call | payees | credits | ms | result |
+|---|---|---|---|---|
+| `payee-inbound` (with `top_payer_share`) | 100 | 5 | 34,146 | returned, but over the 30 s sync limit |
+| `payee-outbound` | 100 | – | – | refused: `SQL_QUERY_IN_FLIGHT` |
+
+What this run showed:
+- **The new `sumMap` by sender makes the inbound query heavier.** 100 payees no longer fit a synchronous call (12 payees took 4.4 s before the change).
+- **Surf can still count a slow synchronous query as running after it returns,** so the next call got `SQL_QUERY_IN_FLIGHT`.
+- **The runner saved a batch only after both of its queries succeeded,** so the 5 paid credits produced no saved rows.
+
+Fixes in phase 3g:
+- Every SQL part is saved to the checkpoint as soon as it returns.
+- The 24 s gate is checked after each call.
+- Surf refusals (`SQL_QUERY_IN_FLIGHT`, `QUERY_TIMEOUT`, `SQL_SYNC_COOLDOWN`, 429 …) stop the run at the checkpoint, with no retry.
+- The free-tier batch is now 50.
+- A 5-credit paid gate checks `top_payer_share` before any batch runs.
+
+Free-tier arithmetic at 50 payees per batch:
+- 200 payees = 4 batches × 2 calls × 5 credits = 40, plus 1 funder call (5) and ≤4 label calls (4), so **49 credits**.
+- Add 5 credits per night for the gate.
+- At 30 credits a day the runner keeps going until the next call would not fit, which works out to **2 nights**:
+  - Night 1: gate 5 + batch 1 in/out 10 + batch 2 in/out 10 + batch 3 inbound 5 = 30.
+  - Night 2: gate 5 + batch 3 outbound 5 + batch 4 in/out 10 + funders 5 + labels 4 = 29.
+  - Both nights resume from the checkpoint. This assumes no Surf refusals and labels at the measured 1 credit per call; at the documented 4, labels move to a third night.

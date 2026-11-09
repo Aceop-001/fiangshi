@@ -119,6 +119,6 @@ Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
 1. `npx tsx scripts/enumerate-bazaar.ts` (0 credits; writes data/bazaar/resources.jsonl, which is gitignored)
 2. `npx tsx scripts/audit.ts sample --n 200` (0 credits; sample = Base payees ordered by sha256(payee))
 3. `npx tsx scripts/audit.ts probe` (0 credits; 1 unpaid GET per payee, 1 req/sec)
-4. `npx tsx scripts/audit.ts run` (≈19 credits: 3 SQL at 5 + ≤4 label calls at 1). Refuses if today's free tier (UTC) can't cover it. The free tier resets at 00:00 UTC.
+4. `npx tsx scripts/audit.ts run`: runs the 5-credit PAID GATE first (`audit.ts gate`, which checks top_payer_share on 5 known payees; on failure it writes artifacts/audit-failure.md and exits 2, with no retry). Then batches of 50 (free tier), saving to the checkpoint after every SQL part. It stops cleanly on the 24 s gate, on Surf refusals, or when today's free credits run short. The free tier resets at 00:00 UTC, and a re-run resumes. 200 payees take about 2 nights.
 5. `npx tsx scripts/audit.ts report` → artifacts/audit.md
 Do not change the sample size without asking.

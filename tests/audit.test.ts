@@ -87,3 +87,36 @@ describe("audit report (dry run on the real 12-payee data, 0 credits)", () => {
     expect(md).toContain("12 of 12 payees audited");
   });
 });
+
+import { checkGate, GATE_PAYEES, isStopError } from "../scripts/audit.js";
+
+describe("paid gate (top_payer_share sanity on 5 payees)", () => {
+  const rows = (vals: (number | null | undefined)[]) => GATE_PAYEES.map((p, i) => (vals[i] === undefined ? { payee: p } : { payee: p, top_payer_share: vals[i] }));
+  it("passes on five finite floats in [0,1], not all 1.0", () => {
+    expect(checkGate(rows([0.12, 0.5, 1, 0.33, 0.9])).ok).toBe(true);
+  });
+  it("fails when any value is null or missing", () => {
+    expect(checkGate(rows([0.1, null, 0.2, 0.3, 0.4])).reasons.join()).toMatch(/null/);
+    expect(checkGate(rows([0.1, undefined, 0.2, 0.3, 0.4])).reasons.join()).toMatch(/undefined/);
+    expect(checkGate(rows([0.1, 0.2, 0.3, 0.4]).slice(0, 4)).ok).toBe(false); // a payee row absent
+  });
+  it("fails when a value is outside [0,1]", () => {
+    expect(checkGate(rows([0.1, 1.2, 0.2, 0.3, 0.4])).ok).toBe(false);
+  });
+  it("fails when all five are exactly 1.0 (not discriminating)", () => {
+    expect(checkGate(rows([1, 1, 1, 1, 1])).reasons.join()).toMatch(/all five/);
+  });
+  it("gate payees are real recorded payees, lowercase, distinct", () => {
+    expect(new Set(GATE_PAYEES).size).toBe(5);
+    for (const p of GATE_PAYEES) expect(p).toMatch(/^0x[0-9a-f]{40}$/);
+  });
+});
+
+describe("Surf refusals stop an unattended run (no retry)", () => {
+  it("classifies the refusal seen at 2026-11-09 02:01 as a stop", () => {
+    expect(isStopError("SQL_QUERY_IN_FLIGHT: an equivalent synchronous query is already running")).toBe(true);
+    expect(isStopError("QUERY_TIMEOUT: terminated at 30s")).toBe(true);
+    expect(isStopError("serv: HTTP 429")).toBe(true);
+    expect(isStopError("exit_1: something else")).toBe(false);
+  });
+});

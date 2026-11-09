@@ -1,0 +1,20 @@
+{
+ "sample": "sample.json",
+ "mode": "sync",
+ "batch": 100,
+ "payee_rows": {},
+ "batches_done": [],
+ "funders_done": false,
+ "funder_rows": [],
+ "labels_done": [],
+ "labels": [],
+ "calls": [
+  {
+   "label": "onchain-sql payee-inbound payees=100",
+   "ms": 34146,
+   "credits": 5,
+   "at": "2026-11-09T02:01:57.194Z"
+  }
+ ],
+ "stopped": "SQL_QUERY_IN_FLIGHT: an equivalent synchronous query is already running; use the asynchronous job endpoint instead of resubmitting it"
+}

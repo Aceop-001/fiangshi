@@ -1,10 +1,10 @@
 /**
- * npm run accept — the offline acceptance gate. 10 gates, PASS/FAIL per line, exit 1 on any FAIL.
+ * npm run accept — the offline acceptance gate. 11 gates, PASS/FAIL per line, exit 1 on any FAIL.
  * Zero network: this process and every child run with scripts/no-network.mjs, which throws on any outbound call.
  * All writes go to a temp dir; ./data and ./artifacts are untouched.
  */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -171,6 +171,17 @@ await gate("G10 index builds, >=25 payees, no JS", async () => {
   assert(n >= 25 && trs >= 25, `${n} payees`);
   assert(!/<script/i.test(html) && !/\son[a-z]+=/i.test(html), "index contains JS");
   return `${n} payees, ${trs} rows, 0 <script>`;
+});
+
+await gate("G11 fixtures/402/real intact, all parse", () => {
+  const dir = join(ROOT, "fixtures", "402", "real");
+  const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
+  const empty = files.filter((f) => statSync(join(dir, f)).size === 0);
+  assert(files.length >= 12, `only ${files.length} real 402 fixtures (need >= 12)`);
+  assert(empty.length === 0, `empty fixtures: ${empty.join(",")}`);
+  const bad = loadFixtures402(dir).map(parse402).filter((r) => !r.ok);
+  assert(bad.length === 0, `${bad.length} real fixtures fail to parse`);
+  return `${files.length} files, ${files.length - bad.length} parse, 0 empty`;
 });
 
 const total = Math.round(performance.now() - t0);

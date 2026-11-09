@@ -4,7 +4,8 @@
  *   npx tsx scripts/audit.ts sample [--n 200] [--out f]   0 credits. data/bazaar/resources.jsonl -> fixtures/audit/sample.json
  *   npx tsx scripts/audit.ts probe                         0 credits. 1 unpaid GET per sampled payee, 1 req/sec -> probes.jsonl
  *   npx tsx scripts/audit.ts reprobe-unparsed              0 credits. re-GET only the 402s the parser rejected, save raw shapes
- *   npx tsx scripts/audit.ts run [--sample f] [--batch N] [--gate-ms 24000]
+ *   npx tsx scripts/audit.ts gate                          5 credits. modified inbound query on 5 known payees; asserts top_payer_share usable
+ *   npx tsx scripts/audit.ts run [--sample f] [--batch N] [--gate-ms 24000]   (runs the gate first unless it passed today)
  *        Staged + checkpointed (fixtures/audit/checkpoint-<sample>.json); re-running resumes.
  *        No SURF_API_KEY: sync calls; first batch is timed and later batches run only if every call took <= gate-ms.
  *                         Each call checks today's remaining free-tier credits first and checkpoints + stops if short.
@@ -146,6 +147,8 @@ interface Checkpoint {
   batch: number;
   payee_rows: Record<string, SurfPayeeRow>;
   batches_done: number[];
+  /** "b<idx>:<template>" — each SQL part is persisted the moment it returns (lesson from 2026-11-09 02:01 run). */
+  parts_done?: string[];
   funders_done: boolean;
   funder_rows: SurfPayeeRow[];
   labels_done: string[];
@@ -174,6 +177,83 @@ function labelsCall(addrs: string[]): Promise<{ data: SurfWalletLabel[]; credits
 
 class StopRun extends Error {}
 
+/** Surf refusals that must stop an unattended run (checkpoint + exit), never be retried in a loop. */
+export const STOP_CODES = ["SQL_QUERY_IN_FLIGHT", "QUERY_TIMEOUT", "SQL_SYNC_COOLDOWN", "SYNC_QUERY_REQUIRES_ASYNC", "SYNC_PREFLIGHT_UNAVAILABLE", "ADMISSION_UNAVAILABLE", "RATE_LIMITED", "UNAUTHORIZED"];
+export const isStopError = (msg: string) => STOP_CODES.some((c) => msg.includes(c)) || /\b429\b/.test(msg);
+
+// ---------- paid gate (5 credits): prove the modified inbound query returns usable top_payer_share
+/** Active, real payees from fixtures/402/real with known traffic (fixtures/surf/smoke-12payees.json). */
+export const GATE_PAYEES = [
+  "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26",
+  "0x52e29e0d2aa49bfbfc548c0a9f2196f4aa51f3ea",
+  "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+  "0x589a2314a2e05f45e40c4823da3ba58d421db3d8",
+  "0x17cd53c04d707ef0dd615ef56c633f02915a7905",
+];
+
+export interface GateResult { ok: boolean; reasons: string[]; values: Record<string, unknown> }
+
+/** Pure check: every gate payee has top_payer_share as a finite float in [0,1], and not all five are exactly 1.0. */
+export function checkGate(rows: Record<string, unknown>[], payees = GATE_PAYEES): GateResult {
+  const reasons: string[] = [];
+  const values: Record<string, unknown> = {};
+  for (const p of payees) {
+    const r = rows.find((x) => String(x.payee).toLowerCase() === p);
+    const v = r?.top_payer_share;
+    values[p] = v === undefined ? "missing row" : v;
+    if (!r) reasons.push(`${p}: no row returned`);
+    else if (typeof v !== "number" || !Number.isFinite(v)) reasons.push(`${p}: top_payer_share is ${v === null ? "null" : typeof v}`);
+    else if (v < 0 || v > 1) reasons.push(`${p}: top_payer_share ${v} outside [0,1]`);
+  }
+  const nums = Object.values(values).filter((v): v is number => typeof v === "number");
+  if (nums.length === payees.length && nums.every((v) => v === 1)) reasons.push("top_payer_share is exactly 1.0 for all five payees (query not discriminating)");
+  return { ok: reasons.length === 0, reasons, values };
+}
+
+async function runGate(): Promise<boolean> {
+  const keyed = Boolean(process.env.SURF_API_KEY);
+  const at = new Date().toISOString();
+  let rows: Record<string, unknown>[] = [];
+  let calls: Call[] = [];
+  let error: string | null = null;
+  try {
+    if (!keyed && FREE_PER_DAY - creditsUsedTodayUtc() < COST.sql) throw new Error(`free tier: fewer than ${COST.sql} credits left today (UTC)`);
+    const r = await runSync(GATE_PAYEES, DAYS, ["payee-inbound"]);
+    rows = r.rows;
+    calls = r.calls;
+  } catch (e) {
+    error = (e as Error).message;
+  }
+  const g = error ? { ok: false, reasons: [`call failed: ${error}`], values: {} } : checkGate(rows);
+  writeFileSync(join(AUD, `gate-${at.slice(0, 10)}.json`), JSON.stringify({ at, ok: g.ok, reasons: g.reasons, values: g.values, calls: calls.map((c) => ({ label: c.label, ms: c.ms, credits: c.credits })), rows }, null, 1) + "\n");
+  for (const c of calls) console.log(`  gate ${c.label} credits=${c.credits} ${c.ms}ms`);
+  console.log(`gate ${g.ok ? "PASS" : "FAIL"}: ${JSON.stringify(g.values)}`);
+  if (!g.ok) {
+    writeFileSync(
+      join(ROOT, "artifacts", "audit-failure.md"),
+      [
+        `# Audit stopped at the paid gate`,
+        ``,
+        `Run at ${at}. The modified inbound query (\`scripts/surf/payee-inbound.sql\`) was run on the ${GATE_PAYEES.length} gate payees before any audit batch. It did not return usable \`top_payer_share\` values, so the audit was **not** started and nothing was retried.`,
+        ``,
+        `## Reasons`,
+        ...g.reasons.map((r) => `- ${r}`),
+        ``,
+        `## Values`,
+        `| payee | top_payer_share |`,
+        `|---|---|`,
+        ...GATE_PAYEES.map((p) => `| ${p} | ${JSON.stringify(g.values[p] ?? null)} |`),
+        ``,
+        `Calls: ${calls.map((c) => `${c.label} (${c.credits ?? "?"} credits, ${c.ms} ms)`).join("; ") || "none"}. Raw: \`fixtures/audit/gate-${at.slice(0, 10)}.json\`.`,
+        ``,
+        `Next step (manual): fix the query or the parser, re-run \`npx tsx scripts/audit.ts gate\` by hand, then the audit.`,
+      ].join("\n") + "\n",
+    );
+    console.log("wrote artifacts/audit-failure.md — audit NOT started");
+  }
+  return g.ok;
+}
+
 async function runAudit(sample: Sample, samplePath: string, batchSize: number, gateMs: number): Promise<Checkpoint> {
   const keyed = Boolean(process.env.SURF_API_KEY);
   const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
@@ -193,21 +273,25 @@ async function runAudit(sample: Sample, samplePath: string, batchSize: number, g
       console.log(`  ${c.label.padEnd(52)} credits=${c.credits} ${c.ms}ms`);
     }
   };
-  const sqlPass = async (addrs: string[], templates: readonly ("payee-inbound" | "payee-outbound")[]) => {
-    const out: Record<string, unknown>[] = [];
-    for (const t of templates) {
-      need(COST.sql, t);
+  cp.parts_done ??= [];
+  if (cp.batch !== batchSize && cp.batches_done.length === 0 && cp.parts_done.length === 0) cp.batch = batchSize; // nothing persisted yet: adopt new size
+  if (cp.batch !== batchSize) throw new Error(`checkpoint was made with --batch ${cp.batch}; resume with the same batch size`);
+
+  /** One SQL call; Surf refusals become a clean StopRun (checkpoint kept, no retry). */
+  const sqlCall = async (addrs: string[], t: "payee-inbound" | "payee-outbound") => {
+    need(COST.sql, t);
+    try {
       const r = keyed ? await runAsync(addrs, DAYS, t) : await runSync(addrs, DAYS, [t]);
       log(r.calls);
-      const byPayee = new Map(out.map((x) => [String(x.payee), x]));
-      for (const row of r.rows) {
-        const prev = byPayee.get(String(row.payee));
-        if (prev) Object.assign(prev, row);
-        else out.push({ ...row });
-      }
-      save();
+      return r;
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (isStopError(msg)) throw new StopRun(`Surf refused ${t} (${addrs.length} addresses): ${msg}. Checkpoint saved; not retried.`);
+      throw e;
     }
-    return { rows: out };
+  };
+  const gateCheck = (label: string, ms: number) => {
+    if (!keyed && ms > gateMs) throw new StopRun(`${label} took ${ms}ms > ${gateMs}ms gate (30s sync timeout with 20% margin). Saved; re-run with a smaller --batch.`);
   };
 
   const payees = sample.payees.map((p) => p.payee);
@@ -217,16 +301,20 @@ async function runAudit(sample: Sample, samplePath: string, batchSize: number, g
   try {
     for (let b = 0; b < batches.length; b++) {
       if (cp.batches_done.includes(b)) continue;
-      console.log(`batch ${b + 1}/${batches.length}: ${batches[b]!.length} payees`);
-      const before = cp.calls.length;
-      const { rows } = await sqlPass(batches[b]!, ["payee-inbound", "payee-outbound"]);
-      for (const p of batches[b]!) cp.payee_rows[p] = { payee: p, ...(rows.find((r) => r.payee === p) ?? {}) } as SurfPayeeRow;
+      const batch = batches[b]!;
+      console.log(`batch ${b + 1}/${batches.length}: ${batch.length} payees`);
+      for (const t of ["payee-inbound", "payee-outbound"] as const) {
+        const key = `b${b}:${t}`;
+        if (cp.parts_done.includes(key)) continue;
+        const r = await sqlCall(batch, t);
+        // persist this part immediately — a later failure must never discard rows already paid for
+        for (const p of batch) cp.payee_rows[p] = { ...(cp.payee_rows[p] ?? { payee: p }), ...((r.rows.find((x) => x.payee === p) ?? {}) as Partial<SurfPayeeRow>) } as SurfPayeeRow;
+        cp.parts_done.push(key);
+        save();
+        gateCheck(`batch ${b + 1} ${t}`, Math.max(...r.calls.map((c) => c.ms)));
+      }
       cp.batches_done.push(b);
       save();
-      const slowest = Math.max(...cp.calls.slice(before).map((c) => c.ms));
-      console.log(`  batch ${b + 1} slowest call ${slowest}ms (gate ${gateMs}ms)`);
-      if (!keyed && slowest > gateMs && b < batches.length - 1)
-        throw new StopRun(`batch ${b + 1} slowest call ${slowest}ms > ${gateMs}ms gate (30s sync timeout with 20% margin). Stopped; re-run with a smaller --batch.`);
     }
     const funders = [...new Set(Object.values(cp.payee_rows).map((r) => String(r.first_inbound_from ?? "")).filter((a) => ADDR.test(a)))];
     if (!cp.funders_done && funders.length) {
@@ -234,7 +322,7 @@ async function runAudit(sample: Sample, samplePath: string, batchSize: number, g
       const rows: SurfPayeeRow[] = [];
       // Funder outbound is one light aggregate: chunk at 300 so a 200-payee free-tier run needs ONE call (29 credits total, fits 30/day).
       const fChunk = Math.max(batchSize, 300);
-      for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlPass(funders.slice(i, i + fChunk), ["payee-outbound"])).rows as unknown as SurfPayeeRow[]));
+      for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlCall(funders.slice(i, i + fChunk), "payee-outbound")).rows as unknown as SurfPayeeRow[]));
       cp.funder_rows = rows;
       cp.funders_done = true;
       save();
@@ -442,9 +530,16 @@ async function main() {
     await probeSample(JSON.parse(readFileSync(samplePath, "utf8")) as Sample);
   } else if (cmd === "reprobe-unparsed") {
     await reprobeUnparsed();
+  } else if (cmd === "gate") {
+    process.exit((await runGate()) ? 0 : 2);
   } else if (cmd === "run") {
     const keyed = Boolean(process.env.SURF_API_KEY);
-    await runAudit(JSON.parse(readFileSync(samplePath, "utf8")) as Sample, samplePath, Number(flag("--batch") ?? (keyed ? 300 : 100)), Number(flag("--gate-ms") ?? 24_000));
+    // Paid gate first (5 credits), unless a gate already PASSED today (UTC) — a same-day resume must not pay twice.
+    const today = join(AUD, `gate-${new Date().toISOString().slice(0, 10)}.json`);
+    const passedToday = existsSync(today) && (JSON.parse(readFileSync(today, "utf8")) as { ok: boolean }).ok;
+    if (!passedToday && !(await runGate())) process.exit(2);
+    // 100 payees took 34.1 s on 2026-11-09 (over the 30 s sync limit) once top_payer_share was added: free default is 50.
+    await runAudit(JSON.parse(readFileSync(samplePath, "utf8")) as Sample, samplePath, Number(flag("--batch") ?? (keyed ? 300 : 50)), Number(flag("--gate-ms") ?? 24_000));
   } else if (cmd === "report") {
     const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
     const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
@@ -464,7 +559,7 @@ async function main() {
     writeFileSync(out, md);
     console.log(`report -> ${out}`);
   } else {
-    console.error("usage: audit.ts sample [--n N --out f] | probe | reprobe-unparsed | run [--sample f --batch N --gate-ms ms] | report [--sample f]");
+    console.error("usage: audit.ts sample [--n N --out f] | probe | reprobe-unparsed | gate | run [--sample f --batch N --gate-ms ms] | report [--sample f]");
     process.exit(2);
   }
 }

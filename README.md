@@ -78,3 +78,10 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **Parser fix:** each `accepts[]` entry is validated on its own. 5 of the 7 unparseable 402s from the 200-payee probe now parse; a multi-chain server's decimal-amount XRPL/Hyperliquid option used to hide its valid Base option.
 - **SERV (chat completions, documented `max_completion_tokens` + strict `json_schema`) and Dolphin (documented base URL and model) are live-wired.** 16 tests cover malformed output, timeout, empty body, HTTP errors and truncation, all failing closed.
 - **Model smoke (`scripts/smoke.ts`) is ready but BLOCKED:** no SERV or Dolphin key in the environment, 0 calls. The env prefix is fixed (`FIANGHSI_` → `FIANGSHI_`).
+
+**Phase 3g (audit gate + fixture guard)**
+- **First unattended run (2026-11-09 02:01 UTC):** the 100-payee inbound call took 34.1 s, over the sync limit, and the next call was refused with `SQL_QUERY_IN_FLIGHT`. The runner discarded that paid result: 5 credits, no rows.
+- **Runner now:** saves every SQL part immediately, checks the 24 s gate after each call, stops on Surf refusals without retrying, and uses a free-tier batch of 50.
+- **Paid gate:** `audit.ts gate` (5 credits) asserts `top_payer_share` is a float in [0,1] on 5 known payees and not all 1.0, before any batch. On failure it writes `artifacts/audit-failure.md`.
+- **Fixture guard:** `tests/fixture-integrity.test.ts` and accept gate G11 require ≥12 non-empty real 402s that all parse. `npm run accept` is now 11/11.
+- E v2 kept as is (0 / 4.46 / 10 in tests). `.env` confirmed ignored by git (`git check-ignore`).

@@ -35,9 +35,13 @@ async function main(): Promise<number> {
       console.log(`index: ${r.rows} payees -> ${r.path}`);
       return 0;
     }
-    case "lab":
+    case "lab": {
+      // 0 credits: renders artifacts/lab.md from the latest fixtures/lab/results*.json (run scripts/build-lab.ts to re-run the lab)
+      await import("../../scripts/matrix.js");
+      return 0;
+    }
     case "certify":
-      console.error(`${cmd}: not built yet (${cmd === "lab" ? "phase 9" : "phase 8, needs Kite wiring"})`);
+      console.error(`${cmd}: not built yet (phase 8, needs Kite wiring)`);
       return 2;
     default:
       return usage();

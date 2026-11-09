@@ -196,3 +196,25 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 |---|---|---|
 | cold | 10,990 ms | Dolphin 8 s × (1 + 1 retry) worst case; SERV 1.6–10.5 s |
 | warm | 1,151 ms | cached models 2–3 ms; probe 0.4–1.1 s |
+| 2026-11-09T03:50:21.853Z | surf | onchain-sql payee-inbound payees=1 | 91/150 | 5 | ok |
+| 2026-11-09T03:50:25.164Z | serv | adjudicate 0xdcd07b3f | 10/100 | 616 | ok |
+| 2026-11-09T03:50:27.319Z | serv | adjudicate 0xdcd07b3f | 11/100 | 650 | ok |
+| 2026-11-09T03:50:29.512Z | serv | adjudicate 0x54ebfcf3 | 12/100 | 1038 | ok |
+| 2026-11-09T03:50:29.513Z | dolphin | extract 083a7c49 | 16/30 | - | error: Error |
+| 2026-11-09T03:50:37.533Z | dolphin | extract 083a7c49 | 17/30 | - | error: Error |
+| 2026-11-09T03:50:45.564Z | serv | adjudicate 0xc71a9504 | 13/100 | 947 | ok |
+| 2026-11-09T03:50:47.906Z | serv | adjudicate 0x11dced04 | 14/100 | 1018 | ok |
+| 2026-11-09T03:50:47.910Z | dolphin | extract 88bc6ea4 | 18/30 | - | error: Error |
+| 2026-11-09T03:50:55.927Z | dolphin | extract 88bc6ea4 | 19/30 | - | error: Error |
+| 2026-11-09T03:51:05.067Z | serv | adjudicate 0x79140337 | 15/100 | 657 | ok |
+| 2026-11-09T03:51:05.069Z | dolphin | extract e13a17dd | 20/30 | - | error: Error |
+| 2026-11-09T03:51:13.082Z | dolphin | extract e13a17dd | 21/30 | - | error: Error |
+| 2026-11-09T03:51:21.592Z | serv | adjudicate 0x255cdb4e | 16/100 | 1012 | ok |
+| 2026-11-09T03:51:21.594Z | dolphin | extract 2fe9b583 | 22/30 | - | error: Error |
+| 2026-11-09T03:51:29.601Z | dolphin | extract 2fe9b583 | 23/30 | - | error: Error |
+| 2026-11-09T03:51:38.051Z | serv | adjudicate 0x3291e96b | 17/100 | 1026 | ok |
+| 2026-11-09T03:51:38.054Z | dolphin | extract aaebd7b0 | 24/30 | - | error: Error |
+| 2026-11-09T03:51:46.073Z | dolphin | extract aaebd7b0 | 25/30 | - | error: Error |
+| 2026-11-09T03:51:55.060Z | serv | adjudicate 0xd6fce152 | 18/100 | 1020 | ok |
+| 2026-11-09T03:51:55.064Z | dolphin | extract 041db2b1 | 26/30 | - | error: Error |
+| 2026-11-09T03:52:03.082Z | dolphin | extract 041db2b1 | 27/30 | - | error: Error |

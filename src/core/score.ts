@@ -1,4 +1,5 @@
 /** Pure scoring. score = 25M + 20P + 20R + 15I + 10E + 10C, each component in [0,1]. */
+import { identityLevel } from "./identity.js";
 import { EVIDENCE_FIELDS, type FunderLabel, type PayeeSignals } from "./types.js";
 
 export const WEIGHTS = { M: 25, P: 20, R: 20, I: 15, E: 10, C: 10 } as const;
@@ -72,11 +73,12 @@ export function revenue(s: PayeeSignals): number | null {
   return 0.6 * logCap(s.distinct_payers, DISTINCT_CAP) + 0.4 * logCap(s.repeat_payers ?? 0, REPEAT_CAP);
 }
 
+/**
+ * I identity v3 (2026-11-09): 0 claims -> 0 · self-claim only -> 0.25 · + 1 independent source -> 0.5 · + 2 -> 0.75.
+ * A self-claim is never scored below having no claim at all. See src/core/identity.ts for the sources.
+ */
 export function identityScore(s: PayeeSignals): number {
-  const claims = Boolean(s.identity.claims_org || s.identity.claims_product);
-  if (s.identity.corroborated === true && claims) return 1;
-  if (!claims) return 0.5; // anonymous: neither credit nor penalty
-  return 0; // claims something we cannot corroborate
+  return identityLevel(Boolean(s.identity.claims_org || s.identity.claims_product), s.identity.sources, s.identity.corroborated);
 }
 
 /** Payers counted toward E: distinct inbound senders, minus the first funder when it is a labelled exchange. */

@@ -28,6 +28,7 @@ import { computeFanout } from "../src/snapshot.js";
 import { costLine, guarded } from "./budget.js";
 import { writeNoClobber } from "../src/fsutil.js";
 import { v6 } from "../src/core/v6.js";
+import { corroborate } from "../src/core/identity.js";
 import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -548,6 +549,26 @@ export interface ReportInputs {
   hunts?: { file: string; data: { at: string; surf_data?: string; p50_full_check_ms: number; survivors: number; results: Record<string, unknown>[] } }[];
 }
 
+/**
+ * Census identity (v3): the catalog serviceName is the payee self-claim, corroborated by the 402 URL host/path and a
+ * Surf label. With no listing name, a Surf entity_name label is itself the (third-party) claim and counts as one source.
+ */
+export function censusIdentity(
+  p: SamplePayee,
+  l: SurfWalletLabel | undefined,
+): { claims_org: string | null; claims_product: string | null; corroborated: boolean | null; sources: string[] } | undefined {
+  const self = p.service?.trim() || null;
+  if (self) {
+    const sources = corroborate({ claims: [self], claimFrom: "catalog", url: p.example_url, labelName: l?.entity_name ?? null });
+    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources };
+  }
+  if (l?.entity_name) {
+    const sources = ["label", ...corroborate({ claims: [l.entity_name], claimFrom: "label", url: p.example_url })];
+    return { claims_org: l.entity_name, claims_product: null, corroborated: true, sources };
+  }
+  return undefined; // no claim at all -> I = 0
+}
+
 /** The scored set exactly as the audit scores it (shared by the report and the ALLOW hunt). Pure. */
 export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string) {
   const now = Math.floor(Date.parse(ranAt) / 1000);
@@ -561,7 +582,7 @@ export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string)
   const audited = sample.payees.filter((p) => cp.payee_rows[p.payee] && !excluded.has(p.payee));
   let signals: PayeeSignals[] = audited.map((p) => {
     const l = labelOf.get(p.payee);
-    return signalsFromSurf(cp.payee_rows[p.payee]!, { now, windowStart, tokenContracts, identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined });
+    return signalsFromSurf(cp.payee_rows[p.payee]!, { now, windowStart, tokenContracts, identity: censusIdentity(p, l) });
   });
   const fan = computeFanout(signals, { labels: funderLabels, edges: {} });
   signals = signals.map((s) => (s.first_funder ? { ...s, funder_fanout: fan.get(s.payee) ?? 0 } : s));

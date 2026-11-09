@@ -28,10 +28,14 @@ describe("score components: boundaries 0 / mid / 1 / missing", () => {
     expect(revenue(clean({ distinct_payers: null }))).toBeNull();
   });
 
-  it("I identity: corroborated 1, anonymous 0.5, uncorroborated claim 0", () => {
-    expect(identityScore(clean())).toBe(1);
-    expect(identityScore(clean({ identity: { claims_org: null, claims_product: null, corroborated: null } }))).toBe(0.5);
-    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: false } }))).toBe(0);
+  it("I identity v3: 0 claims 0 · self-claim 0.25 · +1 source 0.5 · +2 sources 0.75", () => {
+    const anon = { claims_org: null, claims_product: null, corroborated: null };
+    expect(identityScore(clean({ identity: anon }))).toBe(0);
+    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: false, sources: [] } }))).toBe(0.25);
+    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true, sources: ["host"] } }))).toBe(0.5);
+    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true, sources: ["host", "label"] } }))).toBe(0.75);
+    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true, sources: ["host", "path", "label"] } }))).toBe(0.75);
+    expect(identityScore(clean({ identity: { claims_org: "Acme", claims_product: null, corroborated: true } }))).toBe(0.5); // legacy: no source list
   });
 
   // E v2 = min(1, log10(payers+1)/2) × (1 − max(0, top − 0.30)/0.70); points = 10 × E

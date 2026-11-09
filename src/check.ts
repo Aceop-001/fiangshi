@@ -13,6 +13,7 @@ import { appendReceipt, ledgerPath } from "./ledger/store.js";
 import { sealReceipt } from "./core/receipt.js";
 import { getSnapshot } from "./snapshot.js";
 import { v6 } from "./core/v6.js";
+import { corroborate } from "./core/identity.js";
 
 export function emptySignals(payee: string): PayeeSignals {
   return {
@@ -84,6 +85,8 @@ export async function evaluateFull(
   signals: PayeeSignals,
   labels: Snapshot["payload"]["funder_labels"],
   sellerText: string | null,
+  /** identity v3 corroboration context for Dolphin claims (the URL is NEVER sent to Dolphin, only used here). */
+  idCtx: { url?: string | null; catalogName?: string | null; labelName?: string | null } = {},
 ): Promise<FullEvaluation> {
   const t0 = performance.now();
   const price = terms?.price ?? null;
@@ -100,7 +103,10 @@ export async function evaluateFull(
     const c = extraction.claims;
     merged = {
       ...signals,
-      identity: { claims_org: c.claims_org, claims_product: c.claims_product, corroborated: signals.identity.corroborated },
+      identity: (() => {
+        const sources = corroborate({ claims: [c.claims_org, c.claims_product], claimFrom: "dolphin", url: idCtx.url, catalogName: idCtx.catalogName, labelName: idCtx.labelName });
+        return { claims_org: c.claims_org, claims_product: c.claims_product, corroborated: sources.length > 0, sources };
+      })(),
       evidence: { ...signals.evidence, identity: signals.evidence.identity ?? `dolphin extract: org=${c.claims_org ?? "null"}, product=${c.claims_product ?? "null"}` },
     };
   }

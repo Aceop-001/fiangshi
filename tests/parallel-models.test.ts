@@ -77,11 +77,12 @@ describe("parallel SERV + Dolphin", () => {
     expect(elapsed).toBeLessThan(2 * 120 + 150); // sequential would need >= 2 x 120ms per attempt (SERV retries once)
   });
 
-  it("both succeed -> Dolphin claims merged but never corroborated; vows still decide", async () => {
+  it("both succeed, no corroboration context -> Dolphin claim merged as an uncorroborated self-claim (I 0.25)", async () => {
     const s = anon();
     stub("ok", "ok", servAllow(s));
     const r = await evaluateFull(TERMS, s, LABELS, "Acme - the API");
-    expect(r.signals.identity.corroborated).toBeNull();
+    expect(r.signals.identity.corroborated).toBe(false);
+    expect(r.signals.identity.sources).toEqual([]);
     expect(r.decision.verdict.degraded).toBe(false);
     expect(["ALLOW", "REVIEW"]).toContain(r.decision.verdict.band); // uncorroborated claim drops I to 0; age 5000h so no identity vow
   });
@@ -126,5 +127,15 @@ describe("Dolphin: one retry on timeout only", () => {
     delete process.env.FIANGSHI_DOLPHIN_TIMEOUT_MS;
     delete process.env.FIANGSHI_MODEL_TIMEOUT_MS;
     expect(modelTimeoutMs("dolphin")).toBe(8000);
+  });
+});
+
+describe("identity v3 in the live pipeline", () => {
+  it("Dolphin claim 'Acme' + 402 URL acme.example.com -> corroborated by host (I 0.5)", async () => {
+    Object.assign(process.env, { FIANGSHI_OFFLINE: "0", MOCK_MODELS: "", SERV_REASONING_API_KEY: "k", SERV_MODEL: "m", DOLPHIN_API_KEY: "k", FIANGSHI_DATA_DIR: tmp() });
+    const s = anon();
+    stub("ok", "ok", servAllow(s));
+    const r = await evaluateFull(TERMS, s, LABELS, "Acme - the API", { url: "https://acme.example.com/v1/q" });
+    expect(r.signals.identity).toMatchObject({ claims_org: "Acme", corroborated: true, sources: ["host"] });
   });
 });

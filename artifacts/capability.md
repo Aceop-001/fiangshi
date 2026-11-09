@@ -167,3 +167,23 @@ Free-tier arithmetic at 50 payees per batch:
   - Night 1: gate 5 + batch 1 in/out 10 + batch 2 in/out 10 + batch 3 inbound 5 = 30.
   - Night 2: gate 5 + batch 3 outbound 5 + batch 4 in/out 10 + funders 5 + labels 4 = 29.
   - Both nights resume from the checkpoint. This assumes no Surf refusals and labels at the measured 1 credit per call; at the documented 4, labels move to a third night.
+
+## Identity v3 (2026-11-09, as specified)
+
+**Why it changed.** In the live ALLOW hunt, Dolphin extracted a claimed name from a seller's own listing for `0x93053f1e…`. Under v2 an uncorroborated claim scored I = 0, below an anonymous seller's 0.5. The score fell **80.91 → 75.07** (ALLOW → REVIEW) just because the extraction succeeded. v2 penalised self-claims for existing.
+
+| identity | v2 | v3 |
+|---|---|---|
+| no claim | 0.5 | **0** |
+| self-claim only | 0 | **0.25** |
+| self-claim + 1 independent source | 1.0 (any corroboration) | **0.5** |
+| self-claim + 2 sources | 1.0 | **0.75** |
+
+- **Sources** (`src/core/identity.ts`): the 402 resource URL host, a URL path segment, the catalog listing name (only when the claim came from elsewhere), and a Surf `entity_name` label.
+- **SERV/Dolphin agreement is only a hook.** SERV emits no identity claim, so it is never set.
+- **No circular evidence.** Dolphin sees the listing text only, never the URL, so a claim is never corroborated by the text it came from.
+- **Generic words are ignored:** `x402`, `api`, `tool`, `data`, `gateway` and similar.
+
+**Effect on the 800-payee census** (`npx tsx scripts/audit.ts report --days 90`): ALLOW 15 → **15**, REVIEW 492 → **449**, BLOCK 293 → **336**. The ALLOW count matches, but the set changed: every v3 ALLOW now carries a corroborated self-claim (`npx tsx scripts/show-allow.ts`).
+
+**Gate result: `api.you.com` is REVIEW (75.33)**, so the "still ALLOW" gate fails. It has no catalog listing name, which means 0 claims and I = 0. Predicted by `scripts/sim-identity-v3.ts` and accepted on 2026-11-09. Regression test: "Acme" at acme.example.com scores ≥ the same payee with no listing (`tests/identity.test.ts`).

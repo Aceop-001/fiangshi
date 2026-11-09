@@ -144,12 +144,12 @@ None: no payee was excluded. Every failed **payee** query was resolved by bisect
 | band | payees | share |
 |---|---|---|
 | ALLOW | 15 | 1.9% |
-| REVIEW | 492 | 61.5% |
-| BLOCK | 293 | 36.6% |
+| REVIEW | 449 | 56.1% |
+| BLOCK | 336 | 42.0% |
 
-Vows fired: kinship 243 · silence 35 · null_payee 1.
+Vows fired: kinship 243 · silence 35 · null_payee 1 · identity 5.
 
-E v1 → v2: **31 of 800 payees changed band** (v1 {"ALLOW":1,"REVIEW":491,"BLOCK":308} → v2 {"ALLOW":15,"REVIEW":492,"BLOCK":293}). 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
+E v1 → v2: **33 of 800 payees changed band** (v1 {"ALLOW":0,"REVIEW":446,"BLOCK":354} → v2 {"ALLOW":15,"REVIEW":449,"BLOCK":336}). 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
 
 *For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.
 

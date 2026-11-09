@@ -9,7 +9,7 @@
  */
 import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { checkpointPath, labelsCall, scoredSet, setWindowDays, type Sample } from "./audit.js";
+import { censusIdentity, checkpointPath, labelsCall, scoredSet, setWindowDays, type Sample } from "./audit.js";
 import { runSync } from "./surf/payee-facts.js";
 import { parse402 } from "../src/adapters/probe.js";
 import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
@@ -93,10 +93,11 @@ for (const t of top) {
   const probeMs = Math.round(performance.now() - t0);
   const row = (fresh.rows.find((r) => r.payee === p) ?? { payee: p }) as unknown as SurfPayeeRow;
   const l = labels.find((x) => x.address.toLowerCase() === p);
-  let s = signalsFromSurf(row, { now, windowStart: now - days * 86400, tokenContracts, identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined });
+  let s = signalsFromSurf(row, { now, windowStart: now - days * 86400, tokenContracts, identity: censusIdentity(sp, l) });
   s = { ...s, funder_fanout: s.first_funder ? (base.signals.filter((o) => o.payee !== p && o.first_funder === s.first_funder && !kinshipExempt(funderLabels[s.first_funder!])).length) : null };
-  const sellerText = [sp.service, sp.example_url].filter(Boolean).join(" — ");
-  const full = await evaluateFull(terms, s, funderLabels, sellerText || null);
+  // Dolphin sees the listing text only — never the URL — so a claim cannot be "corroborated" by the text it came from
+  const sellerText = sp.service?.trim() || null;
+  const full = await evaluateFull(terms, s, funderLabels, sellerText, { url: sp.example_url, catalogName: sp.service, labelName: l?.entity_name ?? null });
   const d = full.decision;
   const comps = components(full.signals, funderLabels, "v2", days * 24);
   const rows = evaluateVows({ signals: full.signals, price: terms?.price ?? null, funder_labels: funderLabels });

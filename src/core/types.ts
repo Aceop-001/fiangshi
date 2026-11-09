@@ -29,6 +29,8 @@ export const Identity = z.object({
   claims_org: z.string().nullable(),
   claims_product: z.string().nullable(),
   corroborated: z.boolean().nullable(),
+  /** identity v3: independent corroboration sources (host, path, catalog, label, model_agreement). */
+  sources: z.array(z.string()).optional(),
 });
 export type Identity = z.infer<typeof Identity>;
 

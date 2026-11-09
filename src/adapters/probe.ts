@@ -4,7 +4,7 @@
  * from the JSON body `accepts[]` or, for v2, the base64 `payment-required` header.
  * Verified against 12 real responses recorded in fixtures/402/real (2026-11-08).
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { PROBE_TIMEOUT_MS, fixturesDir, isOffline, snapshotSource } from "../config.js";
@@ -110,7 +110,8 @@ export function loadFixtures402(dir = join(fixturesDir(), "402")): RawResponse[]
 
 async function fetchUnpaid(url: string): Promise<RawResponse> {
   if (isOffline() || snapshotSource() === "fixture") {
-    const hit = loadFixtures402().find((r) => r.url === url);
+    const real = join(fixturesDir(), "402", "real");
+    const hit = loadFixtures402().find((r) => r.url === url) ?? (existsSync(real) ? loadFixtures402(real).find((r) => r.url === url) : undefined);
     if (!hit) throw new Error(`offline: no 402 fixture recorded for ${url}`);
     return hit;
   }

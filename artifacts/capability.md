@@ -136,7 +136,7 @@ Reference values from tests (`tests/score.test.ts`):
 | 100 payers, top ≤30% | 1.0 | 10 | |
 
 Band change measured on cached data (`npx tsx scripts/e-diff.ts`, 0 credits):
-- **Synthetic fixtures, 31 payees:** 1 changed. `0x44726a3e` went BLOCK (47.86) → REVIEW (50.08). v1 {ALLOW 10, REVIEW 13, BLOCK 8} → v2 {ALLOW 10, REVIEW 14, BLOCK 7}.
+- **Synthetic fixtures, 31 payees:** 1 changed. `0x44726a3e` went BLOCK (47.86) → REVIEW (50.08); no other synthetic payee changed band.
 - **Real cached rows, 12 payees:** not measurable. Neither input was in the earlier query, so both versions return REVIEW via the silence vow. The real count comes from the audit run, where `artifacts/audit.md` reports v1 vs v2 for every audited payee.
 
 Two buyers cannot be scored as reliable revenue — intentional. With two payers, the larger holds ≥50% of inbound USD, so the concentration factor is ≤0.71 and breadth is log10(3)/2 = 0.24, giving at most about 1.7 of 10 points.
@@ -184,7 +184,7 @@ Free-tier arithmetic at 50 payees per batch:
 - **No circular evidence.** Dolphin sees the listing text only, never the URL, so a claim is never corroborated by the text it came from.
 - **Generic words are ignored:** `x402`, `api`, `tool`, `data`, `gateway` and similar.
 
-**Effect on the 800-payee census** (`npx tsx scripts/audit.ts report --days 90`): ALLOW 15 → **15**, REVIEW 492 → **449**, BLOCK 293 → **336**. The ALLOW count matches, but the set changed: every v3 ALLOW now carries a corroborated self-claim (`npx tsx scripts/show-allow.ts`).
+**Effect on the 800-payee census:** every v3 ALLOW carried a corroborated self-claim (`npx tsx scripts/show-allow.ts`). Superseded twice since (sections below); the current band counts are stated once, at the end of this page.
 
 **Gate result: `api.you.com` is REVIEW (75.33)**, so the "still ALLOW" gate fails. It has no catalog listing name, which means 0 claims and I = 0. Predicted by `scripts/sim-identity-v3.ts` and accepted on 2026-11-09. Regression test: "Acme" at acme.example.com scores ≥ the same payee with no listing (`tests/identity.test.ts`).
 
@@ -193,8 +193,34 @@ Free-tier arithmetic at 50 payees per batch:
 1. **Dolphin is optional enrichment:** 12 s per attempt, one retry on timeout only. A failure no longer caps the band and never fires silence. The receipt carries `enrichment: {status: "incomplete", reason}`. **Required** signals are the Surf snapshot fields; missing any of them still fires V1 silence (REVIEW).
 2. **Identity with no claim is renormalised away.** I is dropped and the score is computed over the remaining 85 weight points.
 3. **Reconciling rule (flagged):** "no claim → renormalise" and "a self-claim is never penalised for existing" conflict. Renormalised, a payee with no claim scores at its other components' average, while a listed payee adds 15 × I with I ≤ 0.75. So any listing would score below no listing whenever the other components average more than I. Resolution: **optional components can only add**. A payee with a claim scores max(with I, renormalised without I). Both rules hold, and an uncorroborated claim is still caught by V5.
-4. **V5 identity:** an uncorroborated claim → REVIEW at **any** age. A contradicted claim (a Surf label names a different entity, with no shared token) → BLOCK. No claim → no vow.
+4. **V5 identity (superseded below):** an uncorroborated claim → REVIEW at any age; a contradicted claim → BLOCK.
 
-**Effect on the 800-payee census:** **44 ALLOW / 469 REVIEW / 287 BLOCK**, up from 15 / 449 / 336. The jump in ALLOW is anonymous-but-healthy payees (no listing, so I is renormalised away) such as `api.you.com` (88.63). Every ALLOW still passed all six vows. V5 now fires on 64 payees (REVIEW).
+**Effect:** anonymous-but-healthy payees (no listing, I renormalised away) such as `api.you.com` reached ALLOW. The lab run under these rules (`fixtures/lab/results-attempt3.json`) matched 9/9 pre-written expectations.
 
-**Lab (`artifacts/lab.md`):** 9/9 cases match their pre-written v2 expectations. All three real controls reached ALLOW while Dolphin timed out on every attempt, with the receipts stamped `enrichment: incomplete`.
+## Identity neutrality (2026-11-09, "phase3h"): extraction must never penalise being examined
+
+**Why it changed.** The ALLOW composition audit (`npx tsx scripts/allow-composition.ts`, 0 credits) showed the rule above still penalised examination. Census receipts carry `enrichment: skipped` (no model calls), so the census was partitioned by what identity examination found:
+
+| identity examination | payees | ALLOW before | ALLOW after |
+|---|---|---|---|
+| no claim (weight excluded) | 312 | 12 | 12 |
+| claim, 0 corroborating sources | 63 | **0** | **5** |
+| claim, 1 source (I 0.5) | 344 | 26 | 26 |
+| claim, 2+ sources (I 0.75) | 80 | 6 | 6 |
+| contradicted | 1 | 0 | 0 |
+
+A payee whose listing name was examined and found uncorroborated could never ALLOW (V5 REVIEW), while the same payee with no listing could. Live, all three lab ALLOWs had `enrichment: incomplete`: an ALLOW was reachable only when the extractor failed to examine the seller.
+
+| identity | I component | vow |
+|---|---|---|
+| no claim | weight excluded (renormalised) | none |
+| claim, no corroboration | weight excluded: **identical to no claim** | none |
+| claim + 1 independent source | 0.5 | none |
+| claim + 2 sources | 0.75 | none |
+| claim contradicted by a Surf label | (any) | **V5 BLOCK** |
+
+The "optional components can only add" rule stays, so a corroborated claim never scores below no claim. Regression tests (`tests/identity.test.ts`): "Acme" at acme.example.com scores ≥ no listing; an uncorroborated claim scores **exactly** like no claim and fires the same vows; a contradicted claim is the only identity outcome that BLOCKs.
+
+**Lab** (`fixtures/lab/results-attempt4.json`, expectations in `cases-v2.json` left unedited): **8/9**. B4 (anon-claimant, expected REVIEW · identity) still lands on REVIEW by score (60.49), but V5 no longer fires, so it is recorded as a FAILURE against its pre-written expectation. The synthetic lookalike fixture still BLOCKs, by score (48.3) rather than by V5.
+
+**Current census band counts (the only split stated on this page):** **49 ALLOW · 464 REVIEW · 287 BLOCK** of 800 (`npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90`).

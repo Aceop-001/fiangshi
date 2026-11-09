@@ -32,5 +32,14 @@ export const mockModels = () => env("MOCK_MODELS");
 export const dataDir = () => resolve(ROOT, env("FIANGSHI_DATA_DIR", "data"));
 export const artifactsDir = () => resolve(ROOT, env("FIANGSHI_ARTIFACTS_DIR", "artifacts"));
 export const fixturesDir = () => resolve(ROOT, "fixtures");
+/**
+ * Fixture (replay) mode: probes read recorded raw 402s (fixtures/402, fixtures/402/real) and SERV/Dolphin replay recorded
+ * responses (fixtures/recorded/{serv,dolphin}) through the real validators, vows and receipt chain. A missing recording
+ * fails closed exactly like a provider failure; nothing ever falls through to the network.
+ */
+export const replayMode = () => env("FIANGSHI_REPLAY") === "1";
+export const replayDir = () => resolve(fixturesDir(), "recorded");
+export const providerMode = (): "fixture" | "mock" | "live" =>
+  replayMode() ? "fixture" : env("FIANGSHI_OFFLINE") === "1" || env("MOCK_MODELS") !== "" ? "mock" : "live";
 export const policyTtlHours = () => num("FIANGSHI_POLICY_TTL_HOURS", 72);
 export const PROBE_TIMEOUT_MS = 15_000;

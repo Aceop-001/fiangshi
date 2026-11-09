@@ -57,7 +57,7 @@ Bands: >=80 ALLOW · 50-79 REVIEW · <50 BLOCK
 | age | payee age < 48h | BLOCK |
 | kinship | funder shared with >=3 other catalog payees (<=2 hops); exchange (`cex`) and relayer infrastructure (`infra`: bridge, dex-aggregator) funders exempt | BLOCK |
 | history | distinct_payers == 0 AND price > $0.50 | REVIEW |
-| identity | claims uncorroborated AND age < 7 days | BLOCK |
+| identity | claim contradicted by a Surf label (identity neutrality, 2026-11-09: an uncorroborated claim is identical to no claim, no vow) | BLOCK |
 | silence | any required signal missing | REVIEW |
 Do not add, remove or reorder vows without asking.
 

@@ -1,6 +1,7 @@
 /**
  * Identity v3 corroboration (2026-11-09, as specified). Pure.
- * Scale (I component): 0 claims -> 0 · self-claim only -> 0.25 · self-claim + 1 independent source -> 0.5 · + 2 sources -> 0.75
+ * Scale (I component), identity neutrality 2026-11-09: no claim -> excluded · claim with 0 sources -> excluded (identical to
+ * no claim: extraction must never penalise being examined) · 1 independent source -> 0.5 · 2+ sources -> 0.75 · contradicted -> V5 BLOCK
  * Sources: the 402 resource URL host, a URL path segment, the catalog listing name (when the claim came from elsewhere),
  * a Surf wallet label, and SERV/Dolphin agreement (hook; SERV emits no identity claim yet, so it is never set).
  * A claim must never be corroborated by the text it was extracted from (no circular evidence).
@@ -47,10 +48,10 @@ export function corroborate(i: CorroborationInput): CorroborationSource[] {
 }
 
 /** I component in [0, 0.75]. Backward compatible: corroborated=true without a source list counts as one source. */
-export function identityLevel(hasClaim: boolean, sources: string[] | undefined, corroborated: boolean | null): number {
-  if (!hasClaim) return 0;
+export function identityLevel(hasClaim: boolean, sources: string[] | undefined, corroborated: boolean | null): number | null {
+  if (!hasClaim) return null;
   const n = sources ? new Set(sources).size : corroborated === true ? 1 : 0;
-  return n === 0 ? 0.25 : n === 1 ? 0.5 : 0.75;
+  return n === 0 ? null : n === 1 ? 0.5 : 0.75;
 }
 
 /** A Surf label names an entity, and NONE of its tokens appear in the claim: the claim is contradicted (V5 BLOCK). */

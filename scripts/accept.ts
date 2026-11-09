@@ -15,6 +15,7 @@ Object.assign(process.env, {
   FIANGSHI_OFFLINE: "1",
   SNAPSHOT_SOURCE: "fixture",
   MOCK_MODELS: "good",
+  FIANGSHI_REPLAY: "0", // accept tests mocks + fixtures; replay mode is exercised by tests/fixture-mode.test.ts
   FIANGSHI_DATA_DIR: join(TMP, "data"),
   FIANGSHI_ARTIFACTS_DIR: join(TMP, "artifacts"),
 });

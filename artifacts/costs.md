@@ -243,3 +243,14 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 | 2026-11-09T07:35:02.549Z | dolphin | extract 041db2b1 | 41/200 | - | error: Error |
 | 2026-11-09T07:35:14.555Z | dolphin | extract 041db2b1 | 42/200 | - | error: Error |
 | 2026-11-09T07:46:36.656Z | dolphin | extract 041db2b1 | 43/200 | 284 | ok |
+| 2026-11-09T08:17:16.492Z | serv | adjudicate 0xdcd07b3f | 23/100 | 618 | ok |
+| 2026-11-09T08:17:18.869Z | serv | adjudicate 0xdcd07b3f | 24/100 | 649 | ok |
+| 2026-11-09T08:17:21.100Z | dolphin | extract 083a7c49 | 44/200 | - | error: Error |
+| 2026-11-09T08:17:33.115Z | dolphin | extract 083a7c49 | 45/200 | - | error: Error |
+| 2026-11-09T08:17:46.070Z | dolphin | extract 88bc6ea4 | 46/200 | - | error: Error |
+| 2026-11-09T08:17:58.093Z | dolphin | extract 88bc6ea4 | 47/200 | - | error: Error |
+| 2026-11-09T08:18:11.720Z | dolphin | extract e13a17dd | 48/200 | - | error: Error |
+| 2026-11-09T08:18:23.730Z | dolphin | extract e13a17dd | 49/200 | - | error: Error |
+| 2026-11-09T08:18:36.508Z | dolphin | extract 2fe9b583 | 50/200 | - | error: Error |
+| 2026-11-09T08:18:48.521Z | dolphin | extract 2fe9b583 | 51/200 | - | error: Error |
+| 2026-11-09T08:19:01.051Z | dolphin | extract aaebd7b0 | 52/200 | - | error: Error |

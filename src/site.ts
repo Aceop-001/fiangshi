@@ -1,7 +1,7 @@
 /** Static index page (no JS, no framework, no CDN) rendered from the census, the lab results and measured demo stats. */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, num } from "./config.js";
+import { ROOT, num, providerMode } from "./config.js";
 import type { Census, DemoStats } from "./census.js";
 import { VOW_NAMES } from "./core/types.js";
 
@@ -85,6 +85,7 @@ h1{margin:.2em 0}h2{margin-top:1.6em}.mut{color:var(--mut)}code{font-size:12.5px
 td.warn{color:var(--review)}td.ok{color:var(--allow)}.scroll{overflow-x:auto}footer{margin-top:2em;padding-top:12px;border-top:1px solid var(--line);color:var(--mut);font-size:13.5px}
 a{color:inherit}
 </style></head><body>
+${providerMode() === "fixture" ? `<p class="card"><strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain. Run with live providers: <code>npm run localhost-check -- --live</code>.</p>` : ""}
 <h1>Fiangshi</h1>
 <p class="mut">A pre-payment counterparty oracle for x402 agent payments. The model advises, the vows decide. Advisory only; Fiangshi never holds funds.</p>
 <div class="head">

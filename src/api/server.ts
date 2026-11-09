@@ -14,7 +14,7 @@
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { pathToFileURL } from "node:url";
-import { loadDotEnv, num } from "../config.js";
+import { loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderIndex } from "../site.js";
 import { probe } from "../adapters/probe.js";
@@ -27,9 +27,11 @@ import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
 import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
 
+/** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
 const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) => {
-  res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
-  res.end(JSON.stringify(body, null, 2));
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-fiangshi-mode": providerMode(), ...headers });
+  const out = body && typeof body === "object" && !Array.isArray(body) ? { mode: providerMode(), ...(body as object) } : body;
+  res.end(JSON.stringify(out, null, 2));
 };
 
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
@@ -86,7 +88,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
     if (u.pathname === "/") {
-      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "x-fiangshi-mode": providerMode() });
       return void res.end(renderIndex(c, loadDemoStats()));
     }
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement() });
@@ -101,7 +103,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     let m = /^\/v1\/badge\/(0x[0-9a-fA-F]{40})\.svg$/.exec(u.pathname);
     if (m) {
       const p = c.payees.find((x) => x.payee === m![1]!.toLowerCase());
-      res.writeHead(200, { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "max-age=300" });
+      res.writeHead(200, { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "max-age=300", "x-fiangshi-mode": providerMode() });
       return void res.end(badgeSvg(p?.band ?? null, p?.score ?? null));
     }
     m = /^\/v1\/receipt\/([0-9a-f]{64})$/.exec(u.pathname);
@@ -193,6 +195,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
 }
 
 export function startServer(port = num("PORT", 8787), host = process.env.HOST ?? "127.0.0.1") {
+  if (process.env.FIANGSHI_REPLAY === "1") process.env.FIANGSHI_OFFLINE = "1"; // fixture mode: recorded 402s, never the network
   if (process.env.FIANGSHI_OFFLINE !== "1") process.env.SNAPSHOT_SOURCE = "live"; // probe live endpoints
   process.env.MOCK_MODELS ??= "";
   loadCensus(); // fail fast if fixtures are missing
@@ -204,5 +207,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   loadDotEnv();
   const s = await startServer();
   const a = s.address();
-  console.log(`fiangshi listening on http://${typeof a === "object" && a ? `${a.address}:${a.port}` : a}`);
+  console.log(`fiangshi listening on http://${typeof a === "object" && a ? `${a.address}:${a.port}` : a} (providers: ${providerMode()})`);
 }

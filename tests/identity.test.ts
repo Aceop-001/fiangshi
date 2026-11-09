@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { corroborate, identityLevel, tokens } from "../src/core/identity.js";
 import { components, score } from "../src/core/score.js";
+import { evaluateVows } from "../src/core/vows.js";
 import { clean, LABELS } from "./helpers.js";
 
 describe("identity v3 corroboration sources", () => {
@@ -24,7 +25,7 @@ describe("identity v3 corroboration sources", () => {
     expect(corroborate({ claims: ["Toolsmith"], claimFrom: "catalog", url: "https://toolcall.click/t/fx/rates" })).toEqual([]);
   });
   it("levels", () => {
-    expect([identityLevel(false, [], null), identityLevel(true, [], false), identityLevel(true, ["host"], true), identityLevel(true, ["host", "label"], true)]).toEqual([0, 0.25, 0.5, 0.75]);
+    expect([identityLevel(false, [], null), identityLevel(true, [], false), identityLevel(true, ["host"], true), identityLevel(true, ["host", "label"], true)]).toEqual([null, null, 0.5, 0.75]);
   });
 });
 
@@ -35,8 +36,15 @@ describe("regression: self-claims are never penalised for existing", () => {
     const listed = { ...base, identity: { claims_org: "Acme", claims_product: null, corroborated: sources.length > 0, sources } };
     expect(score(components(listed, LABELS))).toBeGreaterThanOrEqual(score(components(base, LABELS)));
   });
-  it("even an uncorroborated self-claim scores >= no claim (0.25 >= 0)", () => {
+  it("an uncorroborated self-claim scores EXACTLY like no claim, and fires no vow (examination never penalises)", () => {
     const listed = { ...base, identity: { claims_org: "Zzz", claims_product: null, corroborated: false, sources: [] } };
-    expect(score(components(listed, LABELS))).toBeGreaterThanOrEqual(score(components(base, LABELS)));
+    expect(score(components(listed, LABELS))).toBe(score(components(base, LABELS)));
+    const fired = (s: typeof base) => evaluateVows({ signals: s, price: 0.05, funder_labels: LABELS }).filter((r) => r.fired).map((r) => r.vow);
+    expect(fired(listed)).toEqual(fired(base));
+  });
+  it("a contradicted claim is the only identity outcome that BLOCKs", () => {
+    const c = { ...base, identity: { claims_org: "Acme", claims_product: null, corroborated: false, sources: [], contradicted: true } };
+    const v = evaluateVows({ signals: c, price: 0.05, funder_labels: LABELS }).find((r) => r.vow === "identity")!;
+    expect(v).toMatchObject({ fired: true, band: "BLOCK" });
   });
 });

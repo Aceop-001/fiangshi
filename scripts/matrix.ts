@@ -54,15 +54,34 @@ const dolTimeouts = R.filter((r) => String(r.actual?.enrichment?.reason ?? "").i
 L.push(`## What this means`, ``);
 L.push(
   `${pass} of ${R.length} cases matched their written expectation. **${controls.filter((r) => r.actual.band === "ALLOW").length} of ${controls.length} real controls reached ALLOW** with no vow, even though the Dolphin identity extractor timed out on ${dolTimeouts} of ${R.length} cases. Identity extraction is optional enrichment: a timeout is stamped on the receipt (\`enrichment: incomplete\`) and never caps the verdict. Missing **Surf** data still routes to silence (REVIEW), so a missing required signal never quietly becomes ALLOW. ` +
-    `The sybil-funded payee was BLOCKed by kinship, and the zero-address endpoint was BLOCKed by V6 at probe time for $0.00 with no model call. The uncorroborated claimant was held at REVIEW by V5, which now applies at any age, and the payee with no on-chain history went to REVIEW through silence. ` +
+    `The sybil-funded payee was BLOCKed by kinship, and the zero-address endpoint was BLOCKed by V6 at probe time for $0.00 with no model call. ${(() => {
+      const b4 = R.find((r) => r.archetype === "anon-claimant");
+      if (!b4) return "";
+      const v = (b4.actual.vows_fired ?? []) as string[];
+      return v.includes("identity")
+        ? `The uncorroborated claimant was held at ${b4.actual.band} by V5. `
+        : `The uncorroborated claimant landed on ${b4.actual.band} (score ${b4.actual.score}) with **no identity vow**: under identity neutrality (2026-11-09) an uncorroborated claim is treated exactly like no claim, so V5 fires only on a contradicted claim. Its expectation (REVIEW · identity) was written before that rule change and is left unedited, so it shows as a FAILURE. `;
+    })()}The payee with no on-chain history went to REVIEW through silence. ` +
     `Two archetypes cannot be reached the way the original lab assumed, and the cases say so. A never-funded wallet has no age to judge, so it lands on silence, not age; Fiangshi holds no funds and cannot fund one. No live sleeper exists in the 800-payee census, and the synthetic one has payers, so the history vow cannot fire on it; it reaches REVIEW by score.`,
   ``,
 );
 
+const prevFile = files.length >= 2 ? files[files.length - 2]! : null;
+if (prevFile && prevFile !== files[0]) {
+  const prev = load(prevFile);
+  L.push(`## Previous run (${prev.ran_at}, \`fixtures/lab/${prevFile}\`, rules before identity neutrality)`, ``);
+  L.push(`| case | actual then | actual now |`, `|---|---|---|`);
+  for (const r of prev.results) {
+    const now = R.find((x) => x.id === r.id);
+    L.push(`| ${r.id} | ${r.actual.band} · ${(r.actual.vows_fired ?? []).join(", ") || "none"} · ${r.outcome} | ${now ? `${now.actual.band} · ${(now.actual.vows_fired ?? []).join(", ") || "none"} · ${now.outcome}` : "n/a"} |`);
+  }
+  L.push(``);
+}
+
 L.push(`## History: first run (${first.ran_at}, \`fixtures/lab/${files[0]}\`, rules of that day)`, ``);
 L.push(`| case | expected | actual | outcome |`, `|---|---|---|---|`);
 for (const r of first.results) L.push(`| ${r.id} | ${r.expected_band} · ${r.expected_vow ?? "no vow"} | ${r.actual.band} · ${(r.actual.vows_fired ?? []).join(", ") || "none"} | ${r.outcome}${r.why ? `: ${r.why}` : ""} |`);
-L.push(``, `Those failures were real under the rules of that day. B1 and B3 could not reach their intended vows, and are now expected on their alternate paths, with the reason written into \`cases-v2.json\` before the re-run. V5 only fired under 7 days old, and now applies at any age. The controls were capped at REVIEW by a failed optional extractor, which now stamps \`enrichment: incomplete\` instead.`, ``);
+L.push(``, `Those failures were real under the rules of that day. B1 and B3 could not reach their intended vows, and are now expected on their alternate paths, with the reason written into \`cases-v2.json\` before the re-run. V5 then fired only on uncorroborated claims under 7 days old; it now fires only on a contradicted claim (identity neutrality). The controls were capped at REVIEW by a failed optional extractor, which now stamps \`enrichment: incomplete\` instead.`, ``);
 const md = L.join("\n") + "\n";
 writeFileSync(join(ROOT, "artifacts", "lab.md"), md);
 writeFileSync(join(ROOT, "artifacts", "matrix.md"), md);

@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { guarded } from "../../scripts/budget.js";
-import { PROBE_TIMEOUT_MS, dataDir, env, isOffline, mockModels, num } from "../config.js";
+import { PROBE_TIMEOUT_MS, dataDir, env, isOffline, mockModels, num, replayDir, replayMode } from "../config.js";
 import { hashOf } from "../core/canonical.js";
 import { validateModelOutput, type ModelAdvice } from "../core/decide.js";
 import { bandForScore, type Band, type PayeeSignals, type Terms } from "../core/types.js";
@@ -172,6 +172,16 @@ async function liveText(i: AdjudicationInput, strict: boolean): Promise<string> 
 }
 
 export async function adjudicate(i: AdjudicationInput): Promise<ModelAdvice> {
+  if (replayMode()) {
+    // fixture mode: the recorded SERV reply, validated exactly like a live one; no recording -> degraded (fail closed)
+    const p = join(replayDir(), "serv", `${hashOf({ payee: i.signals.payee, terms_hash: i.terms?.terms_hash ?? null })}.json`);
+    if (!existsSync(p)) {
+      process.stderr.write(`WARN serv replay: no recorded response for ${i.signals.payee}; degraded verdict\n`);
+      return { model: "replay:missing", validation: null, attempts: 0 };
+    }
+    const rec = JSON.parse(readFileSync(p, "utf8")) as { model: string; text: string };
+    return { model: `replay:${rec.model}`, validation: validateModelOutput(rec.text, i.signals), attempts: 0 };
+  }
   const mode = mockModels();
   const useMock = mode !== "" || isOffline();
   const model = useMock ? `mock:${mode || "broken"}` : env("SERV_MODEL", "unset");

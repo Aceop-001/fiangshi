@@ -89,7 +89,7 @@ describe("parallel SERV + Dolphin", () => {
     expect(elapsed).toBeLessThan(4 * 120 - 20);
   });
 
-  it("both succeed, no corroboration context -> Dolphin claim merged as an uncorroborated self-claim (I 0.25)", async () => {
+  it("both succeed, no corroboration context -> Dolphin claim merged as an uncorroborated self-claim (I excluded, neutral)", async () => {
     const s = anon();
     stub("ok", "ok", servAllow(s));
     const r = await evaluateFull(TERMS, s, LABELS, "Acme - the API");

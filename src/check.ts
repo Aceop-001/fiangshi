@@ -2,6 +2,13 @@
 import { probe } from "./adapters/probe.js";
 import { adjudicate } from "./adapters/serv.js";
 import { extractIdentity, liveTransport, type ExtractResult } from "./adapters/dolphin.js";
+import { join } from "node:path";
+import { replayDir, replayMode } from "./config.js";
+
+/** Fixture mode: a listing with no recorded Dolphin reply is a provider failure (enrichment incomplete), never a network call. */
+const replayTransport = async (): Promise<unknown> => {
+  throw new Error("replay: no recorded Dolphin response for this listing");
+};
 import { currentSettlement } from "./adapters/x402.js";
 import { hashOf } from "./core/canonical.js";
 import { decide, type Decision } from "./core/decide.js";
@@ -100,7 +107,11 @@ export async function evaluateFull(
   let dolphinMs: number | null = null;
   const [advice, extraction] = await Promise.all([
     adjudicate({ terms, signals, score: sc, silence }).finally(() => (servMs = performance.now() - t0)),
-    sellerText ? extractIdentity(sellerText, liveTransport).finally(() => (dolphinMs = performance.now() - t0)) : Promise.resolve(null),
+    sellerText
+      ? (replayMode()
+          ? extractIdentity(sellerText, replayTransport, join(replayDir(), "dolphin"))
+          : extractIdentity(sellerText, liveTransport)
+        ).finally(() => (dolphinMs = performance.now() - t0)) : Promise.resolve(null),
   ]);
   let merged = signals;
   if (extraction?.claims && !signals.identity.claims_org && !signals.identity.claims_product) {

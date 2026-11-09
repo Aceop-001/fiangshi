@@ -74,7 +74,7 @@ export function revenue(s: PayeeSignals): number | null {
 }
 
 /**
- * I identity v3 (2026-11-09): 0 claims -> 0 · self-claim only -> 0.25 · + 1 independent source -> 0.5 · + 2 -> 0.75.
+ * I identity neutrality (2026-11-09): no claim or an uncorroborated claim -> null (weight excluded) · 1 source -> 0.5 · 2+ -> 0.75.
  * A self-claim is never scored below having no claim at all. See src/core/identity.ts for the sources.
  */
 export function identityScore(s: PayeeSignals): number | null {

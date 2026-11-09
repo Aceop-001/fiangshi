@@ -64,20 +64,20 @@ export const RULES: Record<VowName, Rule> = {
     reason: `distinct_payers=${s.distinct_payers}, price=$${price} (review if 0 payers and > $${HISTORY_PRICE_USD})`,
     signal: "distinct_payers",
   }),
-  /** V5 (2026-11-09): contradicted claim -> BLOCK; uncorroborated claim -> REVIEW at ANY age; no claim -> no vow. */
+  /** V5 (identity neutrality, 2026-11-09): contradicted claim -> BLOCK. An uncorroborated claim is identical to no claim: no vow. */
   identity: ({ signals: s }) => {
     const claim = s.identity.claims_org ?? s.identity.claims_product;
     const contradicted = Boolean(claim) && s.identity.contradicted === true;
     const uncorroborated = Boolean(claim) && s.identity.corroborated !== true;
     return {
-      fired: contradicted || uncorroborated,
-      band: contradicted ? "BLOCK" : "REVIEW",
+      fired: contradicted,
+      band: "BLOCK",
       reason: !claim
         ? "no identity claim (identity weight renormalised away)"
         : contradicted
           ? `claims "${claim}" but a Surf label names a different entity`
           : uncorroborated
-            ? `claims "${claim}" with no independent corroboration (URL host/path, label)`
+            ? `claims "${claim}" with no independent corroboration: treated as no claim (neutral)`
             : `claims "${claim}", corroborated by ${(s.identity.sources ?? []).join("+") || "legacy flag"}`,
       signal: "identity",
     };

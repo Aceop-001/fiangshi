@@ -143,13 +143,13 @@ None: no payee was excluded. Every failed **payee** query was resolved by bisect
 
 | band | payees | share |
 |---|---|---|
-| ALLOW | 44 | 5.5% |
-| REVIEW | 469 | 58.6% |
+| ALLOW | 49 | 6.1% |
+| REVIEW | 464 | 58.0% |
 | BLOCK | 287 | 35.9% |
 
-Vows fired: kinship 243 · identity 64 · silence 35 · null_payee 1.
+Vows fired: kinship 243 · identity 1 · silence 35 · null_payee 1.
 
-E v1 → v2: **48 of 800 payees changed band** (v1 {"ALLOW":6,"REVIEW":497,"BLOCK":297} → v2 {"ALLOW":44,"REVIEW":469,"BLOCK":287}). 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
+E v1 → v2: **53 of 800 payees changed band** between E v1 and the current E v2 scoring. 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
 
 *For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.
 
@@ -203,13 +203,13 @@ Top 3 audited payees by policy score, re-checked through the full pipeline: live
 
 Binding constraint: of 12 checks, 5 were capped to REVIEW because Dolphin timed out (fail-closed extractor), not because of the rubric. Latency is dominated by Dolphin: SERV answers in about 2–3 s, or milliseconds from cache. In parallel, a full check costs about max(SERV, Dolphin), not their sum.
 
-*For a buyer:* an ALLOW here survived every deterministic check and the model's advice on live data. A slow identity extractor costs you an ALLOW (REVIEW), never a false ALLOW.
+*For a buyer:* an ALLOW here survived every deterministic check and the model's advice on live data. A slow identity extractor is stamped `enrichment: incomplete` and never caps the verdict (the rows above predate that change and show it capping at REVIEW).
 
 ## Caveats
 
-- Ages are floors. 84 payees sit at the window start, so their true age is ≥ 90d, never stated in years. The 48h age vow and the 7-day identity vow are unaffected: both thresholds sit inside the window.
-- Band counts by stage: five vows ALLOW 16 / REVIEW 471 / BLOCK 313 (commit dfba1ca) → + V6 15 / 471 / 314 (the zero address moves ALLOW → BLOCK) → + funder labels (21 payees exempted from kinship) → this report's counts above.
-- Calibration (not tuned): when Dolphin extracts a claimed name from a seller's *own* listing, that claim is uncorroborated, so I = 0 instead of the anonymous 0.5. Observed live: 80.91 → 75.07 (ALLOW → REVIEW) for one hunt payee. Extracting a claim can lower a score; corroboration sources are the fix, not the rubric.
+- Ages are floors. 84 payees sit at the window start, so their true age is ≥ 90d, never stated in years. The 48h age vow is unaffected: its threshold sits inside the window.
+- The band counts above are the only split this report states: they are what the committed rules produce today. Earlier rule sets are in git history (`git log scripts/audit.ts src/core`), not restated here.
+- Identity neutrality (2026-11-09): an uncorroborated claim is treated exactly like no claim (identity weight excluded, no vow). Only a claim a Surf label contradicts BLOCKs. Extraction must never penalise being examined.
 - Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.
-- Identity counts as corroborated only where Surf has an `entity_name` label. Dolphin claim extraction is not wired into this audit.
+- Identity is corroborated by the catalog listing name matching the URL host or path, or by a Surf `entity_name` label. Dolphin claim extraction is not run in this audit (census receipts carry `enrichment: skipped`).
 - E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.

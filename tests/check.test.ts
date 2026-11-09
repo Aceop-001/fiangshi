@@ -20,7 +20,8 @@ const cases: [string, string, string | undefined][] = [
   ["https://api.weatherly.example/v1/forecast", "ALLOW", undefined],
   ["https://fresh-oracle.example/v1/price", "BLOCK", "age"],
   ["https://swarm-a.example/v1/search", "BLOCK", "kinship"],
-  ["https://weatherly-official.example/v1/forecast", "BLOCK", "identity"],
+  // identity neutrality: an uncorroborated claim fires no vow; the lookalike still BLOCKs on its own score (48.3 < 50)
+  ["https://weatherly-official.example/v1/forecast", "BLOCK", undefined],
   // no claim -> identity renormalised away (50.64): REVIEW via history again
   ["https://premium-signals.example/v1/alpha", "REVIEW", "history"],
   ["https://unknown-seller.example/v1/data", "REVIEW", "silence"],

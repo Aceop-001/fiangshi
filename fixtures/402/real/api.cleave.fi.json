@@ -1,0 +1,170 @@
+{
+  "url": "https://api.cleave.fi/x402/gas",
+  "status": 402,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=86400",
+    "cache-control": "no-store",
+    "cf-ray": "a57b634cb9ed1ebf-HKG",
+    "content-length": "2848",
+    "content-type": "application/json",
+    "date": "Mon, 09 Nov 2026 08:18:38 GMT",
+    "link": "<https://cleave.fi/terms>; rel=\"terms-of-service\", <https://cleave.fi/privacy>; rel=\"privacy-policy\"",
+    "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9hcGkuY2xlYXZlLmZpL3g0MDIvZ2FzIiwiZGVzY3JpcHRpb24iOiJOYXRpdmUgZ2FzIG9uIEV0aGVyZXVtLCBBcmJpdHJ1bSwgQmFzZSwgQk5CIENoYWluLCBQb2x5Z29uIG9yIE9wdGltaXNtLCBwYWlkIGluIFVTREMgb24gQmFzZSwgQXJiaXRydW0gb3IgUG9seWdvbi4gT3JkZXJzOiAwLjgtNTAgVVNEQzsgZ2FzIG9uIEV0aGVyZXVtIDUtNTAuIFNlbmQgcGF5LCBjaGFpbklkLCByZWNpcGllbnQsIHVzZGMgKGNyb3NzLWNoYWluOiB3YWxsZXQgb3IgcmVmdW5kVG8pIGZvciBhbiBvZmZlcjsgdGhlIGJhcmUgVVJMIGlzIGEgc2FtcGxlLiBBIG9uZS1vcmRlciBhZGRyZXNzIHN3YXBzIFVTREMgdG8gbmF0aXZlIGdhczsgZnJvbSBhbm90aGVyIGNoYWluIGl0IGJyaWRnZXMgYW5kIHN3YXBzIG9uIGFycml2YWwsIGVsc2UgZGVsaXZlcnMgVVNEQy4gVW5leGVjdXRlZCBvcmRlcnMgcmVmdW5kIGFmdGVyIHRoZSBkZWFkbGluZSwgdW5maWxsZWQgY3Jvc3MtY2hhaW4gb25lcyB1c3VhbGx5IHdpdGhpbiBob3VycywgaWYgd29ydGggc3dlZXBpbmcuIiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIn0sImFjY2VwdHMiOlt7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo4NDUzIiwiYW1vdW50IjoiODAwMDAwIiwiYXNzZXQiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJwYXlUbyI6IjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsIm1heFRpbWVvdXRTZWNvbmRzIjozMDAsImV4dHJhIjp7Im5hbWUiOiJVU0QgQ29pbiIsInZlcnNpb24iOiIyIiwia2luZCI6InN3YXAiLCJvcmRlciI6eyJjaGFpbklkIjoiODQ1MyIsInRva2VuIjoiMHg4MzM1ODlmQ0Q2ZURiNkUwOGY0YzdDMzJENGY3MWI1NGJkQTAyOTEzIiwic2hlbGwiOiIweDNBNDU2OTEzM2MyMTAxM2JiQmM5OWE3MzNGQjg5MUE3ZmZmYWZEOWEiLCJhbW91bnQiOiI4MDAwMDAiLCJmZWUiOiIxIiwiZmVlUmVjaXBpZW50IjoiMHg5NGE1OGJmMTdCMzI1MjEyNTlGNUNlNUE5YWEyN0VlNGEwNTYzMjNCIiwibWF4UHJvdG9jb2xGZWVCcHMiOiIwIiwicmVmdW5kVG8iOiIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJyZWNpcGllbnQiOiIweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJtaW5PdXQiOiIxIiwiZGVhZGxpbmUiOiIxNzk0MjE4NDAwIiwicXVvdGVJZCI6IjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMSJ9LCJvcmRlckhhc2giOiIweDJjNjUzYTdhMTRhMDdiZmIwNzM3NzRiZTQ5ZTlkYWMyNWU3MDlkNTQ2YWMxY2RkZjY3YTM0NDRmY2E3MjYwZDIiLCJwYXlUbyI6IjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInRlbXBsYXRlIjoiMHgxMjJkMGExZTU1ZDZDZDk2NmM5MDZBQjI3QzRDNzRlN2EzQjllRDc5IiwiZmFjdG9yeSI6IjB4MTI5ZjkzNDIxMTUxMGI4QzBBYzBlZjA3MzY2ZjVkYmE5MjQ3N2MzNiIsIm91dGNvbWUiOiJuYXRpdmVfb3JfcmVmdW5kIn19XSwiZXh0ZW5zaW9ucyI6eyJiYXphYXIiOnsiaW5mbyI6eyJpbnB1dCI6eyJ0eXBlIjoiaHR0cCIsIm1ldGhvZCI6IkdFVCIsInF1ZXJ5UGFyYW1zIjp7InBheSI6Ijg0NTMiLCJjaGFpbklkIjoiODQ1MyIsInJlY2lwaWVudCI6IjB4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInVzZGMiOiIwLjgifX0sIm91dHB1dCI6eyJ0eXBlIjoianNvbiIsImV4YW1wbGUiOnsicmVxdWVzdElkIjoiZzo4NDUzOjB44oCmIiwic3RhdGUiOiJwZW5kaW5nIiwicGF5VG8iOiIweOKApiIsIm1pbmltdW0iOiLigKYiLCJmZWUiOiLigKYiLCJkZWFkbGluZSI6MH19fSwic2NoZW1hIjp7IiRzY2hlbWEiOiJodHRwczovL2pzb24tc2NoZW1hLm9yZy9kcmFmdC8yMDIwLTEyL3NjaGVtYSIsInR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7ImlucHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyIsImNvbnN0IjoiaHR0cCJ9LCJtZXRob2QiOnsidHlwZSI6InN0cmluZyIsImVudW0iOlsiR0VUIl19LCJxdWVyeVBhcmFtcyI6eyJ0eXBlIjoib2JqZWN0IiwicHJvcGVydGllcyI6eyJwYXkiOnsidHlwZSI6InN0cmluZyIsInBhdHRlcm4iOiJeWzEtOV1bMC05XXswLDl9JCJ9LCJjaGFpbklkIjp7InR5cGUiOiJzdHJpbmciLCJwYXR0ZXJuIjoiXlsxLTldWzAtOV17MCw5fSQifSwicmVjaXBpZW50Ijp7InR5cGUiOiJzdHJpbmciLCJwYXR0ZXJuIjoiXjB4WzAtOWEtZkEtRl17NDB9JCJ9LCJ1c2RjIjp7InR5cGUiOiJzdHJpbmciLCJwYXR0ZXJuIjoiXlswLTldezEsOX0oXFwuWzAtOV17MSw2fSk/JCJ9LCJyZWZ1bmRUbyI6eyJ0eXBlIjoic3RyaW5nIiwicGF0dGVybiI6Il4weFswLTlhLWZBLUZdezQwfSQifSwid2FsbGV0Ijp7InR5cGUiOiJzdHJpbmciLCJwYXR0ZXJuIjoiXjB4WzAtOWEtZkEtRl17NDB9JCJ9fSwicmVxdWlyZWQiOlsicGF5IiwiY2hhaW5JZCIsInJlY2lwaWVudCIsInVzZGMiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfX0sInJlcXVpcmVkIjpbInR5cGUiLCJtZXRob2QiXSwiYWRkaXRpb25hbFByb3BlcnRpZXMiOmZhbHNlfSwib3V0cHV0Ijp7InR5cGUiOiJvYmplY3QiLCJwcm9wZXJ0aWVzIjp7InR5cGUiOnsidHlwZSI6InN0cmluZyJ9LCJleGFtcGxlIjp7InR5cGUiOiJvYmplY3QifX0sInJlcXVpcmVkIjpbInR5cGUiXX19LCJyZXF1aXJlZCI6WyJpbnB1dCJdfX19fQ==",
+    "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=a5T6wqgV2o5LU55lQQz2YFObZwF4YKoQ1dVHYtE7j59holgC1k7rAH2tcNv4%2FVdygmYfofHDCgU%2Bfe6vJ4xgDiRmCpwot%2FjojjAz%2BXalOhOb20Jm31okufr8lkrLWvCTKy059jGz51lQvnv9\"}]}",
+    "server": "cloudflare",
+    "strict-transport-security": "max-age=63072000; includeSubDomains",
+    "vary": "Origin",
+    "x-request-id": "0e0f933a-ba62-4950-8c6a-9d09e31cbbf4",
+    "x-robots-tag": "noindex"
+  },
+  "body": {
+    "x402Version": 2,
+    "resource": {
+      "url": "https://api.cleave.fi/x402/gas",
+      "description": "Native gas on Ethereum, Arbitrum, Base, BNB Chain, Polygon or Optimism, paid in USDC on Base, Arbitrum or Polygon. Orders: 0.8-50 USDC; gas on Ethereum 5-50. Send pay, chainId, recipient, usdc (cross-chain: wallet or refundTo) for an offer; the bare URL is a sample. A one-order address swaps USDC to native gas; from another chain it bridges and swaps on arrival, else delivers USDC. Unexecuted orders refund after the deadline, unfilled cross-chain ones usually within hours, if worth sweeping.",
+      "mimeType": "application/json"
+    },
+    "accepts": [
+      {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "800000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "payTo": "0x0000000000000000000000000000000000000000",
+        "maxTimeoutSeconds": 300,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2",
+          "kind": "swap",
+          "order": {
+            "chainId": "8453",
+            "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "shell": "0x3A4569133c21013bbBc99a733FB891A7fffafD9a",
+            "amount": "800000",
+            "fee": "1",
+            "feeRecipient": "0x94a58bf17B32521259F5Ce5A9aa27Ee4a056323B",
+            "maxProtocolFeeBps": "0",
+            "refundTo": "0x0000000000000000000000000000000000000000",
+            "recipient": "0x0000000000000000000000000000000000000000",
+            "minOut": "1",
+            "deadline": "1794218400",
+            "quoteId": "0x0000000000000000000000000000000000000000000000000000000000000001"
+          },
+          "orderHash": "0x2c653a7a14a07bfb073774be49e9dac25e709d546ac1cddf67a3444fca7260d2",
+          "payTo": "0x0000000000000000000000000000000000000000",
+          "template": "0x122d0a1e55d6Cd966c906AB27C4C74e7a3B9eD79",
+          "factory": "0x129f934211510b8C0Ac0ef07366f5dba92477c36",
+          "outcome": "native_or_refund"
+        }
+      }
+    ],
+    "extensions": {
+      "bazaar": {
+        "info": {
+          "input": {
+            "type": "http",
+            "method": "GET",
+            "queryParams": {
+              "pay": "8453",
+              "chainId": "8453",
+              "recipient": "0x0000000000000000000000000000000000000000",
+              "usdc": "0.8"
+            }
+          },
+          "output": {
+            "type": "json",
+            "example": {
+              "requestId": "g:8453:0x…",
+              "state": "pending",
+              "payTo": "0x…",
+              "minimum": "…",
+              "fee": "…",
+              "deadline": 0
+            }
+          }
+        },
+        "schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "http"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET"
+                  ]
+                },
+                "queryParams": {
+                  "type": "object",
+                  "properties": {
+                    "pay": {
+                      "type": "string",
+                      "pattern": "^[1-9][0-9]{0,9}$"
+                    },
+                    "chainId": {
+                      "type": "string",
+                      "pattern": "^[1-9][0-9]{0,9}$"
+                    },
+                    "recipient": {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-fA-F]{40}$"
+                    },
+                    "usdc": {
+                      "type": "string",
+                      "pattern": "^[0-9]{1,9}(\\.[0-9]{1,6})?$"
+                    },
+                    "refundTo": {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-fA-F]{40}$"
+                    },
+                    "wallet": {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-fA-F]{40}$"
+                    }
+                  },
+                  "required": [
+                    "pay",
+                    "chainId",
+                    "recipient",
+                    "usdc"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "type",
+                "method"
+              ],
+              "additionalProperties": false
+            },
+            "output": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "example": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "required": [
+            "input"
+          ]
+        }
+      }
+    }
+  },
+  "recorded_at": "2026-11-09T08:18:38.741Z"
+}

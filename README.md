@@ -11,11 +11,17 @@ cp .env.example .env
 npm ci
 npm test
 npm run accept
+npm run localhost-check     # 10-step end-to-end check, FIXTURE mode: zero keys, 127.0.0.1 only
 npm run dev                 # API + index on http://127.0.0.1:8787
-npm run localhost-check     # 10-step end-to-end check (starts its own server; stop `npm run dev` first)
+curl "http://127.0.0.1:8787/v1/check?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas"
 ```
 
-`npm test` and `npm run accept` run fully offline from committed fixtures, with no keys and a no-network preload. `npm run localhost-check` probes two real endpoints live and needs `SERV_REASONING_API_KEY` in `.env` for the ALLOW step. Without the key, SERV fails closed, the check degrades to REVIEW, and steps 5–6 fail (8/10), as designed. Fresh-clone result on 2026-11-09 with keys and empty caches: 10/10, cold step 5 in 24.4 s (Dolphin timed out twice, so `enrichment: incomplete`, still ALLOW).
+Everything above needs **no keys** and touches no network beyond 127.0.0.1:
+- `npm test` and `npm run accept` run on committed fixtures under a no-network preload.
+- `npm run localhost-check` defaults to **fixture mode**. Recorded 402s (`fixtures/402/real`) and recorded SERV and Dolphin replies (`fixtures/recorded`, made by `npx tsx scripts/record-replay.ts`) are replayed through the real parser, vows and receipt chain. The server runs under the no-network preload, and every response is marked `mode: "fixture"`. A missing recording fails closed; it never falls back to the network.
+- `npm run localhost-check -- --live` uses real providers and needs `SERV_REASONING_API_KEY` in `.env`.
+
+`localhost-check` starts its own server on 8787, so stop `npm run dev` first, or set `FIANGSHI_CHECK_PORT`.
 
 ## The six vows (frozen)
 
@@ -27,7 +33,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | **age** | payee first seen < 48 h ago | BLOCK |
 | **kinship** | first funder shared with ≥3 other catalog payees; exchange and relayer funders exempt | BLOCK |
 | **history** | 0 distinct payers and price > $0.50 | REVIEW |
-| **identity** (V5) | claimed name contradicted by a label → BLOCK; claimed but uncorroborated (any age) → REVIEW | BLOCK / REVIEW |
+| **identity** (V5) | claimed name contradicted by a Surf label. An uncorroborated claim is treated exactly like no claim (identity neutrality) | BLOCK |
 | **silence** | a required Surf signal is missing | REVIEW |
 
 **Live example: `api.cleave.fi/x402/gas`.** Its 402 asks for **$0.80** (the catalog said $5.00) to be paid to `0x0000…0000`, the zero address, where money is unrecoverable. On the rubric alone it scored 80.9, an ALLOW. V6 BLOCKs it at probe time with a sealed receipt, **$0.00 cost and 0 model calls** (`npm run localhost-check`, step 3).
@@ -37,21 +43,22 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | | value | source |
 |---|---|---|
 | census coverage | **800 of 1,923 Base payees, 90-day window** (41.6%) | `npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90` → `artifacts/audit.md` |
-| bands | **44 ALLOW · 469 REVIEW · 287 BLOCK** | same; also `GET /v1/index.json` |
+| bands | **49 ALLOW · 464 REVIEW · 287 BLOCK** | same; also `GET /v1/index.json` |
+| ALLOW composition | 12 no claim · 5 claim with 0 sources · 26 with 1 source · 6 with 2+ | `npx tsx scripts/allow-composition.ts` |
 | kinship BLOCKs | 243, all on funders Surf could not name (an upper bound) | same |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
-| adversarial lab | **9 / 9** cases match expectations written before the run; 3 / 3 real controls ALLOW | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 219 passing; accept 11 / 11 | `npm test`, `npm run accept` |
-| localhost end to end | 10 / 10 PASS | `npm run localhost-check` → `artifacts/demo-stats.json` |
+| adversarial lab | **8 / 9** cases match expectations written before the run; 3 / 3 real controls ALLOW. B4 is a recorded FAILURE: it is still REVIEW, but identity neutrality means V5 no longer fires on it | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
+| tests | 224 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
-An earlier brief quoted 15 / 449 / 336 for the headline. Those figures don't come from the committed rules, so they aren't used anywhere. The counts above are what `audit.ts report` produces today. Earlier rule sets are listed in `artifacts/audit.md` under "Band counts by stage".
+These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
 
 ## Latency and price
 
 | | latency | price |
 |---|---|---|
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
-| cached check (payee in the census) | **warm p50 294 ms** (`artifacts/demo-stats.json`, 3 calls including the live probe) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
+| cached check (payee in the census) | **warm p50 311 ms** (`artifacts/demo-stats.json`, live mode, 3 calls including the live probe) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | cold check (payee not in the census: Surf + SERV + Dolphin) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.15** (`FIANGSHI_PRICE_CHECK_COLD`) |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |
 
@@ -75,7 +82,7 @@ Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signat
 - **90-day window.** Wallet age is a lower bound: first seen within 90 days.
 - **Unnamed funders.** Surf names few funders. The six largest shared-funder clusters are unnamed, so kinship BLOCKs are an upper bound.
 - **No live payee under 48 h.** 0 of 800 census payees are that young, so the age vow is tested on fixtures but has not fired live.
-- **Label coverage is thin.** 16 of 463 addresses got a Surf label (3.5%). Missing identity is scored as neutral (renormalised), not as trust.
+- **Label coverage is thin.** 16 of 463 addresses got a Surf label (3.5%). Missing or uncorroborated identity is scored as neutral (weight excluded), not as trust and not as a penalty.
 - Dolphin identity extraction is **optional enrichment**. A timeout is stamped `enrichment: incomplete` on the receipt and never caps the verdict.
 - Receipts are hash-chained (`sha256` + `prev_hash`), **not signed**.
 
@@ -97,7 +104,7 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 
 - A degraded model counts as REVIEW. A model BLOCK is applied as REVIEW, because a BLOCK needs a machine-checkable reason.
 - Invalid data (negative ages, future timestamps, NaN, self-funding) is cleaned to "missing", which triggers silence and REVIEW. Data errors never BLOCK.
-- Identity is optional: no claim means no identity weight (renormalised), and optional components can only raise a score.
+- Identity neutrality: extraction must never penalise being examined. No claim and an uncorroborated claim both exclude the identity weight. 1 source gives 0.5, 2+ give 0.75, and only a contradicted claim BLOCKs (V5). Optional components can only raise a score.
 - The reported `vow_fired` is the most severe vow that fired. Ties go by listed order.
 
 ## Build Log
@@ -114,3 +121,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-09 Phase 3c–3e.** Static index page, an API with a real x402 v2 402 and dry-run settlement, and `npm run localhost-check` (10/10). The no-network preload now allows loopback, after phase3d had been committed with accept red.
 - **2026-11-09 Phase 3f.** This README, LICENSE, `.nvmrc`, and a fresh-clone test.
 - **2026-11-09 Phase 3g.** `localhost-check` forces live mode for its own server, whatever `.env` says. Fresh clone: test 219/219, accept 11/11, localhost-check 10/10 with keys (8/10 keyless, failing closed). Local bundle refreshed. No remote.
+- **2026-11-09 Phase 3h.** The ALLOW composition audit found examination penalised: 63 examined-but-uncorroborated payees had 0 ALLOWs, and all live lab ALLOWs had `enrichment: incomplete`. Identity neutrality: an uncorroborated claim is identical to no claim, and V5 fires only on contradiction. Census 49 / 464 / 287, lab 8/9 (B4 recorded as a FAILURE). `localhost-check` defaults to fixture mode (zero keys, loopback only); `-- --live` for real providers.

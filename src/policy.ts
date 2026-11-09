@@ -10,8 +10,8 @@ export interface PolicyResult {
   fired: VowName[];
 }
 
-export function policyBand(s: PayeeSignals, price: number | null, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2"): PolicyResult {
-  const sc = score(components(s, labels, eVersion));
+export function policyBand(s: PayeeSignals, price: number | null, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2", windowH?: number): PolicyResult {
+  const sc = score(components(s, labels, eVersion, windowH));
   // v1 required token concentration; v2 requires top_payer_share. Silence follows the version's E input.
   const probe = eVersion === "v1" ? { ...s, top_payer_share: s.token_asset_share } : s;
   const rows = evaluateVows({ signals: probe, price, funder_labels: labels });
@@ -27,13 +27,13 @@ export interface BandDiff {
   v2: Record<Band, number>;
 }
 
-export function diffE(items: { s: PayeeSignals; price: number | null }[], labels: Record<string, FunderLabel>): BandDiff {
+export function diffE(items: { s: PayeeSignals; price: number | null }[], labels: Record<string, FunderLabel>, windowH?: number): BandDiff {
   const v1 = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
   const v2 = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
   const changed: BandDiff["changed"] = [];
   for (const { s, price } of items) {
-    const a = policyBand(s, price, labels, "v1");
-    const b = policyBand(s, price, labels, "v2");
+    const a = policyBand(s, price, labels, "v1", windowH);
+    const b = policyBand(s, price, labels, "v2", windowH);
     v1[a.band]++;
     v2[b.band]++;
     if (a.band !== b.band) changed.push({ payee: s.payee, v1: a.band, v2: b.band, v1Score: a.score, v2Score: b.score });

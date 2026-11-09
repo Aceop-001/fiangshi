@@ -20,7 +20,7 @@ import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parse402 } from "../src/adapters/probe.js";
 import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
-import { sha256 } from "../src/core/canonical.js";
+import { hashOf, sha256 } from "../src/core/canonical.js";
 import type { Band, PayeeSignals } from "../src/core/types.js";
 import { loadDotEnv } from "../src/config.js";
 import { diffE, policyBand } from "../src/policy.js";
@@ -34,8 +34,14 @@ const AUD = join(ROOT, "fixtures", "audit");
 const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env.HOME ?? "", ".local", "bin", "surf.exe");
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
 const FREE_PER_DAY = 30;
-const DAYS = 365;
+/** Surf lookback window in days. Set per run with --days (2026-11-09 decision: 90 uniformly for the census). */
+let DAYS = 365;
+export const setWindowDays = (d: number) => {
+  DAYS = d;
+};
 const COST = { sql: 5, labels: 1 } as const; // measured 2026-11-08 (docs: 4 and 4)
+/** Balance delta of one billed scan refusal (measured 2026-11-09: SYNC_QUERY_REQUIRES_ASYNC and async QUERY_FAILED both 4). */
+const BILLED_REFUSAL = 4;
 const ADDR = /^0x[0-9a-f]{40}$/;
 
 interface CatalogRow { resource: string | null; serviceName: string | null; network: string | null; payTo: string | null; amount: string | null; asset: string | null }
@@ -153,8 +159,15 @@ interface Checkpoint {
   /** Payees whose inbound / outbound query has returned and been persisted (stage sizes may differ between runs). */
   inbound_done?: string[];
   outbound_done?: string[];
-  chunk_costs?: { at: string; payees: number; credits: number | null }[];
+  chunk_costs?: { at: string; payees: number; credits: number | null; refusals?: number; net?: number | null }[];
+  refusals?: { at: string; template: string; payees: number; message: string }[];
+  scan_heavy?: { at: string; template: string; addresses: string[]; message: string }[];
+  excluded?: string[];
+  /** "<template>:<sha256 of sorted addresses>" for sets Surf refused or that were killed: never re-sent. */
+  failed_sets?: string[];
   funders_done: boolean;
+  /** Set when the funder-outbound pass could not run (e.g. scan refused); the report states the fallback. */
+  funders_skipped?: string;
   funder_rows: SurfPayeeRow[];
   labels_done: string[];
   labels: SurfWalletLabel[];
@@ -170,17 +183,24 @@ export function creditsUsedTodayUtc(costsMd = join(ROOT, "artifacts", "costs.md"
     .reduce((a, l) => a + (Number(l.split("|")[5]?.trim()) || 0), 0);
 }
 
-function labelsCall(addrs: string[]): Promise<{ data: SurfWalletLabel[]; credits: number | null; ms: number }> {
+export function labelsCall(addrs: string[]): Promise<{ data: SurfWalletLabel[]; credits: number | null; ms: number }> {
   const t = Date.now();
   return guarded("surf", `wallet-labels-batch n=${addrs.length}`, async () => {
     const r = spawnSync(SURF, ["wallet-labels-batch", "--addresses", addrs.join(","), "--json"], { encoding: "utf8", timeout: 60_000 });
-    const j = JSON.parse(r.stdout || "{}") as { error?: { code: string; message: string }; meta?: { credits_used?: number }; data?: SurfWalletLabel[] };
-    if (j.error) throw new Error(`${j.error.code}: ${j.error.message}`);
+    const j = JSON.parse(r.stdout || "{}") as { error?: { code: string; message: string }; error_code?: string; message?: string; success?: boolean; meta?: { credits_used?: number }; data?: SurfWalletLabel[] };
+    // fail closed: non-zero exit, either error shape ({error:{code}} or {error_code, success:false}), or no data array
+    if (r.status !== 0 || j.error || j.error_code || j.success === false || !Array.isArray(j.data))
+      throw new Error(`labels: ${j.error?.code ?? j.error_code ?? `exit_${r.status}`}: ${j.error?.message ?? j.message ?? "no data array"}`);
     return { value: { data: j.data ?? [], credits: j.meta?.credits_used ?? null, ms: Date.now() - t }, units: j.meta?.credits_used ?? null };
   });
 }
 
 class StopRun extends Error {}
+/** A query Surf refused for scan size (billed); the runner bisects instead of stopping. */
+class ScanRefused extends Error {}
+
+/** One checkpoint per (sample, window): runs at different windows never mix. */
+export const checkpointPath = (samplePath: string, days = DAYS) => join(AUD, `checkpoint-${basename(samplePath, ".json")}-w${days}.json`);
 
 /** Surf refusals that must stop an unattended run (checkpoint + exit), never be retried in a loop. */
 export const STOP_CODES = ["SQL_QUERY_IN_FLIGHT", "QUERY_TIMEOUT", "SQL_SYNC_COOLDOWN", "SYNC_QUERY_REQUIRES_ASYNC", "SYNC_PREFLIGHT_UNAVAILABLE", "ADMISSION_UNAVAILABLE", "RATE_LIMITED", "UNAUTHORIZED"];
@@ -304,6 +324,10 @@ export interface RunOpts {
   maxChunkCredits?: number;
   /** Run funders + labels for the payees audited so far, even if the sample is not complete (partial census). */
   finish?: boolean;
+  /** On a billed scan refusal, bisect groups larger than this; a refused group of this size is excluded as scan-heavy. */
+  bisectMin?: number;
+  /** wallet-labels-batch group size (default 100; Surf returned INTERNAL_ERROR at 100 on 2026-11-09). */
+  labelChunk?: number;
   /** Funder-outbound chunk size (default max(batch, 300)). */
   funderChunk?: number;
 }
@@ -312,7 +336,7 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
   const { batch: batchSize, gateMs } = opts;
   const keyed = Boolean(process.env.SURF_API_KEY);
   const asyncMode = keyed && opts.mode !== "sync";
-  const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
+  const cpPath = checkpointPath(samplePath);
   const costsPath = join(ROOT, "artifacts", "costs.md");
   const cp: Checkpoint = existsSync(cpPath)
     ? (JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint)
@@ -350,6 +374,9 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
       r = asyncMode ? await runAsync(addrs, DAYS, t) : await runSync(addrs, DAYS, [t]);
     } catch (e) {
       const msg = (e as Error).message;
+      // scan-size refusals are billed but deterministic: the caller bisects instead of stopping (never re-sends the same set)
+      // a call killed at the per-call timeout (spawnSync status null) is treated the same way: billed, no rows, never re-sent
+      if (opts.bisectMin !== undefined && /SYNC_QUERY_REQUIRES_ASYNC|scans too many rows|exit_null/.test(msg)) throw new ScanRefused(/exit_null/.test(msg) ? `killed at the ${process.env.FIANGSHI_SURF_CALL_TIMEOUT_MS ?? "60000"} ms per-call limit (billed, no rows)` : msg);
       if (isStopError(msg)) throw new StopRun(`Surf refused ${t} (${addrs.length} addresses): ${msg}. Checkpoint saved; not retried.`);
       throw e;
     }
@@ -377,28 +404,66 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
     for (const [ci, chunk] of chunks.entries()) {
       console.log(`chunk ${ci + 1}/${chunks.length}: ${chunk.length} payees (${payees.length - payees.filter((p) => !cp.outbound_done!.includes(p)).length}/${payees.length} done before)`);
       const balBefore = keyed && opts.maxChunkCredits !== undefined ? surfBalance() : null;
+      let refusals = 0;
+      /** Run one template over `addrs`; on a billed scan refusal, bisect down to bisectMin, then exclude as scan-heavy. */
+      const runPart = async (addrs: string[], t: "payee-inbound" | "payee-outbound"): Promise<void> => {
+        const doneList = t === "payee-inbound" ? cp.inbound_done! : cp.outbound_done!;
+        const setKey = `${t}:${hashOf([...addrs].sort())}`;
+        const failedBefore = (cp.failed_sets ?? []).includes(setKey);
+        try {
+          // never re-send an exact set that already failed (refused or killed) — go straight to its halves
+          if (failedBefore) throw new ScanRefused("set failed in an earlier run; not re-sent");
+          const r = await sqlCall(addrs, t);
+          // persist this part immediately — a later failure must never discard rows already paid for
+          for (const p of addrs) cp.payee_rows[p] = { ...(cp.payee_rows[p] ?? { payee: p }), ...((r.rows.find((x) => x.payee === p) ?? {}) as Partial<SurfPayeeRow>) } as SurfPayeeRow;
+          doneList.push(...addrs);
+          save();
+          gateCheck(`chunk ${ci + 1} ${t} (${addrs.length})`, Math.max(...r.calls.map((c) => c.ms)));
+        } catch (e) {
+          if (!(e instanceof ScanRefused)) throw e;
+          if (!failedBefore) {
+            refusals++;
+            cp.failed_sets = [...(cp.failed_sets ?? []), setKey];
+          }
+          if (!failedBefore) cp.refusals = [...(cp.refusals ?? []), { at: new Date().toISOString(), template: t, payees: addrs.length, message: e.message.slice(0, 200) }];
+          if (!failedBefore) costLine(costsPath, `| ${new Date().toISOString()} | surf | ${t} payees=${addrs.length} REFUSED (scan size) | billed refusal | ${BILLED_REFUSAL} (balance delta) | refused |`);
+          console.log(`  ${t} refused for ${addrs.length} payees (billed ~${BILLED_REFUSAL}): ${e.message.slice(0, 120)}`);
+          if (addrs.length > opts.bisectMin!) {
+            const half = Math.ceil(addrs.length / 2);
+            await runPart(addrs.slice(0, half), t);
+            await runPart(addrs.slice(half), t);
+          } else {
+            // could not resolve which payee is heavy without more billed bisecting: exclude the whole group, record every address
+            cp.scan_heavy = [...(cp.scan_heavy ?? []), { at: new Date().toISOString(), template: t, addresses: addrs, message: e.message.slice(0, 200) }];
+            for (const p of addrs) {
+              delete cp.payee_rows[p];
+              if (!cp.inbound_done!.includes(p)) cp.inbound_done!.push(p);
+              if (!cp.outbound_done!.includes(p)) cp.outbound_done!.push(p);
+            }
+            cp.excluded = [...new Set([...(cp.excluded ?? []), ...addrs])];
+            save();
+            console.log(`  excluded ${addrs.length} payees as scan-heavy (group of ${addrs.length} still refused)`);
+          }
+        }
+      };
       for (const t of ["payee-inbound", "payee-outbound"] as const) {
         const doneList = t === "payee-inbound" ? cp.inbound_done! : cp.outbound_done!;
-        const todo = chunk.filter((p) => !doneList.includes(p));
+        const todo = chunk.filter((p) => !doneList.includes(p) && !(cp.excluded ?? []).includes(p));
         if (!todo.length) continue;
-        const r = await sqlCall(todo, t);
-        // persist this part immediately — a later failure must never discard rows already paid for
-        for (const p of todo) cp.payee_rows[p] = { ...(cp.payee_rows[p] ?? { payee: p }), ...((r.rows.find((x) => x.payee === p) ?? {}) as Partial<SurfPayeeRow>) } as SurfPayeeRow;
-        doneList.push(...todo);
-        save();
-        gateCheck(`chunk ${ci + 1} ${t}`, Math.max(...r.calls.map((c) => c.ms)));
+        await runPart(todo, t);
       }
       if (balBefore !== null) {
         const balAfter = surfBalance();
         const spent = balAfter === null ? null : balBefore - balAfter;
-        cp.chunk_costs = [...(cp.chunk_costs ?? []), { at: new Date().toISOString(), payees: chunk.length, credits: spent }];
+        const net = spent === null ? null : spent - refusals * BILLED_REFUSAL;
+        cp.chunk_costs = [...(cp.chunk_costs ?? []), { at: new Date().toISOString(), payees: chunk.length, credits: spent, refusals, net }];
         save();
-        console.log(`  chunk ${ci + 1} cost ${spent ?? "?"} credits (balance ${balAfter ?? "?"}; limit ${opts.maxChunkCredits})`);
-        if (spent === null) throw new StopRun(`could not read balance after chunk ${ci + 1}; stopping (fail closed).`);
-        if (spent > opts.maxChunkCredits!) throw new StopRun(`chunk ${ci + 1} cost ${spent} credits > ${opts.maxChunkCredits} (estimate +20%). Stopped.`);
+        console.log(`  chunk ${ci + 1} cost ${spent ?? "?"} credits (${refusals} billed refusals; net ${net ?? "?"}; balance ${balAfter ?? "?"}; limit ${opts.maxChunkCredits})`);
+        if (spent === null || net === null) throw new StopRun(`could not read balance after chunk ${ci + 1}; stopping (fail closed).`);
+        if (net > opts.maxChunkCredits!) throw new StopRun(`chunk ${ci + 1} net cost ${net} credits > ${opts.maxChunkCredits}. Stopped.`);
       }
     }
-    const audited = payees.filter((p) => cp.outbound_done!.includes(p));
+    const audited = payees.filter((p) => cp.outbound_done!.includes(p) && !(cp.excluded ?? []).includes(p));
     const allDone = audited.length === payees.length;
     if (opts.payeesOnly || (!allDone && !opts.finish)) {
       console.log(`payee queries: ${audited.length}/${payees.length} done${allDone ? "" : "; funders + labels wait (pass --finish for a partial census)"}`);
@@ -411,16 +476,37 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
       const rows: SurfPayeeRow[] = [];
       // Funder outbound is one light aggregate: chunk at 300 so a 200-payee free-tier run needs ONE call (29 credits total, fits 30/day).
       const fChunk = opts.funderChunk ?? Math.max(batchSize, 300);
-      for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlCall(funders.slice(i, i + fChunk), "payee-outbound")).rows as unknown as SurfPayeeRow[]));
+      const funderSet = `payee-outbound:${hashOf([...funders].sort())}`;
+      try {
+        if ((cp.failed_sets ?? []).includes(funderSet)) throw new ScanRefused("funder set failed in an earlier run; not re-sent");
+        for (let i = 0; i < funders.length; i += fChunk) rows.push(...((await sqlCall(funders.slice(i, i + fChunk), "payee-outbound")).rows as unknown as SurfPayeeRow[]));
+      } catch (e) {
+        if (!(e instanceof ScanRefused)) throw e;
+        // funders include exchange hot wallets (millions of transfers): their outbound scan is refused. Decision 2026-11-09:
+        // skip the fanout heuristic for this audit and exclude exchanges by Surf label only; never re-send the set.
+        if (!(cp.failed_sets ?? []).includes(funderSet)) {
+          cp.failed_sets = [...(cp.failed_sets ?? []), funderSet];
+          cp.refusals = [...(cp.refusals ?? []), { at: new Date().toISOString(), template: "funder-outbound", payees: funders.length, message: e.message.slice(0, 200) }];
+          costLine(costsPath, `| ${new Date().toISOString()} | surf | funder-outbound n=${funders.length} REFUSED (scan size) | billed refusal | ${BILLED_REFUSAL} (balance delta) | refused |`);
+        }
+        cp.funders_skipped = `funder-outbound refused for ${funders.length} funders (${e.message.slice(0, 140)}); fanout heuristic not applied, exchanges excluded by Surf label only`;
+        console.log(`  ${cp.funders_skipped}`);
+      }
       cp.funder_rows = rows;
       cp.funders_done = true;
       save();
     }
     const addrs = [...new Set([...audited, ...funders])].filter((a) => !cp.labels_done.includes(a));
-    for (let i = 0; i < addrs.length; i += 100) {
-      const chunk = addrs.slice(i, i + 100);
+    const lChunk = opts.labelChunk ?? 100;
+    for (let i = 0; i < addrs.length; i += lChunk) {
+      const chunk = addrs.slice(i, i + lChunk);
       need(COST.labels, "wallet-labels-batch");
-      const r = await labelsCall(chunk);
+      let r: Awaited<ReturnType<typeof labelsCall>>;
+      try {
+        r = await labelsCall(chunk);
+      } catch (e) {
+        throw new StopRun(`wallet-labels-batch failed for ${chunk.length} addresses: ${(e as Error).message}. Checkpoint saved; not retried.`);
+      }
       cp.labels.push(...r.data);
       cp.labels_done.push(...chunk);
       cp.calls.push({ label: `wallet-labels-batch n=${chunk.length}`, ms: r.ms, credits: r.credits, at: new Date().toISOString() });
@@ -439,28 +525,31 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
 }
 
 // ---------- report (0 credits)
-const AGE_BUCKETS: [string, number][] = [["< 48h", 48], ["48h – 7d", 168], ["7 – 30d", 720], ["30 – 90d", 2160], ["90 – 365d", 8760]];
+/** Age buckets below the window floor (never reported in years: ages are lower bounds). */
+const ageBuckets = (days: number): [string, number][] => [["< 48h", 48], ["48h – 7d", 168], [`7d – ${days}d`, days * 24]];
 
 export interface ReportInputs {
   sample: Sample;
-  cp: Pick<Checkpoint, "payee_rows" | "funder_rows" | "labels" | "labels_done" | "calls" | "stopped" | "mode">;
+  cp: Pick<Checkpoint, "payee_rows" | "funder_rows" | "labels" | "labels_done" | "calls" | "stopped" | "mode"> & Partial<Pick<Checkpoint, "excluded" | "scan_heavy" | "refusals" | "chunk_costs" | "funders_skipped">>;
   ranAt: string;
   probes?: Record<string, unknown>[];
   unparsed?: { url: string; shape: string; parsesNow?: boolean }[];
   knownPair?: { payees: { payee: string; host: string }[]; funder: string } | null;
+  /** fixtures/audit/allow-hunt-w<days>*.json, in attempt order. */
+  hunts?: { file: string; data: { at: string; surf_data?: string; p50_full_check_ms: number; survivors: number; results: Record<string, unknown>[] } }[];
 }
 
-export function auditReport(inp: ReportInputs): string {
-  const { sample, cp } = inp;
-  const probes = inp.probes ?? [];
-  const now = Math.floor(Date.parse(inp.ranAt) / 1000);
+/** The scored set exactly as the audit scores it (shared by the report and the ALLOW hunt). Pure. */
+export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string) {
+  const now = Math.floor(Date.parse(ranAt) / 1000);
   const windowStart = now - DAYS * 86_400;
+  const windowH = DAYS * 24;
   const outByFunder = Object.fromEntries(cp.funder_rows.map((r) => [r.payee.toLowerCase(), r.distinct_outbound_receivers ?? 0]));
   const { labels: funderLabels, tokenContracts } = funderLabelsFromSurf(cp.labels, outByFunder);
   const labelOf = new Map(cp.labels.map((l) => [l.address.toLowerCase(), l]));
   const priceOf = new Map(sample.payees.map((p) => [p.payee, p.price_usd]));
-  const audited = sample.payees.filter((p) => cp.payee_rows[p.payee]);
-
+  const excluded = new Set(cp.excluded ?? []);
+  const audited = sample.payees.filter((p) => cp.payee_rows[p.payee] && !excluded.has(p.payee));
   let signals: PayeeSignals[] = audited.map((p) => {
     const l = labelOf.get(p.payee);
     return signalsFromSurf(cp.payee_rows[p.payee]!, { now, windowStart, tokenContracts, identity: l?.entity_name ? { claims_org: l.entity_name, corroborated: true } : undefined });
@@ -468,16 +557,24 @@ export function auditReport(inp: ReportInputs): string {
   const fan = computeFanout(signals, { labels: funderLabels, edges: {} });
   signals = signals.map((s) => (s.first_funder ? { ...s, funder_fanout: fan.get(s.payee) ?? 0 } : s));
   const items = signals.map((s) => ({ s, price: priceOf.get(s.payee) ?? null }));
-  const v2 = items.map((x) => ({ ...x, r: policyBand(x.s, x.price, funderLabels, "v2") }));
-  const diff = diffE(items, funderLabels);
+  const scored = items.map((x) => ({ ...x, r: policyBand(x.s, x.price, funderLabels, "v2", windowH) }));
+  return { now, windowStart, windowH, funderLabels, tokenContracts, labelOf, excluded, signals, items, scored };
+}
+
+export function auditReport(inp: ReportInputs): string {
+  const { sample, cp } = inp;
+  const probes = inp.probes ?? [];
+  const { now, windowStart, windowH, funderLabels, tokenContracts, labelOf, excluded, signals, items, scored: v2 } = scoredSet(sample, cp, inp.ranAt);
+  const diff = diffE(items, funderLabels, windowH);
 
   const n = signals.length;
   const total = sample.catalog.distinct_base_payees;
   const pct = (x: number, d = n) => `${((100 * x) / Math.max(1, d)).toFixed(1)}%`;
   const active = signals.filter((s) => s.wallet_age_hours !== null);
   const floored = active.filter((s) => s.wallet_age_hours! >= (now - windowStart) / 3600 - 24);
-  const buckets = AGE_BUCKETS.map(([name, max], i) => {
-    const min = i === 0 ? 0 : AGE_BUCKETS[i - 1]![1];
+  const AB = ageBuckets(DAYS);
+  const buckets = AB.map(([name, max], i) => {
+    const min = i === 0 ? 0 : AB[i - 1]![1];
     return [name, active.filter((s) => s.wallet_age_hours! >= min && s.wallet_age_hours! < max && !floored.includes(s)).length] as const;
   });
   const young = buckets[0]![1];
@@ -519,6 +616,8 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`3. Probed one live endpoint per sampled payee, unpaid (1 req/sec, 0 credits), to check the catalog payee against the live 402.`);
   L.push(`4. Ran batched Surf SQL over \`agent.base_transfers\`: payee inbound + payee outbound + funder outbound. Each query covers the whole batch, never one payee at a time. Then \`wallet-labels-batch\` in groups of ≤100 addresses.`);
   L.push(`5. Scored with the deterministic policy (score + vows, no model) under **E v2** (payer concentration).`, ``);
+  L.push(`**Window: ${DAYS} days, uniformly.** Every payee in the scored set was queried over the same \`block_date >= today() - ${DAYS}\` window. This is a method choice for recency: it keeps the 50-payee synchronous query inside Surf's scan budget, which the 365-day window exceeded on busy wallets, and it scores recent behaviour. Earlier 365-day rows are archived in \`checkpoint-*-w365.json\` and are not scored.`, ``);
+  L.push(`**M (maturity) is two-tier for this dataset:** a payee whose first transfer sits at the window start is *established* (≥ ${DAYS}d, full age credit); a younger payee gets a log curve up to ${DAYS} days. The volume half (transfer count) is unchanged. A full 365-day maturity curve on windowed data is a roadmap item.`, ``);
 
   L.push(`## Census`, ``);
   L.push(`| metric | value |`, `|---|---|`);
@@ -527,7 +626,9 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`| distinct Base payees | ${total.toLocaleString("en-US")} |`);
   L.push(`| **endpoints → payees** | **${sample.catalog.endpoints_per_payee} resources per payee** |`);
   if (top) L.push(`| largest payee | ${short(top.payee)}: ${top.resources.toLocaleString("en-US")} resources (${pct(top.resources, sample.catalog.base_resources)} of Base) |`);
-  L.push(`| **coverage** | **${n} of ${total.toLocaleString("en-US")} payees audited (${pct(n, total)})** |`, ``);
+  L.push(`| **coverage** | **${n} of ${total.toLocaleString("en-US")} Base payees (${pct(n, total)}), ${DAYS}-day window** |`);
+  if (excluded.size) L.push(`| excluded as scan-heavy | ${excluded.size} (listed below) |`);
+  L.push(``);
   L.push(`*For a buyer:* the catalog looks like ${sample.catalog.base_resources.toLocaleString("en-US")} sellers but is ${total.toLocaleString("en-US")} wallets. Diversifying across endpoints is not diversifying across counterparties.`, ``);
 
   if (probes.length) {
@@ -535,7 +636,8 @@ export function auditReport(inp: ReportInputs): string {
     L.push(`| status | count | meaning |`, `|---|---|---|`);
     const meaning: Record<string, string> = { "402": "paywall answered", "405": "POST-only resource, probed with GET", "404": "dead listing", "200": "served without a paywall", "401": "auth-gated", "400": "bad request without parameters", "502": "upstream error", "503": "unavailable", error: "network error / timeout" };
     for (const [s, c] of Object.entries(dist).sort((a, b) => b[1] - a[1])) L.push(`| ${s} | ${c} | ${meaning[s] ?? ""} |`);
-    L.push(``, `${p402} returned 402 · ${pParsed} parsed · **${rotated.length} payee mismatches** (live \`payTo\` ≠ catalog).`, ``);
+    const unp = inp.unparsed ?? [];
+    L.push(``, `**Breakdown: ${pParsed} parsed · ${dist["404"] ?? 0} dead (404) · ${dist["405"] ?? 0} POST-only (405) · ${dist["200"] ?? 0} open (200, no paywall) · ${unp.length} unparseable at probe time, of which ${unp.filter((u) => u.parsesNow).length} parse after the fix.** ${p402} returned 402 · **${rotated.length} payee mismatches** (live \`payTo\` ≠ catalog).`, ``);
     if (inp.unparsed?.length) {
       L.push(`**${inp.unparsed.length} unparseable 402 shapes** at probe time (raw saved in \`fixtures/audit/unparsed/\`; failed closed, not guessed):`, ``);
       for (const u of inp.unparsed) L.push(`- \`${u.url}\` — ${u.shape} — ${u.parsesNow ? "**parses after the multi-entry fix**" : "still rejected: no usable accepts[]"}`);
@@ -548,7 +650,8 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`## Wallet age — LOWER BOUNDS (first transfer within the ${DAYS}-day window)`, ``);
   L.push(`| bucket (lower bound) | payees | share |`, `|---|---|---|`);
   for (const [b, c] of buckets) L.push(`| ${b} | ${c} | ${pct(c)} |`);
-  L.push(`| ≥ ${DAYS}d (floored at window start) | ${floored.length} | ${pct(floored.length)} |`, `| no transfers in window | ${n - active.length} | ${pct(n - active.length)} |`, ``);
+  L.push(`| ≥ ${DAYS}d (established: first transfer at the window start) | ${floored.length} | ${pct(floored.length)} |`, `| no transfers in window | ${n - active.length} | ${pct(n - active.length)} |`, ``);
+  L.push(`Cumulative: < ${DAYS}d ${active.length - floored.length} · < 7d ${buckets[0]![1] + buckets[1]![1]} · < 48h ${buckets[0]![1]}.`, ``);
   L.push(`*For a buyer:* ${young} payees (${pct(young)}) first appeared under 48h ago. The age vow BLOCKs them regardless of model advice. Every other age here is a floor, never an overstatement.`, ``);
 
   L.push(`## Funder clusters (exchanges excluded)`, ``);
@@ -559,10 +662,22 @@ export function auditReport(inp: ReportInputs): string {
     L.push(`| funder | payees | kinship fires |`, `|---|---|---|`);
     for (const [f, ps] of multi.slice(0, 20)) L.push(`| ${short(f)} | ${ps.length} | ${ps.length >= 4 ? "yes" : "no"} |`);
   } else L.push(`No shared non-exchange funders in the audited set.`);
-  L.push(``, `*For a buyer:* payees that share a non-exchange funder are probably one operator. Count them as one counterparty when you cap exposure.`, ``);
+  {
+    const queried = new Set(cp.labels_done);
+    const unchecked = v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && !queried.has(e.s.first_funder));
+    const uncheckedFunders = new Set(unchecked.map((e) => e.s.first_funder));
+    if (unchecked.length)
+      L.push(``, `**Kinship BLOCKs are an upper bound here:** ${unchecked.length} of ${v2.filter((e) => e.r.fired.includes("kinship")).length} kinship firings rest on ${uncheckedFunders.size} funders that were never label-checked (the label pass stopped at the credit floor). Some of these funders may be exchanges, faucets or payment relayers, which the vow is meant to exclude. Until they are labelled, read these BLOCKs as "shared unlabelled funder", not as confirmed operator rings.`);
+  }
+  L.push(``, `*For a buyer:* payees that share a non-exchange funder are probably one operator. Count them as one counterparty when you cap exposure, but check that the shared funder is not an exchange first.`, ``);
 
   L.push(`## Labels`, ``);
-  L.push(`Label coverage: **${labelledCount}/${labelQueried}** addresses returned a Surf label in this run (phase 3d baseline: **6/23**). Unlabelled funders fall back to the fanout heuristic.`, ``);
+  L.push(`Label coverage: **${labelledCount} of ${labelQueried} addresses (${pct(labelledCount, labelQueried)})** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.`, ``);
+  {
+    const allAddrs = new Set([...signals.map((s) => s.payee), ...signals.map((s) => s.first_funder).filter((f): f is string => !!f)]);
+    if (labelQueried < allAddrs.size) L.push(`**Partial label pass:** labels were queried for ${labelQueried} of ${allAddrs.size} addresses (payees + first funders). The run stopped at the credit floor. Keyed label calls cost 4 credits by balance delta, while \`meta.credits_used\` reports 1.`, ``);
+    if (cp.funders_skipped) L.push(`**Fanout heuristic not applied:** ${cp.funders_skipped}.`, ``);
+  }
   L.push(`*For a buyer:* labels confirm exchanges where they exist, but most wallets are unlabelled. Missing identity is the norm, and it is scored as neutral, not as trust.`, ``);
 
   L.push(`## Billing (measured)`, ``);
@@ -570,7 +685,19 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`| on-chain SQL (${cp.mode}) | ${sqlCalls.length} | ${sqlCredits.join(", ") || "-"} | 4 |`);
   L.push(`| wallet-labels-batch | ${labelCalls.length} | ${[...new Set(labelCalls.map((c) => c.credits))].join(", ") || "-"} | 4 |`);
   L.push(``, `Total **${credits} credits** for ${n} payees. Slowest SQL call ${slowest} ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.`, ``);
-  L.push(`*For a buyer:* checking a counterparty costs a fixed amount per batch, so audits get cheaper per payee as they grow.`, ``);
+  const refusals = cp.refusals ?? [];
+  L.push(`**Metering:** Surf's \`meta.credits_used\` reports 5 per keyed synchronous SQL call, but the account balance drops by 4. This audit uses the balance delta (\`chunk_costs\` in the checkpoint) as the source of truth.`, ``);
+  L.push(`**Billed failures:** ${refusals.length} queries in this run were refused for scan size or killed at the 25 s per-call limit, about ${refusals.length * BILLED_REFUSAL} credits at ${BILLED_REFUSAL} each. Surf charges for a query it refuses, and for one it was still running when killed. A failed address set is never re-sent; it is bisected.`, ``);
+  L.push(`*For a buyer:* checking a counterparty costs a fixed amount per batch, so audits get cheaper per payee as they grow. But a few very busy wallets can make a whole batch unqueryable.`, ``);
+  if ((cp.scan_heavy ?? []).length) {
+    L.push(`## Scan-heavy exclusions`, ``);
+    L.push(`A failed 50-payee query was bisected into two 25s at the same ${DAYS}-day window. A 25-payee group that still failed was **excluded and is not scored**. Surf does not say which payee in a group is heavy, and isolating it needs more billed bisecting, so the whole group is listed.`, ``);
+    for (const g of cp.scan_heavy ?? []) L.push(`- ${g.template}, ${g.addresses.length} payees (${g.at}): ${g.addresses.map((a) => "`" + a + "`").join(", ")}`);
+    L.push(``, `*For a buyer:* the busiest wallets in the catalog are the hardest to verify cheaply. High volume alone is not evidence of trustworthiness, and these were not scored.`, ``);
+  } else {
+    L.push(`## Scan-heavy exclusions`, ``);
+    L.push(`None: no payee was excluded. Every failed **payee** query was resolved by bisecting it into 25-payee halves at the same window. The refused **funder** pass is not an exclusion; it is covered under Labels, where exchanges are excluded by label only.`, ``);
+  }
 
   L.push(`## Policy bands (E v2, deterministic score + vows, no model)`, ``);
   L.push(`| band | payees | share |`, `|---|---|---|`);
@@ -579,8 +706,35 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`E v1 → v2: **${diff.changed.length} of ${n} payees changed band** (v1 ${JSON.stringify(diff.v1)} → v2 ${JSON.stringify(diff.v2)}). ${tokenOne} of ${active.length} active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.`, ``);
   L.push(`*For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.`, ``);
 
+  {
+    const ZERO = "0x0000000000000000000000000000000000000000";
+    const z = v2.find((e) => e.s.payee === ZERO);
+    if (z) {
+      L.push(`## Null-address payee (zero address)`, ``);
+      L.push(`The catalog lists a payee of \`${ZERO}\` (the zero address). Its live 402 confirmed it: payment goes to the zero address, and funds sent there are unrecoverable. The rubric scored it **${z.r.score} (${z.r.band})**, because burns from many senders look like a mature, busy, well-diversified wallet. **None of the five vows covers null or burn addresses.** A sixth vow is proposed, not added: the vow set is fixed by the spec.`, ``);
+      L.push(`*For a buyer:* a high score on a burn address is a rubric blind spot. Never pay a null or burn \`payTo\`, whatever the score.`, ``);
+    }
+  }
+  if (inp.hunts?.length) {
+    L.push(`## ALLOW hunt (top 3 by score, full pipeline)`, ``);
+    L.push(`Top 3 audited payees by policy score, re-checked through the full pipeline: live unpaid probe → SERV and Dolphin **in parallel** → vows → sealed receipt in \`data/ledger.jsonl\`. "Survives" means the model said ALLOW **and** the final band is ALLOW. The rubric was not tuned. The top scores tie at the same value, so "top 3" is the first three of the tied ALLOW group in sample order.`, ``);
+    for (const h of inp.hunts) {
+      L.push(`**${h.file}** (${h.data.at}): ${h.data.survivors}/3 survived · p50 full check ${h.data.p50_full_check_ms} ms · Surf data: ${h.data.surf_data ?? "re-queried"}.`, ``);
+      L.push(`| payee | endpoint | score band | model | final | vows / degraded | Dolphin | full check |`, `|---|---|---|---|---|---|---|---|`);
+      for (const r of h.data.results) {
+        const lat = r.latency_ms as { full_check: number; serv: number; dolphin: number | null };
+        const dol = r.dolphin as { claims: unknown; error: string | null } | null;
+        L.push(`| ${short(String(r.payee))} | ${String(r.url).replace(/^https?:\/\//, "").slice(0, 40)} | ${r.score_band} (${r.fresh_score}) | ${r.model_band} | **${r.final_band}**${r.survived_allow ? " ✓" : ""} | ${((r.vows_fired as string[]) ?? []).join("; ") || "none"}${r.degraded ? " · degraded" : ""} | ${dol ? (dol.claims ? "ok" : (dol.error ?? "failed")) : "skipped"} | ${lat.full_check} ms (SERV ${lat.serv}, Dolphin ${lat.dolphin ?? "-"}) |`);
+      }
+      L.push(``);
+    }
+    const all = inp.hunts.flatMap((h) => h.data.results);
+    const timeouts = all.filter((r) => String((r.dolphin as { error?: string } | null)?.error ?? "").includes("timeout")).length;
+    L.push(`Binding constraint: of ${all.length} checks, ${timeouts} were capped to REVIEW because Dolphin timed out (fail-closed extractor), not because of the rubric. Latency is dominated by Dolphin: SERV answers in about 2–3 s, or milliseconds from cache. In parallel, a full check costs about max(SERV, Dolphin), not their sum.`, ``);
+    L.push(`*For a buyer:* an ALLOW here survived every deterministic check and the model's advice on live data. A slow identity extractor costs you an ALLOW (REVIEW), never a false ALLOW.`, ``);
+  }
   L.push(`## Caveats`, ``);
-  L.push(`- Ages are floors. ${floored.length} payees sit at the window start, so their true age is ≥ ${DAYS}d. The 48h age vow is unaffected.`);
+  L.push(`- Ages are floors. ${floored.length} payees sit at the window start, so their true age is ≥ ${DAYS}d, never stated in years. The 48h age vow and the 7-day identity vow are unaffected: both thresholds sit inside the window.`);
   L.push(`- Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.`);
   L.push(`- Identity counts as corroborated only where Surf has an \`entity_name\` label. Dolphin claim extraction is not wired into this audit.`);
   L.push(`- E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.`);
@@ -610,6 +764,10 @@ async function main() {
     return i >= 0 ? rest[i + 1] : undefined;
   };
   mkdirSync(AUD, { recursive: true });
+  if (flag("--days")) {
+    DAYS = Number(flag("--days"));
+    if (!Number.isInteger(DAYS) || DAYS < 1 || DAYS > 3650) throw new Error("--days out of range");
+  }
   const samplePath = flag("--sample") ?? flag("--out") ?? join(AUD, "sample.json");
   if (cmd === "sample") {
     const s = buildSample(readJsonl<CatalogRow>(join(ROOT, "data", "bazaar", "resources.jsonl")), Number(flag("--n") ?? 200));
@@ -641,10 +799,12 @@ async function main() {
       maxChunkCredits: flag("--max-chunk-credits") ? Number(flag("--max-chunk-credits")) : undefined,
       finish: rest.includes("--finish"),
       funderChunk: flag("--funder-chunk") ? Number(flag("--funder-chunk")) : undefined,
+      bisectMin: flag("--bisect-min") ? Number(flag("--bisect-min")) : undefined,
+      labelChunk: flag("--label-chunk") ? Number(flag("--label-chunk")) : undefined,
     });
   } else if (cmd === "report") {
     const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
-    const cpPath = join(AUD, `checkpoint-${basename(samplePath, ".json")}.json`);
+    const cpPath = checkpointPath(samplePath);
     if (!existsSync(cpPath)) throw new Error(`no checkpoint at ${cpPath}; run first`);
     const cp = JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint;
     const pp = join(AUD, "probes.jsonl");
@@ -656,7 +816,12 @@ async function main() {
         })
       : [];
     const ranAt = cp.calls.filter((c) => c.label.startsWith("onchain-sql")).map((c) => c.at).sort().pop() ?? new Date().toISOString();
-    const md = auditReport({ sample, cp, ranAt, probes: existsSync(pp) ? readJsonl(pp) : [], unparsed, knownPair: knownPairFromSmoke() });
+    const huntRe = new RegExp(`^allow-hunt-w${DAYS}(-attempt\\d+)?\\.json$`);
+    const hunts = readdirSync(AUD)
+      .filter((f) => huntRe.test(f))
+      .sort((a, b) => a.length - b.length || a.localeCompare(b))
+      .map((f) => ({ file: f, data: JSON.parse(readFileSync(join(AUD, f), "utf8")) }));
+    const md = auditReport({ sample, cp, ranAt, probes: existsSync(pp) ? readJsonl(pp) : [], unparsed, knownPair: knownPairFromSmoke(), hunts });
     const out = flag("--report") ?? join(ROOT, "artifacts", "audit.md");
     writeFileSync(out, md);
     console.log(`report -> ${out}`);

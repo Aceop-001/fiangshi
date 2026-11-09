@@ -90,12 +90,13 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 
 | check | cost (measured) | cost (conservative) | price | env |
 |---|---|---|---|---|
-| **cold**: payee not in the snapshot (3 Surf SQL + labels + SERV + Dolphin) | $0.0799 | $0.1159 | **$0.15** | `FIANGSHI_PRICE_CHECK_COLD` |
+| **cold**: payee not in the snapshot (3 Surf SQL + 1 label call + SERV + Dolphin) | $0.0979 | $0.1159 | **$0.15** | `FIANGSHI_PRICE_CHECK_COLD` |
 | **cached**: snapshot hit (SERV + Dolphin only) | $0.0019 | — | **$0.05** | `FIANGSHI_PRICE_CHECK` |
 
-- The conservative column takes Surf's `meta.credits_used` at face value (5 per SQL call) and labels at the documented 4. The measured column uses the balance delta (4 per SQL call) and labels at 1.
-- Surf bills per call, so the census is what makes cached checks cheap. At 50 payees per call the Surf share falls to $0.00156 a payee.
-- The 100-payee census so far cost **$0.00192 per payee**, failures included ($0.00096 for the chunk calls alone). The planning estimate was $0.00059.
+- The measured column uses account balance deltas: 4 credits per keyed SQL call and 4 per label call.
+- The conservative column takes `meta.credits_used` at face value for SQL (5 a call).
+- Surf bills per call, so the census is what makes cached checks cheap. At 50 payees per call the Surf share falls to $0.00384 a payee.
+- **Census amortisation (800 payees, 90-day window):** $0.00102 per payee for the payee pass, including one billed killed call. That rises to $0.00189 with the refused funder pass and the partial label pass. The planning estimate was $0.00059.
 - All figures come from `npx tsx scripts/pricing.ts`; full tables are in `artifacts/costs.md`.
 
 ## Provider quirks (found on live calls, 2026-11-08/09)
@@ -105,4 +106,13 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **SERV's "reasoning" is not a response field on chat completions.** A reasoning trace exists only on `/v1/responses`, for OpenAI models. Fiangshi requires its own `rationale` field through strict `json_schema` instead.
 - **Surf async has a scan ceiling that preflight does not show, and the rejection is billed.** Preflight accepted a 50-payee inbound query (15.45 M of a 150 M-row budget, 2.21 of 17.2 GB). The same SQL as an async job was rejected in 45 ms with `QUERY_FAILED: scans too many rows or bytes`, and 4 credits were charged.
 - **Surf sync refusals are billed too.** `SYNC_QUERY_REQUIRES_ASYNC` (122 M rows estimated for 50 payees) cost 4 credits. A slow sync query can also leave the next call refused with `SQL_QUERY_IN_FLIGHT`.
-- **Surf's `meta.credits_used` overstates keyed sync calls.** It reports 5, but the balance drops by 4.
+- **Surf's `meta.credits_used` is not the bill.** It reports 5 for a keyed sync SQL call that costs 4, and 1 for a keyed label call that also costs 4 (27 calls, balance 184 → 72). Trust the balance delta.
+- **`wallet-labels-batch` fails above about 20 addresses,** although the docs allow 100. At 50 and 100 it returned exit 4 with `{"error_code": "INTERNAL_ERROR", "success": false}`, a different error shape from the usual `{error: {code}}`, and was not billed. Fiangshi now fails closed on both shapes and uses groups of 20.
+- **A killed sync call is still billed.** A query cut off at the 25 s per-call limit cost 4 credits and returned no rows.
+
+**Phase 3k (uniform 90-day audit, 800 payees)**
+- **Census:** 800 of 1,923 Base payees, all at a uniform 90-day window; the 365-day rows are archived as `checkpoint-*-w365.json`. 16 chunks of 50 at 8 credits each (balance delta). One call was killed at the 25 s limit and billed; its set was bisected, never re-sent. 0 payees excluded.
+- **Funders and labels:** the funder pass was refused for scan size (exchange hot wallets), so exchanges are excluded by Surf label only. Labels fail above about 20 addresses per call; the label pass covered 440 of 1,291 addresses before the 72-credit floor stopped it.
+- **Bands (E v2, two-tier M for the 90-day dataset):** 16 ALLOW · 471 REVIEW · 313 BLOCK. E v1 → v2 changed 31 bands. All 264 kinship BLOCKs rest on unlabelled funders, so they're reported as an upper bound.
+- **ALLOW hunt (full pipeline, SERV + Dolphin in parallel):** attempt 1 0/3 (Dolphin timed out), attempt 2 1/3. `api.you.com` survived as ALLOW end to end; p50 full check about 15 s, dominated by Dolphin.
+- **Finding:** the top score is the zero address. A live 402 asks for $5 to `0x000…0` and scores 80.9, because no vow covers null or burn payees. A sixth vow is proposed, not added.

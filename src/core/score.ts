@@ -45,9 +45,16 @@ export function sanitize(s: PayeeSignals): PayeeSignals {
   };
 }
 
-export function maturity(s: PayeeSignals): number | null {
+/**
+ * M maturity. Default: log curve over 1 year of age + log tx volume.
+ * Windowed (audit datasets with a lookback of windowH hours): two-tier age — a payee whose first transfer sits at the
+ * window start is ESTABLISHED (age credit 1, true age unknown, >= window); younger payees get a log curve up to the
+ * window. Volume half is unchanged. A full 365-day maturity curve on windowed data is a roadmap item.
+ */
+export function maturity(s: PayeeSignals, windowH?: number): number | null {
   if (s.wallet_age_hours === null || s.tx_count === null) return null;
-  return 0.5 * logCap(s.wallet_age_hours, AGE_CAP_H) + 0.5 * logCap(s.tx_count, TX_CAP);
+  const age = windowH === undefined ? logCap(s.wallet_age_hours, AGE_CAP_H) : s.wallet_age_hours >= windowH - 24 ? 1 : logCap(s.wallet_age_hours, windowH);
+  return 0.5 * age + 0.5 * logCap(s.tx_count, TX_CAP);
 }
 
 export function provenance(s: PayeeSignals, labels: Record<string, FunderLabel>): number | null {
@@ -101,9 +108,9 @@ export function corroboration(s: PayeeSignals): number {
   return have / EVIDENCE_FIELDS.length;
 }
 
-export function components(s: PayeeSignals, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2"): Components {
+export function components(s: PayeeSignals, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2", windowH?: number): Components {
   return {
-    M: maturity(s),
+    M: maturity(s, windowH),
     P: provenance(s, labels),
     R: revenue(s),
     I: identityScore(s),

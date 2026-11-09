@@ -54,3 +54,118 @@ Inputs: Surf $0.006/credit · SQL 4 credits/call (balance delta; meta reports 5)
 | including gate, failed async stage, preflight, billed refusal (+16) | 32 | 100 | $0.00192 |
 | planning estimate (190 credits / 1,923 payees) | 190 | 1923 | $0.00059 |
 
+| 2026-11-09T02:52:05.981Z | surf | onchain-sql payee-inbound payees=50 | 18/150 | 5 | ok |
+| 2026-11-09T02:52:20.696Z | surf | onchain-sql payee-outbound payees=50 | 19/150 | 5 | ok |
+| 2026-11-09T02:52:35.338Z | surf | onchain-sql payee-inbound payees=50 | 20/150 | 5 | ok |
+| 2026-11-09T02:52:40.629Z | surf | onchain-sql payee-outbound payees=50 | 21/150 | - | error: Error |
+| 2026-11-09T02:54:40.363Z | surf | onchain-sql payee-outbound payees=25 | 22/150 | 5 | ok |
+| 2026-11-09T02:54:44.319Z | surf | onchain-sql payee-outbound payees=25 | 23/150 | 5 | ok |
+| 2026-11-09T02:54:51.266Z | surf | onchain-sql payee-inbound payees=50 | 24/150 | 5 | ok |
+| 2026-11-09T02:54:58.891Z | surf | onchain-sql payee-outbound payees=50 | 25/150 | 5 | ok |
+| 2026-11-09T02:55:08.145Z | surf | onchain-sql payee-inbound payees=50 | 26/150 | 5 | ok |
+| 2026-11-09T02:55:12.475Z | surf | onchain-sql payee-outbound payees=50 | 27/150 | 5 | ok |
+| 2026-11-09T02:55:19.580Z | surf | onchain-sql payee-inbound payees=50 | 28/150 | 5 | ok |
+| 2026-11-09T02:55:24.119Z | surf | onchain-sql payee-outbound payees=50 | 29/150 | 5 | ok |
+| 2026-11-09T02:55:30.879Z | surf | onchain-sql payee-inbound payees=50 | 30/150 | 5 | ok |
+| 2026-11-09T02:55:34.993Z | surf | onchain-sql payee-outbound payees=50 | 31/150 | 5 | ok |
+| 2026-11-09T02:55:41.499Z | surf | onchain-sql payee-inbound payees=50 | 32/150 | 5 | ok |
+| 2026-11-09T02:55:45.763Z | surf | onchain-sql payee-outbound payees=50 | 33/150 | 5 | ok |
+| 2026-11-09T02:55:52.757Z | surf | onchain-sql payee-inbound payees=50 | 34/150 | 5 | ok |
+| 2026-11-09T02:55:56.383Z | surf | onchain-sql payee-outbound payees=50 | 35/150 | 5 | ok |
+| 2026-11-09T02:56:03.314Z | surf | onchain-sql payee-inbound payees=50 | 36/150 | 5 | ok |
+| 2026-11-09T02:56:06.812Z | surf | onchain-sql payee-outbound payees=50 | 37/150 | 5 | ok |
+| 2026-11-09T02:56:13.781Z | surf | onchain-sql payee-inbound payees=50 | 38/150 | 5 | ok |
+| 2026-11-09T02:56:18.315Z | surf | onchain-sql payee-outbound payees=50 | 39/150 | 5 | ok |
+| 2026-11-09T02:56:24.735Z | surf | onchain-sql payee-inbound payees=50 | 40/150 | 5 | ok |
+| 2026-11-09T02:56:28.428Z | surf | onchain-sql payee-outbound payees=50 | 41/150 | 5 | ok |
+| 2026-11-09T02:56:35.201Z | surf | onchain-sql payee-inbound payees=50 | 42/150 | 5 | ok |
+| 2026-11-09T02:56:39.023Z | surf | onchain-sql payee-outbound payees=50 | 43/150 | 5 | ok |
+| 2026-11-09T02:56:45.445Z | surf | onchain-sql payee-inbound payees=50 | 44/150 | 5 | ok |
+| 2026-11-09T02:56:49.242Z | surf | onchain-sql payee-outbound payees=50 | 45/150 | 5 | ok |
+| 2026-11-09T02:56:55.505Z | surf | onchain-sql payee-inbound payees=50 | 46/150 | 5 | ok |
+| 2026-11-09T02:56:58.894Z | surf | onchain-sql payee-outbound payees=50 | 47/150 | 5 | ok |
+| 2026-11-09T02:57:05.051Z | surf | onchain-sql payee-inbound payees=50 | 48/150 | 5 | ok |
+| 2026-11-09T02:57:08.443Z | surf | onchain-sql payee-outbound payees=50 | 49/150 | 5 | ok |
+| 2026-11-09T02:57:14.753Z | surf | onchain-sql payee-inbound payees=50 | 50/150 | 5 | ok |
+| 2026-11-09T02:57:17.861Z | surf | onchain-sql payee-outbound payees=50 | 51/150 | 5 | ok |
+| 2026-11-09T02:57:50.733Z | surf | onchain-sql payee-outbound payees=300 | 52/150 | - | error: Error |
+| 2026-11-09T02:58:44Z | surf | funder-outbound n=300 REFUSED (scan size, 141M rows est.) | billed refusal | 4 (balance delta) | refused |
+| 2026-11-09T02:58:46.723Z | surf | wallet-labels-batch n=100 | 53/150 | n/a | ok |
+| 2026-11-09T02:58:49.794Z | surf | wallet-labels-batch n=100 | 54/150 | n/a | ok |
+| 2026-11-09T02:58:53.027Z | surf | wallet-labels-batch n=100 | 55/150 | n/a | ok |
+| 2026-11-09T02:58:56.227Z | surf | wallet-labels-batch n=100 | 56/150 | n/a | ok |
+| 2026-11-09T02:58:59.300Z | surf | wallet-labels-batch n=100 | 57/150 | n/a | ok |
+| 2026-11-09T02:59:02.344Z | surf | wallet-labels-batch n=100 | 58/150 | n/a | ok |
+| 2026-11-09T02:59:05.586Z | surf | wallet-labels-batch n=100 | 59/150 | n/a | ok |
+| 2026-11-09T02:59:08.747Z | surf | wallet-labels-batch n=100 | 60/150 | n/a | ok |
+| 2026-11-09T02:59:11.943Z | surf | wallet-labels-batch n=100 | 61/150 | n/a | ok |
+| 2026-11-09T02:59:14.976Z | surf | wallet-labels-batch n=100 | 62/150 | n/a | ok |
+| 2026-11-09T02:59:17.738Z | surf | wallet-labels-batch n=100 | 63/150 | n/a | ok |
+| 2026-11-09T02:59:20.820Z | surf | wallet-labels-batch n=100 | 64/150 | n/a | ok |
+| 2026-11-09T02:59:23.787Z | surf | wallet-labels-batch n=91 | 65/150 | n/a | ok |
+| 2026-11-09T03:00:57.392Z | surf | wallet-labels-batch n=50 | 66/150 | - | error: Error |
+| 2026-11-09T03:01:30Z | surf | wallet-labels-batch n=5 (size diagnostic, manual) | manual | 1 | ok |
+| 2026-11-09T03:01:30Z | surf | wallet-labels-batch n=10 (size diagnostic, manual) | manual | 1 | ok |
+| 2026-11-09T03:01:30Z | surf | wallet-labels-batch n=20 (size diagnostic, manual) | manual | 1 | ok |
+| 2026-11-09T03:01:30Z | surf | wallet-labels-batch n=5 (size diagnostic, manual) | manual | 1 | ok |
+| 2026-11-09T03:01:30Z | surf | wallet-labels-batch n=10 (size diagnostic, manual) | manual | 1 | ok |
+| 2026-11-09T03:01:33.309Z | surf | wallet-labels-batch n=20 | 67/150 | 1 | ok |
+| 2026-11-09T03:01:36.544Z | surf | wallet-labels-batch n=20 | 68/150 | 1 | ok |
+| 2026-11-09T03:01:39.860Z | surf | wallet-labels-batch n=20 | 69/150 | 1 | ok |
+| 2026-11-09T03:01:43.151Z | surf | wallet-labels-batch n=20 | 70/150 | 1 | ok |
+| 2026-11-09T03:01:46.188Z | surf | wallet-labels-batch n=20 | 71/150 | 1 | ok |
+| 2026-11-09T03:01:49.073Z | surf | wallet-labels-batch n=20 | 72/150 | 1 | ok |
+| 2026-11-09T03:01:52.107Z | surf | wallet-labels-batch n=20 | 73/150 | 1 | ok |
+| 2026-11-09T03:01:55.306Z | surf | wallet-labels-batch n=20 | 74/150 | 1 | ok |
+| 2026-11-09T03:01:58.499Z | surf | wallet-labels-batch n=20 | 75/150 | 1 | ok |
+| 2026-11-09T03:02:01.833Z | surf | wallet-labels-batch n=20 | 76/150 | 1 | ok |
+| 2026-11-09T03:02:05.067Z | surf | wallet-labels-batch n=20 | 77/150 | 1 | ok |
+| 2026-11-09T03:02:08.197Z | surf | wallet-labels-batch n=20 | 78/150 | 1 | ok |
+| 2026-11-09T03:02:11.265Z | surf | wallet-labels-batch n=20 | 79/150 | 1 | ok |
+| 2026-11-09T03:02:14.347Z | surf | wallet-labels-batch n=20 | 80/150 | 1 | ok |
+| 2026-11-09T03:02:17.659Z | surf | wallet-labels-batch n=20 | 81/150 | 1 | ok |
+| 2026-11-09T03:02:20.859Z | surf | wallet-labels-batch n=20 | 82/150 | 1 | ok |
+| 2026-11-09T03:02:23.925Z | surf | wallet-labels-batch n=20 | 83/150 | 1 | ok |
+| 2026-11-09T03:02:27.024Z | surf | wallet-labels-batch n=20 | 84/150 | 1 | ok |
+| 2026-11-09T03:02:30.322Z | surf | wallet-labels-batch n=20 | 85/150 | 1 | ok |
+| 2026-11-09T03:02:33.543Z | surf | wallet-labels-batch n=20 | 86/150 | 1 | ok |
+| 2026-11-09T03:02:36.751Z | surf | wallet-labels-batch n=20 | 87/150 | 1 | ok |
+| 2026-11-09T03:02:40.105Z | surf | wallet-labels-batch n=20 | 88/150 | 1 | ok |
+| 2026-11-09T03:04:26.827Z | serv | adjudicate 0x00000000 | 3/100 | 1038 | ok |
+| 2026-11-09T03:04:26.832Z | dolphin | extract fbfaee45 | 4/30 | - | error: Error |
+| 2026-11-09T03:04:42.338Z | serv | adjudicate 0xcfa26f13 | 4/100 | 862 | ok |
+| 2026-11-09T03:04:42.340Z | dolphin | extract 03d43601 | 5/30 | - | error: Error |
+| 2026-11-09T03:04:59.576Z | serv | adjudicate 0xc327d0ae | 5/100 | 1045 | ok |
+| 2026-11-09T03:04:59.580Z | dolphin | extract 7897b429 | 6/30 | - | error: Error |
+| 2026-11-09T03:05:47.832Z | dolphin | extract fbfaee45 | 7/30 | - | error: Error |
+| 2026-11-09T03:06:03.246Z | dolphin | extract 03d43601 | 8/30 | 296 | ok |
+| 2026-11-09T03:06:25.309Z | dolphin | extract 7897b429 | 9/30 | 214 | ok |
+
+## Pricing v2 (generated by `npx tsx scripts/pricing.ts`)
+
+Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL **4** credits/call (meta reports 5) · labels **4.15** credits/call (27 calls; meta reports 1) · SERV $0.00187/call (n=2) · Dolphin $0.000035/call (n=1).
+
+| check type | what runs | cost | price | margin |
+|---|---|---|---|---|
+| cold, measured (1 payee: 3 SQL × 4 + 1 label call × 4) | 4 Surf calls + SERV + Dolphin | $0.0979 | $0.15 | $0.0521 (35%) |
+| cold, conservative (3 SQL × 5 as meta reports + labels 4) | same | $0.1159 | $0.15 | $0.0341 (23%) |
+| cached (snapshot hit) | SERV + Dolphin only | $0.0019 | $0.05 | $0.0481 (96%) |
+
+### Shrink table: Surf cost per payee as batch size grows (per-call billing)
+
+| batch size | Surf credits / payee (3 SQL × 4 + label calls × 4, ≤20 addresses/call, ≈2 addresses/payee) | Surf $ / payee | + models | total / check |
+|---|---|---|---|---|
+| 1 | 16.000 | $0.09600 | $0.00191 | $0.09791 |
+| 10 | 1.600 | $0.00960 | $0.00191 | $0.01151 |
+| 50 | 0.640 | $0.00384 | $0.00191 | $0.00575 |
+| 300 | 0.440 | $0.00264 | $0.00191 | $0.00455 |
+
+### Census amortisation (90-day census, 800 payees, 2026-11-09)
+
+| | credits | payees | $ / payee |
+|---|---|---|---|
+| payee SQL chunks only (`chunk_costs`) | 128 | 800 | $0.00096 |
+| payee pass incl. billed killed call (balance 324 → 188) | 136 | 800 | $0.00102 |
+| + refused funder pass + partial labels (balance → 72) | 252 | 800 | $0.00189 |
+| planning estimate (190 credits / 1,923 payees) | 190 | 1923 | $0.00059 |
+

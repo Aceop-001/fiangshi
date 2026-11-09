@@ -74,7 +74,7 @@ describe("audit report (dry run on the real 12-payee data, 0 credits)", () => {
   };
   const md = auditReport(inp);
   it("has every required section and a buyer sentence per finding", () => {
-    for (const h of ["## Method", "## Census", "coverage", "LOWER BOUNDS", "Funder clusters (exchanges excluded)", "## Live probes", "unparseable 402 shapes", "## Labels", "6/23", "## Billing (measured)", "| 4 |", "Policy bands (E v2", "E v1 → v2"]) expect(md).toContain(h);
+    for (const h of ["## Method", "## Census", "coverage", "LOWER BOUNDS", "Funder clusters (exchanges excluded)", "## Live probes", "unparseable 402 shapes", "## Labels", "6 of 23 (26.1%)", "Metering", "## Billing (measured)", "| 4 |", "Policy bands (E v2", "E v1 → v2"]) expect(md).toContain(h);
     expect((md.match(/\*For a buyer:\*/g) ?? []).length).toBeGreaterThanOrEqual(7);
   });
   it("names the apitoll pair and the in-sample shared-funder cluster", () => {
@@ -83,8 +83,8 @@ describe("audit report (dry run on the real 12-payee data, 0 credits)", () => {
     expect(md).toMatch(/0x5609e4…60f6 \| 2 \| no/);
   });
   it("counts the laso.finance payee as floored and reports coverage", () => {
-    expect(md).toMatch(/floored at window start\) \| [1-9]/);
-    expect(md).toContain("12 of 12 payees audited");
+    expect(md).toMatch(/established: first transfer at the window start\) \| [1-9]/);
+    expect(md).toContain("12 of 12 Base payees (100.0%), 365-day window");
   });
 });
 

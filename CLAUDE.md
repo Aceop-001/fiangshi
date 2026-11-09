@@ -122,3 +122,6 @@ Surf usage facts (verified 2026-11-08, see artifacts/capability.md):
 4. `npx tsx scripts/audit.ts run`: runs the 5-credit PAID GATE first (`audit.ts gate`, which checks top_payer_share on 5 known payees; on failure it writes artifacts/audit-failure.md and exits 2, with no retry). Then batches of 50 (free tier), saving to the checkpoint after every SQL part. It stops cleanly on the 24 s gate, on Surf refusals, or when today's free credits run short. The free tier resets at 00:00 UTC, and a re-run resumes. 200 payees take about 2 nights.
 5. `npx tsx scripts/audit.ts report` → artifacts/audit.md
 Do not change the sample size without asking.
+
+### Census (2026-11-09, uniform 90-day window)
+`npx tsx scripts/audit.ts run --sample fixtures/audit/sample-census.json --days 90 --mode sync --batch 50 --limit N --gate-ms 25000 --min-credits 72 --max-chunk-credits 10 --bisect-min 25 --label-chunk 20 [--payees-only | --finish]` with `FIANGSHI_SURF_CALL_TIMEOUT_MS=25000`. Checkpoints are per window (`checkpoint-<sample>-w<days>.json`). A failed address set is never re-sent; it is bisected. Labels: at most 20 addresses per call, 4 credits each (keyed). Report: `audit.ts report --sample fixtures/audit/sample-census.json --days 90`. ALLOW hunt: `npx tsx scripts/allow-hunt.ts --days 90 [--reuse-census]`.

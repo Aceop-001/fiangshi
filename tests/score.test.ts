@@ -76,3 +76,23 @@ describe("score components: boundaries 0 / mid / 1 / missing", () => {
 
   it("clean payee scores ALLOW range", () => expect(score(components(clean(), LABELS))).toBeGreaterThanOrEqual(80));
 });
+
+describe("M maturity, windowed two-tier (90-day audit dataset)", () => {
+  const W = 90 * 24;
+  it("age at the window floor counts as established: full age credit", () => {
+    expect(maturity(clean({ wallet_age_hours: W, tx_count: 0 }), W)).toBe(0.5);
+    expect(maturity(clean({ wallet_age_hours: W - 23, tx_count: 0 }), W)).toBe(0.5); // within a day of the floor
+  });
+  it("younger than the window: log curve up to the window, strictly below established", () => {
+    const young = maturity(clean({ wallet_age_hours: 24 * 7, tx_count: 0 }), W)!;
+    expect(young).toBeGreaterThan(0);
+    expect(young).toBeLessThan(0.5);
+  });
+  it("default (no window) is the unchanged 1-year curve", () => {
+    expect(maturity(clean({ wallet_age_hours: W, tx_count: 0 }))).toBeLessThan(0.5);
+  });
+  it("volume half is the same either way", () => {
+    const a = maturity(clean({ wallet_age_hours: W, tx_count: 1000 }), W)! - maturity(clean({ wallet_age_hours: W, tx_count: 0 }), W)!;
+    expect(a).toBeCloseTo(0.5, 6);
+  });
+});

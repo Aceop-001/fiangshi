@@ -1,0 +1,75 @@
+{
+  "provider": "dolphin",
+  "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26",
+  "url": "https://agi.apify.com/protocols/x402/prepaid-tokens",
+  "summary": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "claims": {
+      "claims_org": "agi.apify.com",
+      "claims_product": "x402 endpoint",
+      "claims_age_claim": null
+    },
+    "cached": false,
+    "error": null,
+    "schema_valid": true
+  },
+  "calls": [
+    {
+      "provider": "dolphin",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "ms": 4864,
+      "status": 200,
+      "prompt_tokens": 127,
+      "completion_tokens": 475,
+      "total_tokens": 602,
+      "finish_reason": "stop",
+      "error": null,
+      "raw": {
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"claims_org\":\"agi.apify.com\",\"claims_product\":\"x402 endpoint\",\"claims_age_claim\":null}",
+              "refusal": null,
+              "audio": null,
+              "function_call": null,
+              "reasoning": "We need answer only JSON. Need extract identity claims from seller self-description. Text: \"https://agi.apify.com/protocols/x402/prepaid-tokens — x402 endpoint, price $1 USDC on Base\". Need claims_org, claims_product, claims_age_claim. Names verbatim. Org? agi.apify.com? Product? x402 endpoint? prepaid-tokens? Age claim null. Need determine claims_org string|null. The self-description includes URL domain agi.apify.com. Is that org claim? \"Apify\" maybe org. But copy names verbatim from text. Text has \"agi.apify.com\" and \"x402\". claims_org could be \"agi.apify.com\" or \"Apify\"? Need extract identity claims. Seller self-description: URL and description. claims_org: organization claimed? The URL host agi.apify.com implies Apify? But verbatim \"agi.apify.com\". claims_product: \"x402 endpoint\" or \"prepaid-tokens\". The path \"prepaid-tokens\" product. Price. Need one JSON. We need not judge. I'd set claims_org: \"agi.apify.com\" maybe. claims_product: \"x402 endpoint\" maybe. claims_age_claim null. But \"prepaid-tokens\" is product name. Let's parse: \"https://agi.apify.com/protocols/x402/prepaid-tokens — x402 endpoint, price $1 USDC on Base\". The seller describes endpoint. Identity claims: org = agi.apify.com? product = x402 endpoint? age = null. Could claims_product be \"prepaid-tokens\"? The text says x402 endpoint, price... The product is prepaid tokens? Hmm.\n\nNeed answer exactly JSON. Use null when not stated. \"claims_org\": string|null. The text states domain \"agi.apify.com\" not explicit org name. But \"Apify\" is in domain. Copy names verbatim: \"agi.apify.com\" is verbatim. \"claims_product\": \"x402 endpoint\" verbatim. \"claims_age_claim\": null. Final only JSON."
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": null,
+            "token_ids": null,
+            "routed_experts": null,
+            "weight_versions": null
+          }
+        ],
+        "created": 1794191283,
+        "ec_transfer_params": null,
+        "id": "chatcmpl-a3ab52e6cad06a44",
+        "kv_transfer_params": null,
+        "metrics": null,
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+        "object": "chat.completion",
+        "prompt_logprobs": null,
+        "prompt_text": null,
+        "prompt_token_ids": null,
+        "service_tier": null,
+        "system_fingerprint": "vllm-0.33.0rc1.dev447+ge0d00e4b8-tp8-f29145f5",
+        "usage": {
+          "prompt_tokens": 127,
+          "total_tokens": 602,
+          "completion_tokens": 475,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "created_cache_tokens": 0,
+            "multimodal_tokens": null
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 449
+          }
+        }
+      }
+    }
+  ]
+}

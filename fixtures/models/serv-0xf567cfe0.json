@@ -1,0 +1,62 @@
+{
+  "provider": "serv",
+  "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+  "url": "https://api.402rates.com/v1/ping",
+  "summary": {
+    "model": "gpt-5.4-mini",
+    "model_band": "REVIEW",
+    "final_band": "REVIEW",
+    "survived_vows_unchanged": true,
+    "vow_fired": "silence",
+    "degraded": false,
+    "schema_valid": true,
+    "rationale_field_present": true
+  },
+  "calls": [
+    {
+      "provider": "serv",
+      "model": "gpt-5.4-mini",
+      "ms": 2900,
+      "status": 200,
+      "prompt_tokens": 854,
+      "completion_tokens": 163,
+      "total_tokens": 1017,
+      "finish_reason": "stop",
+      "error": null,
+      "raw": {
+        "id": "chatcmpl-Ei9ONuvHH9m6O0HoItKuTAJ645psV",
+        "object": "chat.completion",
+        "created": 1794191243,
+        "model": "gpt-5.4-mini-2026-03-17",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"band\":\"REVIEW\",\"citations\":[{\"signal\":\"wallet_age_hours\",\"quote\":\"first transfer 2026-07-31T09:06:07.000Z (surf agent.base_transfers)\"},{\"signal\":\"tx_count\",\"quote\":\"351 inbound + 2 outbound transfers in window\"},{\"signal\":\"distinct_payers\",\"quote\":\"101 distinct inbound senders, 351 inbound transfers\"},{\"signal\":\"total_received_usd\",\"quote\":\"$5.77 inbound (USD pricing lags ~3d)\"}],\"rationale\":\"The wallet shows substantial activity and many distinct payers, but the available evidence is limited and does not clearly establish the payee’s identity or whether the endpoint is low-risk enough for automatic payment. Further review is warranted.\"}",
+              "refusal": null,
+              "annotations": []
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 854,
+          "completion_tokens": 163,
+          "total_tokens": 1017,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "audio_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "audio_tokens": 0,
+            "accepted_prediction_tokens": 0,
+            "rejected_prediction_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    }
+  ]
+}

@@ -52,7 +52,7 @@ export const liveTransport: Transport = async (text) => {
     const { text: out, meta } = await chatCompletion("dolphin", base, key, {
       model,
       temperature: 0,
-      max_tokens: 200,
+      max_tokens: 1024, // DeepSeek V4.1 Flash emits a `reasoning` field first; 200 truncated the answer (2026-11-09 smoke)
       messages: [
         { role: "system", content: SYSTEM },
         { role: "user", content: text },

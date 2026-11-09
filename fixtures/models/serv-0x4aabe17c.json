@@ -1,0 +1,62 @@
+{
+  "provider": "serv",
+  "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26",
+  "url": "https://agi.apify.com/protocols/x402/prepaid-tokens",
+  "summary": {
+    "model": "gpt-5.4-mini",
+    "model_band": "ALLOW",
+    "final_band": "REVIEW",
+    "survived_vows_unchanged": false,
+    "vow_fired": "silence",
+    "degraded": false,
+    "schema_valid": true,
+    "rationale_field_present": true
+  },
+  "calls": [
+    {
+      "provider": "serv",
+      "model": "gpt-5.4-mini",
+      "ms": 8706,
+      "status": 200,
+      "prompt_tokens": 867,
+      "completion_tokens": 174,
+      "total_tokens": 1041,
+      "finish_reason": "stop",
+      "error": null,
+      "raw": {
+        "id": "chatcmpl-Ei9OJyQbOkH49NiF49iACYGdzTa1k",
+        "object": "chat.completion",
+        "created": 1794191239,
+        "model": "gpt-5.4-mini-2026-03-17",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"band\":\"ALLOW\",\"citations\":[{\"signal\":\"wallet_age_hours\",\"quote\":\"first transfer 2026-03-20T20:40:29.000Z (surf agent.base_transfers)\"},{\"signal\":\"tx_count\",\"quote\":\"3043 inbound + 1911 outbound transfers in window\"},{\"signal\":\"distinct_payers\",\"quote\":\"617 distinct inbound senders, 3043 inbound transfers\"},{\"signal\":\"total_received_usd\",\"quote\":\"$1879.98 inbound (USD pricing lags ~3d)\"}],\"rationale\":\"The payee wallet shows substantial age, high transaction activity, and many distinct inbound senders, which is consistent with an established operational wallet rather than a fresh or isolated address. No direct risk indicators are present in the provided evidence.\"}",
+              "refusal": null,
+              "annotations": []
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 867,
+          "completion_tokens": 174,
+          "total_tokens": 1041,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "audio_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "audio_tokens": 0,
+            "accepted_prediction_tokens": 0,
+            "rejected_prediction_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    }
+  ]
+}

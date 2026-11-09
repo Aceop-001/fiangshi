@@ -12,3 +12,8 @@
 | 2026-11-08T16:41:35.400Z | surf | onchain-sql payee-inbound payees=2 | 7/60 | 5 | ok |
 | 2026-11-09T02:01:23.049Z | surf | onchain-sql payee-inbound payees=100 | 8/60 | 5 | ok |
 | 2026-11-09T02:01:57.199Z | surf | onchain-sql payee-outbound payees=100 | 9/60 | - | error: Error |
+| 2026-11-09T02:27:12.614Z | serv | adjudicate 0x4aabe17c | 1/100 | 1041 | ok |
+| 2026-11-09T02:27:21.361Z | serv | adjudicate 0xf567cfe0 | 2/100 | 1017 | ok |
+| 2026-11-09T02:27:32.937Z | dolphin | extract 5e9c93d5 | 1/30 | - | error: Error |
+| 2026-11-09T02:27:36.066Z | dolphin | extract 5955300d | 2/30 | 295 | ok |
+| 2026-11-09T02:28:02.736Z | dolphin | extract 5e9c93d5 | 3/30 | 602 | ok |

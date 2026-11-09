@@ -1,0 +1,17 @@
+{
+  "provider": "dolphin",
+  "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+  "url": "https://api.402rates.com/v1/ping",
+  "summary": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "claims": {
+      "claims_org": null,
+      "claims_product": "x402 endpoint",
+      "claims_age_claim": null
+    },
+    "cached": true,
+    "error": null,
+    "schema_valid": true
+  },
+  "calls": []
+}

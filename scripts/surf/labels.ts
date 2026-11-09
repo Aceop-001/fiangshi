@@ -3,7 +3,8 @@
  * Usage: npx tsx scripts/surf/labels.ts <smoke-json> <out-json>
  */
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { writeNoClobber } from "../../src/fsutil.js";
 import { join } from "node:path";
 import { guarded } from "../budget.js";
 
@@ -20,7 +21,8 @@ const e = await guarded("surf", `wallet-labels-batch n=${addrs.length}`, async (
   return { value: j, units: j.meta?.credits_used ?? null };
 });
 const ms = Date.now() - t;
-writeFileSync(out, JSON.stringify({ addresses: addrs.length, ms, envelope: e }, null, 2) + "\n");
+const savedPath = writeNoClobber(out, JSON.stringify({ addresses: addrs.length, ms, envelope: e }, null, 2) + "\n");
+console.log(`raw -> ${savedPath}`);
 console.log(`meta ${JSON.stringify(e.meta)} ms=${ms} returned=${(e.data ?? []).length}/${addrs.length}`);
 for (const d of (e.data ?? []) as { address: string; entity_name?: string; entity_type?: string; labels: { label: string; confidence?: number }[] }[])
   console.log(`${d.address} | ${d.entity_name ?? "-"} | ${d.entity_type ?? "-"} | ${d.labels.map((l) => `${l.label}(${l.confidence ?? "?"})`).join("; ")}`);

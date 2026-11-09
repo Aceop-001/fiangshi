@@ -16,6 +16,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { writeNoClobber } from "../../src/fsutil.js";
 import { loadDotEnv } from "../../src/config.js";
 import { guarded } from "../budget.js";
 
@@ -137,9 +138,9 @@ async function main() {
   const record = { mode, payees: payees.length, days, ms, credits_total: calls.reduce((a, c) => a + (c.credits ?? 0), 0), calls, rows };
   mkdirSync(join(ROOT, "fixtures", "surf"), { recursive: true });
   const out = join(ROOT, "fixtures", "surf", `smoke-${tag}.json`);
-  writeFileSync(out, redact(JSON.stringify(record, null, 2)) + "\n");
+  const savedPath = writeNoClobber(out, redact(JSON.stringify(record, null, 2)) + "\n");
   console.log(redact(JSON.stringify(rows, null, 1)));
-  console.log(`saved ${out} — mode=${mode} payees=${payees.length} credits_total=${record.credits_total} ${ms}ms`);
+  console.log(`saved ${savedPath} — mode=${mode} payees=${payees.length} credits_total=${record.credits_total} ${ms}ms`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

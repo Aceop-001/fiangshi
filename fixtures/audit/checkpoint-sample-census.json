@@ -1,0 +1,28 @@
+{
+ "sample": "sample-census.json",
+ "mode": "async",
+ "batch": 50,
+ "payee_rows": {},
+ "batches_done": [],
+ "funders_done": false,
+ "funder_rows": [],
+ "labels_done": [],
+ "labels": [],
+ "calls": [
+  {
+   "label": "onchain-sql-job-create payee-inbound payees=50",
+   "ms": 1490,
+   "credits": 4,
+   "at": "2026-11-09T02:35:12.757Z"
+  },
+  {
+   "label": "onchain-sql-job-get",
+   "ms": 1518,
+   "credits": 0,
+   "at": "2026-11-09T02:35:12.757Z"
+  }
+ ],
+ "stopped": "stage verification failed for payee-inbound: async job returned no rows (did not succeed?)",
+ "inbound_done": [],
+ "outbound_done": []
+}

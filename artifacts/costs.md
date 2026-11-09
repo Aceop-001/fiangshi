@@ -17,3 +17,7 @@
 | 2026-11-09T02:27:32.937Z | dolphin | extract 5e9c93d5 | 1/30 | - | error: Error |
 | 2026-11-09T02:27:36.066Z | dolphin | extract 5955300d | 2/30 | 295 | ok |
 | 2026-11-09T02:28:02.736Z | dolphin | extract 5e9c93d5 | 3/30 | 602 | ok |
+| 2026-11-09T02:34:43.293Z | surf | onchain-sql-job-create payee-inbound payees=5 | 10/150 | 4 | ok |
+| 2026-11-09T02:35:06.746Z | surf | onchain-sql-job-create payee-inbound payees=50 | 11/150 | 4 | ok |
+| 2026-11-09T02:35:12.757Z | surf | onchain-sql-job-get | poll (not budget-counted) | 0 | ok |
+| 2026-11-09T02:35:52.018Z | surf | onchain-sql-preflight payee-inbound payees=50 days=365 | 12/150 | 4 | ok |

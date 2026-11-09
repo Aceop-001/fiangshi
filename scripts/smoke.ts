@@ -6,7 +6,8 @@
  * Raw responses -> fixtures/models/<provider>-<payee>.json (keys never written). Prints: latency, tokens, cost, schema check,
  * and for SERV whether the model's band survived the vows unchanged.
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
+import { writeNoClobber } from "../src/fsutil.js";
 import { join } from "node:path";
 import { loadFixtures402, parse402 } from "../src/adapters/probe.js";
 import { modelCalls } from "../src/adapters/serv.js";
@@ -77,7 +78,8 @@ for (const p of live) {
   const calls = modelCalls.slice(before);
   const m = calls[calls.length - 1];
   const record = { provider, payee: t.payee, url: t.url, summary, calls: calls.map((c) => ({ ...c })) };
-  writeFileSync(join(out, `${provider}-${t.payee.slice(0, 10)}.json`), JSON.stringify(record, null, 2) + "\n");
+  const saved = writeNoClobber(join(out, `${provider}-${t.payee.slice(0, 10)}.json`), JSON.stringify(record, null, 2) + "\n");
+  console.log(`  raw -> ${saved.split(/[\\/]/).slice(-3).join("/")}`);
   console.log(
     `${provider} ${t.payee.slice(0, 10)} | latency ${m?.ms ?? "-"}ms | tokens in/out ${m?.prompt_tokens ?? "-"}/${m?.completion_tokens ?? "-"} | cost $${cost(m?.prompt_tokens ?? null, m?.completion_tokens ?? null)} | ${JSON.stringify(summary)}`,
   );

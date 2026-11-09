@@ -39,7 +39,7 @@ type Counter = Partial<Record<Provider, number>>;
 
 const readCounter = (p: string): Counter => (existsSync(p) ? (JSON.parse(readFileSync(p, "utf8")) as Counter) : {});
 
-function costLine(path: string, line: string) {
+export function costLine(path: string, line: string) {
   mkdirSync(dirname(path), { recursive: true });
   if (!existsSync(path)) writeFileSync(path, "# Costs ledger\n\n| time | provider | label | call # / cap | units | status |\n|---|---|---|---|---|---|\n");
   appendFileSync(path, line + "\n");

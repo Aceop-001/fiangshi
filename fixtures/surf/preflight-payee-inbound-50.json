@@ -1,0 +1,146 @@
+{
+  "template": "payee-inbound",
+  "payees": 50,
+  "days": 365,
+  "ms": 1495,
+  "envelope": {
+    "$schema": "https://api.asksurf.ai/schemas/DataObjectResponseOnchainSQLPreflight.json",
+    "data": {
+      "accepted": true,
+      "budget": {
+        "max_bytes_to_read": 17179869184,
+        "max_execution_time_seconds": 28,
+        "max_rows_to_read": 150000000
+      },
+      "estimate": {
+        "by_table": [
+          {
+            "bytes": 2213997264,
+            "database": "tokens_base",
+            "marks": 1887,
+            "parts": 45,
+            "rows": 15451945,
+            "table": "transfers"
+          }
+        ],
+        "bytes": 2213997264,
+        "marks": 1887,
+        "parts": 45,
+        "rows": 15451945
+      },
+      "executed_sql": "SELECT\n  `to`                                    AS payee,\n  min(block_time)                         AS first_inbound_at,\n  max(block_time)                         AS last_inbound_at,\n  count()                                 AS inbound_count,\n  uniqExact(`from`)                       AS distinct_inbound_senders,\n  argMin(`from`, block_time)              AS first_inbound_from,\n  sum(amount_usd)                         AS inbound_usd,\n  if(sum(ifNull(amount_usd, 0)) > 0,\n     arrayMax(tupleElement(sumMap([contract_address], [toFloat64(ifNull(amount_usd, 0))]), 2)) / sum(ifNull(amount_usd, 0)),\n     NULL)                                AS top_token_share,\n  if(sum(ifNull(amount_usd, 0)) > 0,\n     arrayMax(tupleElement(sumMap([`from`], [toFloat64(ifNull(amount_usd, 0))]), 2)) / sum(ifNull(amount_usd, 0)),\n     NULL)                                AS top_payer_share\nFROM agent.base_transfers\nWHERE block_date >= today() - 365 AND `to` IN ('0x9811c0900fcb719bbc363a3846d2d6db2771dea8','0x14df772bd496bbb7f49bc3e992ce13b2c441177f','0x154b1006435e5cfe2206e7777c1003f9438119b1','0x7d58e3606a71a788633fbf12698d20847cca426c','0x11dced0487ca3e7d9032029dcb302253ccf4e0de','0x4466d4a84b7c49a6a094ec6eef4a0712d6dd125e','0xb790ed3796194e5511c44411cf045f67e069cdc0','0x54ebfcf3870439b9db62381848c5dabc05c70d5b','0xef2fc5b24339371a659fd0571c9d0a1d63268d4f','0x0606bc50928d22475ff61d5b2faac86cae8f3a4d','0x17b2c55872338727660aa77776a4056a1a3158ec','0x05b75e13f071a09a26b50a18ce5bd02a0755d76f','0x495ae6921cac6e7cdbf8fff7f62bb678cc1f47e2','0x0eba5d314f4f5dcb7a094953fa9311a45172dd1b','0x1f0409ccd20a2fb497d4decef4e17e9d0688fea6','0x9287e3102d411029025c7617d75245bfc7920f17','0xdedd050dfe4212d52f2a6ed6a2d5d3289de0d5ac','0xa80bbade17e6b2fbaece40c1e17c1d5c07f73e0d','0x5deaebaf98034cc0d9abe3757a440b121c42ef0a','0x3e7c9ca818f713f19e126e3b7b37b47dc1411570','0x7d6e22db7c2ee44859061061f99e55257a5ceac1','0x02d15e7f25d29743c27021d32a7b280d760b2bc2','0x9b6a1f06ad0b0f5a6d1149133b43395e99dc2c23','0xb3e7993ed2fc2c79fff220620240f298bba9bf5b','0xe1122ae3bbfa33d6ff21c25692850ca7a58a6740','0x2e6e9c7e3a1a286e7b691b53dc90bc8eb703f16d','0xb1f64fc8689a17014cf0748e8eead58c5457ec74','0x318a8bac69c4ec1f9e489ce223b7ce2d719bcd3b','0x9baa4417d1e78f2ed5b09aa4abfb541aeb2cd6ed','0xeb76f3442eaf192ebddbc1f7eebd59cde5e00d35','0x5d83d8f433e72013cebd649665662ee07e030b05','0x66d7c2f952362bfb24fd7f02a9bec9c754ea83bc','0x2f2e1f54109b2525137eeda4a892600ee956d42a','0x642387268576ac4bf74ee8fcc685e4d4f9f54092','0xf3fd98a7b363d473a5f65df08c4176c90701e7e5','0xe8b25a72dd6aef69515452a61ad231c7df2843b7','0x5b32c973596078a967562ca652761404f19be0e9','0x6b2891b824206b0dc9884751fdbaf73e9cce651b','0xd1e9dd6b705312d6b5f9db43ed90490cf0a2c3ba','0x5c3db195a38f39074d8c891741a82f6d8f2a16cc','0x25e8245f07d5e4873987293dad666afbe56a9608','0x9f1ca575893c1f88d622bdf1cd578b810f2b878d','0xe295b6641b32998537ae0f8e61babf729eaed6e5','0xae2634e709c454f2720c65a0b2f9ba168e431842','0x95063cede9c4b02452242543669238e5460087ed','0x30b0f327deef5187c11c1502ecd467b47c5ea2e5','0xd346b16f2c013d8219350d32e511023d16db9aee','0x63a20fa244d3e6a8902121e99704b7f857dc6ebb','0x57e48ca09c36d6e717e0420b7713551064203e32','0x658dc531a7fe637f7ba31c3ddd4c9bf8a27c81e5')\nGROUP BY payee\nORDER BY payee LIMIT 10000 SETTINGS max_rows_to_read=150000000, max_bytes_to_read=17179869184, read_overflow_mode='throw'",
+      "query_id": "6a58cc79-6653-4dd2-8fbb-080cc035b01f",
+      "request_id": "aa2c123a-7dfc-41dc-8c0c-1e3fc05511fd",
+      "sql": "SELECT\n  `to`                                    AS payee,\n  min(block_time)                         AS first_inbound_at,\n  max(block_time)                         AS last_inbound_at,\n  count()                                 AS inbound_count,\n  uniqExact(`from`)                       AS distinct_inbound_senders,\n  argMin(`from`, block_time)              AS first_inbound_from,\n  sum(amount_usd)                         AS inbound_usd,\n  if(sum(ifNull(amount_usd, 0)) > 0,\n     arrayMax(tupleElement(sumMap([contract_address], [toFloat64(ifNull(amount_usd, 0))]), 2)) / sum(ifNull(amount_usd, 0)),\n     NULL)                                AS top_token_share,\n  if(sum(ifNull(amount_usd, 0)) > 0,\n     arrayMax(tupleElement(sumMap([`from`], [toFloat64(ifNull(amount_usd, 0))]), 2)) / sum(ifNull(amount_usd, 0)),\n     NULL)                                AS top_payer_share\nFROM agent.base_transfers\nWHERE block_date >= today() - 365 AND `to` IN ('0x9811c0900fcb719bbc363a3846d2d6db2771dea8','0x14df772bd496bbb7f49bc3e992ce13b2c441177f','0x154b1006435e5cfe2206e7777c1003f9438119b1','0x7d58e3606a71a788633fbf12698d20847cca426c','0x11dced0487ca3e7d9032029dcb302253ccf4e0de','0x4466d4a84b7c49a6a094ec6eef4a0712d6dd125e','0xb790ed3796194e5511c44411cf045f67e069cdc0','0x54ebfcf3870439b9db62381848c5dabc05c70d5b','0xef2fc5b24339371a659fd0571c9d0a1d63268d4f','0x0606bc50928d22475ff61d5b2faac86cae8f3a4d','0x17b2c55872338727660aa77776a4056a1a3158ec','0x05b75e13f071a09a26b50a18ce5bd02a0755d76f','0x495ae6921cac6e7cdbf8fff7f62bb678cc1f47e2','0x0eba5d314f4f5dcb7a094953fa9311a45172dd1b','0x1f0409ccd20a2fb497d4decef4e17e9d0688fea6','0x9287e3102d411029025c7617d75245bfc7920f17','0xdedd050dfe4212d52f2a6ed6a2d5d3289de0d5ac','0xa80bbade17e6b2fbaece40c1e17c1d5c07f73e0d','0x5deaebaf98034cc0d9abe3757a440b121c42ef0a','0x3e7c9ca818f713f19e126e3b7b37b47dc1411570','0x7d6e22db7c2ee44859061061f99e55257a5ceac1','0x02d15e7f25d29743c27021d32a7b280d760b2bc2','0x9b6a1f06ad0b0f5a6d1149133b43395e99dc2c23','0xb3e7993ed2fc2c79fff220620240f298bba9bf5b','0xe1122ae3bbfa33d6ff21c25692850ca7a58a6740','0x2e6e9c7e3a1a286e7b691b53dc90bc8eb703f16d','0xb1f64fc8689a17014cf0748e8eead58c5457ec74','0x318a8bac69c4ec1f9e489ce223b7ce2d719bcd3b','0x9baa4417d1e78f2ed5b09aa4abfb541aeb2cd6ed','0xeb76f3442eaf192ebddbc1f7eebd59cde5e00d35','0x5d83d8f433e72013cebd649665662ee07e030b05','0x66d7c2f952362bfb24fd7f02a9bec9c754ea83bc','0x2f2e1f54109b2525137eeda4a892600ee956d42a','0x642387268576ac4bf74ee8fcc685e4d4f9f54092','0xf3fd98a7b363d473a5f65df08c4176c90701e7e5','0xe8b25a72dd6aef69515452a61ad231c7df2843b7','0x5b32c973596078a967562ca652761404f19be0e9','0x6b2891b824206b0dc9884751fdbaf73e9cce651b','0xd1e9dd6b705312d6b5f9db43ed90490cf0a2c3ba','0x5c3db195a38f39074d8c891741a82f6d8f2a16cc','0x25e8245f07d5e4873987293dad666afbe56a9608','0x9f1ca575893c1f88d622bdf1cd578b810f2b878d','0xe295b6641b32998537ae0f8e61babf729eaed6e5','0xae2634e709c454f2720c65a0b2f9ba168e431842','0x95063cede9c4b02452242543669238e5460087ed','0x30b0f327deef5187c11c1502ecd467b47c5ea2e5','0xd346b16f2c013d8219350d32e511023d16db9aee','0x63a20fa244d3e6a8902121e99704b7f857dc6ebb','0x57e48ca09c36d6e717e0420b7713551064203e32','0x658dc531a7fe637f7ba31c3ddd4c9bf8a27c81e5')\nGROUP BY payee\nORDER BY payee",
+      "tables": [
+        {
+          "columns": [
+            {
+              "name": "blockchain",
+              "type": "String"
+            },
+            {
+              "name": "block_month",
+              "type": "Date"
+            },
+            {
+              "name": "block_date",
+              "type": "Date"
+            },
+            {
+              "name": "block_time",
+              "type": "DateTime64(3)"
+            },
+            {
+              "name": "block_number",
+              "type": "UInt64"
+            },
+            {
+              "name": "tx_hash",
+              "type": "String"
+            },
+            {
+              "name": "evt_index",
+              "type": "UInt32"
+            },
+            {
+              "name": "trace_address",
+              "type": "Array(Int64)"
+            },
+            {
+              "name": "token_standard",
+              "type": "String"
+            },
+            {
+              "name": "tx_from",
+              "type": "String"
+            },
+            {
+              "name": "tx_to",
+              "type": "String"
+            },
+            {
+              "name": "tx_index",
+              "type": "UInt32"
+            },
+            {
+              "name": "from",
+              "type": "String"
+            },
+            {
+              "name": "to",
+              "type": "String"
+            },
+            {
+              "name": "contract_address",
+              "type": "String"
+            },
+            {
+              "name": "symbol",
+              "type": "String"
+            },
+            {
+              "comment": "Raw token amount in smallest units before decimal adjustment.",
+              "name": "amount_raw",
+              "type": "UInt256"
+            },
+            {
+              "comment": "Decimal-adjusted token amount in human-readable display units. Use amount_raw for the original base-unit UInt256 value.",
+              "name": "amount",
+              "type": "Float64"
+            },
+            {
+              "name": "price_usd",
+              "type": "Float64"
+            },
+            {
+              "comment": "USD transfer value when available; nullable and may lag enrichment.",
+              "name": "amount_usd",
+              "type": "Nullable(Float64)"
+            }
+          ],
+          "database": "agent",
+          "engine": "View",
+          "physical_sources": [
+            {
+              "database": "tokens_base",
+              "engine": "MergeTree",
+              "partition_key": "toYYYYMM(block_date)",
+              "primary_key": "contract_address, block_number, tx_hash, evt_index",
+              "sorting_key": "contract_address, block_number, tx_hash, evt_index",
+              "table": "transfers",
+              "total_bytes": 2595192634678,
+              "total_rows": 18112386359
+            }
+          ],
+          "table": "base_transfers"
+        }
+      ],
+      "warnings": []
+    },
+    "meta": {
+      "cached": false,
+      "credits_used": 4
+    }
+  }
+}

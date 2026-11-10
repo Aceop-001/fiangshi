@@ -12,7 +12,7 @@ npm ci
 npm test
 npm run accept
 npm run localhost-check     # 10-step end-to-end check, FIXTURE mode: zero keys, 127.0.0.1 only
-npm run dev                 # API + index on http://127.0.0.1:8787
+npm run dev                 # the site and the API on http://127.0.0.1:8787 (open it in a browser)
 curl "http://127.0.0.1:8787/v1/check?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas"
 ```
 
@@ -48,7 +48,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | kinship BLOCKs | 243, all on funders Surf could not name (an upper bound) | same |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9** cases match expectations written before the run; 3 / 3 real controls ALLOW. B4 is a recorded FAILURE: it is still REVIEW, but identity neutrality means V5 no longer fires on it | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 224 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| tests | 229 passing; accept 11 / 11 | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
@@ -58,17 +58,29 @@ These are the only band counts the repo states; every page (README, `artifacts/a
 | | latency | price |
 |---|---|---|
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
-| cached check (payee in the census) | **warm p50 311 ms** (`artifacts/demo-stats.json`, live mode, 3 calls including the live probe) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
+| cached check (payee in the census) | **warm p50 935 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-10, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the four runs committed so far measured 294, 311, 372 and 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | cold check (payee not in the census: Surf + SERV + Dolphin) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.15** (`FIANGSHI_PRICE_CHECK_COLD`) |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |
 
 Cost basis (`npx tsx scripts/pricing.ts`, details in `artifacts/costs.md`): a cached check costs $0.0019 in model calls; a cold one costs $0.0979 measured, or $0.1159 if Surf's `meta.credits_used` is taken at face value.
 
+## The site (127.0.0.1:8787)
+
+Three static pages, served by the same process as the API. No JavaScript, no framework, no CDN, no external request: a Content-Security-Policy of `default-src 'none'` enforces it in the browser (`tests/api.test.ts`).
+
+| page | what it shows |
+|---|---|
+| `/` | The census (band counts and a score histogram split by final band), five case files, the six vows with how often each fired, shared funders, and all 800 payees with their receipts. |
+| `/check?url=` | A free probe from a plain form: one unpaid GET, the null-payee gate, and the cached census band. It never calls a model and shows only what `/v1/index.json` and `/v1/receipt/:id` already give away. |
+| `/receipt/:id` | A receipt as a paper slip, with the result of recomputing its hash and chain link. |
+
+Code: `src/site.ts` (pages) and `src/site-theme.ts` (logo, styles, shell). Verdict colours are white (ALLOW), grey (REVIEW) and red (BLOCK), each with its own shape and a text label, so no verdict depends on telling red from green.
+
 ## API (127.0.0.1:8787)
 
 | route | price | notes |
 |---|---|---|
-| `GET /` | free | static index, no JavaScript |
+| `GET /`, `GET /check?url=`, `GET /receipt/:id` | free | the site above |
 | `GET /health`, `GET /v1/index.json` | free | census payees with band, score and receipt id |
 | `GET /v1/check?url=` | $0.05 | V6 payees answer BLOCK free; otherwise a real x402 v2 402 until `X-PAYMENT` is sent |
 | `GET /v1/payee/:addr` | $0.02 | x402 v2 402, then the census record |
@@ -122,3 +134,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-09 Phase 3f.** This README, LICENSE, `.nvmrc`, and a fresh-clone test.
 - **2026-11-09 Phase 3g.** `localhost-check` forces live mode for its own server, whatever `.env` says. Fresh clone: test 219/219, accept 11/11, localhost-check 10/10 with keys (8/10 keyless, failing closed). Local bundle refreshed. No remote.
 - **2026-11-09 Phase 3h.** The ALLOW composition audit found examination penalised: 63 examined-but-uncorroborated payees had 0 ALLOWs, and all live lab ALLOWs had `enrichment: incomplete`. Identity neutrality: an uncorroborated claim is identical to no claim, and V5 fires only on contradiction. Census 49 / 464 / 287, lab 8/9 (B4 recorded as a FAILURE). `localhost-check` defaults to fixture mode (zero keys, loopback only); `-- --live` for real providers.
+- **2026-11-10 Phase 3i.** The frontend: three static pages in the logo's black, white and red (`/`, `/check?url=`, `/receipt/:id`), with no JavaScript and a CSP that forbids it. The free check page reuses its own probe for the null-payee gate and never calls a model. 229 tests; localhost-check 10/10 in fixture and live mode.

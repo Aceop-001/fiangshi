@@ -7,3 +7,4 @@ data/
 *.key
 *.pem
 coverage/
+.claude/

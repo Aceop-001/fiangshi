@@ -1,6 +1,8 @@
 /**
  * Fiangshi HTTP API (node:http, no framework). Census state is built at startup from committed fixtures (0 credits).
- *   GET /                       static index (no JS)
+ *   GET /                       the site: census, case files, vows, funders, ledger (static HTML, no JS)
+ *   GET /check?url=             free HTML probe: unpaid GET, null-payee gate, cached census band (no model, no data call)
+ *   GET /receipt/:id            a receipt as an HTML slip with its verification result
  *   GET /health                 free
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
@@ -10,13 +12,14 @@
  *   GET /v1/verify?id=|receipt= free · recompute the hash (and chain link); receipt = base64url JSON
  *   GET /v1/badge/:addr.svg     free · colour by band
  * Settlement is "dry-run": X-PAYMENT is validated structurally, nothing is settled, no tx hash is invented.
- * Usage: npm run dev  (127.0.0.1:8787; PORT / HOST to override)
+ * Usage: npm run dev  (127.0.0.1:8787; PORT / HOST, or --port N, to override)
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { pathToFileURL } from "node:url";
 import { loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
-import { badgeSvg, renderIndex } from "../site.js";
+import { badgeSvg, renderCheck, renderIndex, renderNotFound, renderReceipt } from "../site.js";
+import { CSP } from "../site-theme.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
@@ -32,6 +35,19 @@ const json = (res: ServerResponse, status: number, body: unknown, headers: Recor
   res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-fiangshi-mode": providerMode(), ...headers });
   const out = body && typeof body === "object" && !Array.isArray(body) ? { mode: providerMode(), ...(body as object) } : body;
   res.end(JSON.stringify(out, null, 2));
+};
+
+/** HTML pages are static documents: the CSP forbids every script and every external request. */
+const html = (res: ServerResponse, status: number, body: string) => {
+  res.writeHead(status, {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store",
+    "content-security-policy": CSP,
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+    "x-fiangshi-mode": providerMode(),
+  });
+  res.end(body);
 };
 
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
@@ -87,9 +103,25 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   const self = `http://${req.headers.host ?? "127.0.0.1"}`;
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
-    if (u.pathname === "/") {
-      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "x-fiangshi-mode": providerMode() });
-      return void res.end(renderIndex(c, loadDemoStats()));
+    if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats()));
+    if (u.pathname === "/check") {
+      // Free page: one unpaid probe, the V6 gate, and the census band already published in /v1/index.json. Never a model call.
+      const input = (u.searchParams.get("url") ?? "").trim();
+      const page = (status: number, v: Parameters<typeof renderCheck>[0]) => html(res, status, renderCheck(v, c, self, loadDemoStats()));
+      if (!/^https?:\/\/\S{1,2000}$/i.test(input)) return page(400, { kind: "invalid", input: input.slice(0, 200) });
+      const pr = await probe(input);
+      if (!pr.ok) return page(200, { kind: "probe_failed", url: input, error: pr.error });
+      if (v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
+        const r = await check(input, { probe: pr }); // same probe: the sealed receipt is for exactly what was shown
+        return page(200, { kind: "blocked", url: input, terms: pr.terms, payTo: pr.payTo_raw, reason: r.decision.verdict.citations[0]?.quote ?? "null payee", receipt: r.receipt });
+      }
+      const cp = c.payees.find((x) => x.payee === pr.terms.payee);
+      return page(200, cp ? { kind: "census", url: input, terms: pr.terms, payTo: pr.payTo_raw, payee: cp } : { kind: "unknown", url: input, terms: pr.terms, payTo: pr.payTo_raw });
+    }
+    const hm = /^\/receipt\/([0-9a-f]{64})$/.exec(u.pathname);
+    if (hm) {
+      const f = findReceipt(hm[1]!);
+      return f ? html(res, 200, renderReceipt(f.r, verifyOne(f.r), c, self, loadDemoStats())) : html(res, 404, renderNotFound("No receipt with that id.", c, loadDemoStats()));
     }
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement() });
     if (u.pathname === "/v1/index.json")
@@ -144,7 +176,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const pr = await probe(target);
       // V6 at probe time: a null/sink payTo is BLOCKed before any spend: no payment asked, no data or model call
       if (pr.ok && v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
-        const r = await check(target, {});
+        const r = await check(target, { probe: pr });
         return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired, reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, settlement: "dry-run", ms: Math.round(performance.now() - t0) });
       }
       const pay = requirePayment(req, res, `${self}/v1/check?url=${encodeURIComponent(target)}`, num("FIANGSHI_PRICE_CHECK", 0.05), "Fiangshi counterparty check");
@@ -205,7 +237,8 @@ export function startServer(port = num("PORT", 8787), host = process.env.HOST ??
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   loadDotEnv();
-  const s = await startServer();
+  const portArg = process.argv.indexOf("--port");
+  const s = portArg > 0 && Number(process.argv[portArg + 1]) > 0 ? await startServer(Number(process.argv[portArg + 1])) : await startServer();
   const a = s.address();
   console.log(`fiangshi listening on http://${typeof a === "object" && a ? `${a.address}:${a.port}` : a} (providers: ${providerMode()})`);
 }

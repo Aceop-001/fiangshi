@@ -5,6 +5,7 @@ import type { Server } from "node:http";
 import { parse402 } from "../src/adapters/probe.js";
 import { demoXPayment, paymentRequired, verifyXPayment } from "../src/adapters/x402.js";
 import { startServer } from "../src/api/server.js";
+import { modelCalls } from "../src/adapters/serv.js";
 import { tmp } from "./helpers.js";
 
 const PAYTO = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"; // EIP-55 example vector (dry-run demo only)
@@ -106,6 +107,55 @@ describe("HTTP API", () => {
     const b = await get(`/v1/badge/${addr}.svg`);
     expect(b.status).toBe(200);
     expect(b.headers["content-type"]).toMatch(/image\/svg\+xml/);
+  });
+  it("HTML pages are static: a CSP that forbids every script, no <script>, no external request", async () => {
+    for (const path of ["/", `/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`]) {
+      const r = await get(path);
+      expect(r.status).toBe(200);
+      const csp = r.headers["content-security-policy"] ?? "";
+      expect(csp).toContain("default-src 'none'");
+      expect(csp).not.toMatch(/script-src|connect-src|font-src/); // nothing but inline styles and data: images is allowed
+      expect(r.body).not.toMatch(/<script/i);
+      expect(r.body).not.toMatch(/(src|href|action)="https?:/i); // no external asset, link or form target
+      expect(r.body).not.toMatch(/@import|url\((?!"data:)/i);
+    }
+  });
+  it("/ lists every census payee with a receipt link, and the six vows", async () => {
+    const body = (await get("/")).body;
+    expect(new Set(body.match(/\/receipt\/[0-9a-f]{64}/g)).size).toBeGreaterThanOrEqual(800);
+    for (const v of ["null_payee", "age", "kinship", "history", "identity", "silence"]) expect(body).toContain(v);
+    expect(body).toContain('action="/check"');
+  });
+  it("/check (free page): a null payee is BLOCKed with a sealed receipt and no model call", async () => {
+    const before = modelCalls.length;
+    const r = await get(`/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`);
+    expect(r.body).toContain("Blocked at probe time by vow I, null_payee.");
+    const id = /\/receipt\/([0-9a-f]{64})/.exec(r.body)?.[1];
+    expect(JSON.parse((await get(`/v1/verify?id=${id}`)).body).valid).toBe(true);
+    const slip = await get(`/receipt/${id}`);
+    expect(slip.status).toBe(200);
+    expect(slip.body).toContain("This receipt checks out.");
+    expect(slip.body).toContain(id!);
+    expect(modelCalls.length).toBe(before);
+  });
+  it("/check: a census payee shows its cached band; an unknown payee gets no verdict; neither calls a model", async () => {
+    const before = modelCalls.length;
+    const tbs = await get(`/check?url=${encodeURIComponent("https://x402.tbs-digital.com/weather/current")}`);
+    expect(tbs.body).toMatch(/Census band ALLOW, score \d/);
+    const other = await get(`/check?url=${encodeURIComponent("https://api.weatherly.example/v1/forecast")}`); // synthetic fixture, not in the census
+    expect(other.body).toContain("This payee is not in the census.");
+    expect(other.body).toContain("never ALLOW by default");
+    expect(modelCalls.length).toBe(before);
+  });
+  it("/check fails closed and escapes what it echoes", async () => {
+    const bad = await get(`/check?url=${encodeURIComponent("javascript:alert(1)")}`);
+    expect(bad.status).toBe(400);
+    const xss = await get(`/check?url=${encodeURIComponent('https://not-recorded.example/"><script>alert(1)</script>')}`);
+    expect(xss.status).toBe(200);
+    expect(xss.body).toContain("The probe did not get usable payment terms.");
+    expect(xss.body).not.toMatch(/<script/i);
+    expect(xss.body).toContain("&lt;script&gt;");
+    expect((await get(`/receipt/${"0".repeat(64)}`)).status).toBe(404);
   });
   it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
     const saved = process.env.FIANGSHI_PAYTO;

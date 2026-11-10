@@ -1,5 +1,5 @@
 /** check(url): probe -> snapshot lookup -> score -> model advice -> vows -> receipt -> ledger. */
-import { probe } from "./adapters/probe.js";
+import { probe, type ProbeResult } from "./adapters/probe.js";
 import { adjudicate } from "./adapters/serv.js";
 import { extractIdentity, liveTransport, type ExtractResult } from "./adapters/dolphin.js";
 import { join } from "node:path";
@@ -62,6 +62,8 @@ export interface CheckOpts {
   snapshot?: Snapshot;
   ledger?: string | false; // false = don't persist
   now?: Date;
+  /** A probe the caller already made for this URL: reused instead of probing again, so gate and receipt see the same 402. */
+  probe?: ProbeResult;
 }
 
 /** Evaluate a payee from signals directly (used by check, lab, and tests). */
@@ -152,7 +154,7 @@ function v6Decision(reason: string): Decision {
 
 export async function check(url: string, opts: CheckOpts = {}): Promise<CheckResult> {
   const t0 = performance.now();
-  const pr = await probe(url);
+  const pr = opts.probe ?? (await probe(url));
   const terms = pr.ok ? pr.terms : null;
   const payee = terms?.payee ?? "unknown";
 

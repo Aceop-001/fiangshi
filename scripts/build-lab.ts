@@ -118,7 +118,7 @@ for (const c of cases) {
       if (g.band === "BLOCK") {
         row = { band: "BLOCK", vows_fired: ["null_payee"], score: 0, model_band: null, degraded: false, probe: probeNote, reason: `${g.rule}: ${g.reason}`, receipt_hash: null, model_calls: 0 };
       } else {
-        const full = await evaluateFull(terms, s, census.funderLabels, sp?.service?.trim() || null, { url: c.url, catalogName: sp?.service ?? null, labelName: l?.entity_name ?? null });
+        const full = await evaluateFull(terms, s, census.funderLabels, sp?.service?.trim() || null, { url: c.url, catalogName: sp?.service ?? null, labelName: l?.entity_name ?? null, labelType: l?.entity_type ?? null });
         const d = full.decision;
         const receipt = appendReceipt({
           payee: s.payee,

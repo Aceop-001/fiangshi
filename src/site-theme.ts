@@ -300,12 +300,46 @@ details.led>.scroll{border-top:1px solid var(--line2);max-height:560px;overflow:
 .proof .big{display:flex;align-items:flex-start;font:600 15px/1.4 var(--mono);margin-bottom:8px}
 .proof .big .st{margin-top:5px}
 
+/* documents: the guide and the legal page, rendered from Markdown */
+.doc-wrap{display:grid;grid-template-columns:210px minmax(0,1fr);gap:56px;align-items:start;padding-top:44px}
+.toc{position:sticky;top:20px;font-size:12.5px}
+.toc ol{display:grid;gap:9px}
+.toc a{color:var(--mut);text-decoration:none}
+.toc a:hover{color:var(--fg)}
+.doc{max-width:84ch;min-width:0}
+.doc h1{font-size:clamp(34px,5vw,54px);margin:0 0 18px}
+.doc h1+p{font-size:15.5px;color:var(--fg)}
+.doc h2{font-size:clamp(24px,3vw,32px);margin:52px 0 16px;padding-top:20px;border-top:1px solid var(--line2)}
+.doc h3{font:600 12.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--red-text);margin:30px 0 10px}
+.doc h4{font:600 14px/1.4 var(--mono);margin:22px 0 8px}
+.doc p{margin:0 0 14px;color:#d6d6d6}
+.doc ul,.doc ol{margin:0 0 16px;padding-left:22px}
+.doc ul{list-style:square}.doc ol{list-style:decimal}
+.doc li{margin:0 0 7px;padding-left:4px;color:#d6d6d6}
+.doc li::marker{color:var(--red-text)}
+.doc strong{color:var(--fg);font-weight:600}
+.doc code{background:#111;border:1px solid var(--line);padding:1px 5px;font-size:.92em;overflow-wrap:anywhere}
+.doc pre{margin:0 0 18px;padding:14px 16px;border:1px solid var(--line2);overflow-x:auto;font-size:12.5px;line-height:1.55}
+.doc pre code{background:none;border:0;padding:0;font-size:inherit;overflow-wrap:normal}
+.doc blockquote{margin:0 0 18px;padding:2px 0 2px 14px;border-left:2px solid var(--red)}
+.doc blockquote p{margin:0;color:var(--fg)}
+.doc .scroll{margin:0 0 18px}
+.doc pre,.scroll,.string-scroll{scrollbar-width:thin}
+.doc .tbl td{color:#d6d6d6}
+.contact{margin-top:44px;border:1px solid var(--hud);padding:16px 18px}
+.contact h2{border:0;margin:0 0 8px;padding:0;font-size:22px}
+.contact p{margin:0}
+
 /* footer */
 footer{margin-top:72px;border-top:1px solid var(--line2);color:var(--mut);font-size:12.5px}
 .foot{display:flex;flex-wrap:wrap;gap:8px 30px;padding-top:18px;padding-bottom:32px}
 .foot p{max-width:86ch}
+.foot-links{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 20px;letter-spacing:.12em;text-transform:uppercase;font-size:11.5px}
+.foot-links a{text-decoration:none;color:var(--fg)}
 
 @media(max-width:860px){
+.doc-wrap{grid-template-columns:minmax(0,1fr);gap:22px;padding-top:30px}
+.toc{position:static;border:1px solid var(--line2);padding:14px 16px}
 .hero-in{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:30px;padding-bottom:42px}
 .clock{max-width:230px}
 .notes,.vows,.cols{grid-template-columns:minmax(0,1fr)}
@@ -332,6 +366,9 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 }
 `;
 
+/** The document pages every page links to, in the bar and in the footer. */
+export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"], ["/legal", "Legal"]];
+
 const MODE_NOTE: Record<string, string> = {
   fixture: `<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain. Live providers: <code>npm run localhost-check -- --live</code>`,
   mock: `<strong>Mock mode.</strong> Probes replay recorded 402s and the model is mocked. Set FIANGSHI_OFFLINE=0 and MOCK_MODELS= in .env for live providers.`,
@@ -343,7 +380,7 @@ export interface Shell {
   /** e.g. "census 2026-11-09 02:57 UTC · 90-day window" */
   status: string;
   body: string;
-  /** anchor links shown in the bar (index only) */
+  /** links shown in the bar; the index passes its section anchors, other pages get the default */
   nav?: [href: string, label: string][];
   foot: string;
   /** page-specific styles appended to the shared sheet */
@@ -352,7 +389,8 @@ export interface Shell {
 
 export function page(s: Shell): string {
   const mode = providerMode();
-  const nav = s.nav?.length ? `<nav aria-label="Sections">${s.nav.map(([h, l]) => `<a href="${esc(h)}">${esc(l)}</a>`).join("")}</nav>` : "";
+  const links = s.nav ?? ([["/#census", "Census"], ...SITE_LINKS] as [string, string][]);
+  const nav = `<nav aria-label="Site">${links.map(([h, l]) => `<a href="${esc(h)}">${esc(l)}</a>`).join("")}</nav>`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="${CSP}">
@@ -364,7 +402,7 @@ export function page(s: Shell): string {
 <header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · providers ${mode} · settlement dry-run</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${MODE_NOTE[mode]}</p></div>` : ""}
 ${s.body}
-<footer><div class="wrap foot">${s.foot}</div></footer>
+<footer><div class="wrap foot"><p class="foot-links">${SITE_LINKS.map(([h, l]) => `<a href="${h}">${l}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>MIT licence</span></p>${s.foot}</div></footer>
 </body></html>
 `;
 }

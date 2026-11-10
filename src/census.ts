@@ -103,7 +103,7 @@ export function loadCensus(): Census {
         funder: f,
         payees: ps.length,
         status: lab === "cex" ? "exchange" : lab === "infra" ? "relayer" : "shared unnamed funder",
-        label: l?.entity_name ?? null,
+        label: lab === "cex" || lab === "infra" ? (l?.entity_name ?? null) : null, // never print a label that names a person
         kinship_fires: !kinshipExempt(lab),
       };
     });

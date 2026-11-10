@@ -1,7 +1,7 @@
 {
-  "measured_at": "2026-11-10T06:45:27.607Z",
-  "warm_p50_ms": 935,
-  "cold_ms": 2211,
-  "tests_passed": 229,
+  "measured_at": "2026-11-10T11:46:03.211Z",
+  "warm_p50_ms": 488,
+  "cold_ms": 394,
+  "tests_passed": 248,
   "accept": "11/11"
 }

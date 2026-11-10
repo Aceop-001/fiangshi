@@ -9,7 +9,11 @@ import https from "node:https";
 import net from "node:net";
 import tls from "node:tls";
 import dns from "node:dns";
-import { demoXPayment } from "../src/adapters/x402.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { demoXPayment, verifyXPayment } from "../src/adapters/x402.js";
+import { ROOT } from "../src/config.js";
+import { fencedBlocks } from "../src/md.js";
 import { startServer } from "../src/api/server.js";
 import { tmp } from "./helpers.js";
 
@@ -116,6 +120,28 @@ describe("fixture mode: zero keys, loopback only", () => {
       "x-payment": demoXPayment({ scheme: "exact", network: "eip155:8453", amount: "50000", asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", payTo: PAYTO, maxTimeoutSeconds: 60, extra: { name: "USD Coin", version: "2" } }, FROM),
     });
     expect(JSON.parse(r.body).band).not.toBe("ALLOW");
+  });
+  it("the guide's examples are real: same fields as the live responses, and its X-PAYMENT example is accepted", async () => {
+    const blocks = fencedBlocks(readFileSync(join(ROOT, "docs", "GUIDE.md"), "utf8"));
+    const doc = (k: string) => JSON.parse(blocks[k]!) as Record<string, any>;
+    /** every key path of a JSON value; an array is described by its first element */
+    const paths = (o: unknown, p = ""): string[] =>
+      Array.isArray(o) ? (o.length ? paths(o[0], `${p}[]`) : [p]) : o && typeof o === "object" ? Object.entries(o).flatMap(([k, v]) => paths(v, p ? `${p}.${k}` : k)) : [p];
+    const block = JSON.parse((await get(`/v1/check?url=${encodeURIComponent(CLEAVE)}`)).body);
+    const r402 = JSON.parse((await get(`/v1/check?url=${encodeURIComponent(TBS)}`)).body);
+    const paid = JSON.parse((await get(`/v1/check?url=${encodeURIComponent(TBS)}`, { "x-payment": demoXPayment(r402.accepts[0], FROM) })).body);
+    const verify = JSON.parse((await get(`/v1/verify?id=${paid.receipt_id}`)).body);
+    for (const [name, real] of [["check-block", block], ["check-402", r402], ["check-paid", paid], ["verify", verify]] as const) {
+      expect(Object.keys(doc(name)).sort(), `${name}: top-level fields`).toEqual(Object.keys(real).sort());
+      const have = new Set(paths(real));
+      for (const p of paths(doc(name))) expect(have.has(p), `${name}: documented field ${p} is not in the real response`).toBe(true);
+    }
+    // the documented payment terms are the real ones, and the documented payment payload passes the structural check
+    expect(doc("check-402").accepts[0]).toEqual(r402.accepts[0]);
+    const xp = doc("x-payment");
+    expect(Object.keys(xp.payload.authorization).sort()).toEqual(["from", "nonce", "to", "validAfter", "validBefore", "value"]);
+    const header = Buffer.from(JSON.stringify(xp)).toString("base64");
+    expect(verifyXPayment(header, r402.accepts[0], Number(xp.payload.authorization.validAfter) + 1)).toMatchObject({ ok: true, signature_verified: false });
   });
   it("no network call left 127.0.0.1", () => {
     expect(external).toEqual([]);

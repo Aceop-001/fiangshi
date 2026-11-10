@@ -28,7 +28,7 @@ import { computeFanout } from "../src/snapshot.js";
 import { costLine, guarded } from "./budget.js";
 import { writeNoClobber } from "../src/fsutil.js";
 import { v6 } from "../src/core/v6.js";
-import { contradicts, corroborate } from "../src/core/identity.js";
+import { contradicts, corroborate, operatorName } from "../src/core/identity.js";
 import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -560,11 +560,12 @@ export function censusIdentity(
   const self = p.service?.trim() || null;
   if (self) {
     const sources = corroborate({ claims: [self], claimFrom: "catalog", url: p.example_url, labelName: l?.entity_name ?? null });
-    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources, contradicted: contradicts([self], l?.entity_name) };
+    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources, contradicted: contradicts([self], operatorName(l)) };
   }
-  if (l?.entity_name) {
-    const sources = ["label", ...corroborate({ claims: [l.entity_name], claimFrom: "label", url: p.example_url })];
-    return { claims_org: l.entity_name, claims_product: null, corroborated: true, sources };
+  const operator = operatorName(l); // a person handle or a deposit address is not the seller identity (and a handle is never published)
+  if (operator) {
+    const sources = ["label", ...corroborate({ claims: [operator], claimFrom: "label", url: p.example_url })];
+    return { claims_org: operator, claims_product: null, corroborated: true, sources };
   }
   return undefined; // no claim at all -> I = 0
 }
@@ -802,7 +803,7 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`## Caveats`, ``);
   L.push(`- Ages are floors. ${floored.length} payees sit at the window start, so their true age is ≥ ${DAYS}d, never stated in years. The 48h age vow is unaffected: its threshold sits inside the window.`);
   L.push(`- The band counts above are the only split this report states: they are what the committed rules produce today. Earlier rule sets are in git history (\`git log scripts/audit.ts src/core\`), not restated here.`);
-  L.push(`- Identity neutrality (2026-11-09): an uncorroborated claim is treated exactly like no claim (identity weight excluded, no vow). Only a claim a Surf label contradicts BLOCKs. Extraction must never penalise being examined.`);
+  L.push(`- Identity neutrality (2026-11-09): an uncorroborated claim is treated exactly like no claim (identity weight excluded, no vow). Only a claim contradicted by a label that names the wallet operator BLOCKs; a person handle or a deposit address contradicts nothing (2026-11-10). Extraction must never penalise being examined.`);
   L.push(`- Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.`);
   L.push(`- Identity is corroborated by the catalog listing name matching the URL host or path, or by a Surf \`entity_name\` label. Dolphin claim extraction is not run in this audit (census receipts carry \`enrichment: skipped\`).`);
   L.push(`- E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.`);

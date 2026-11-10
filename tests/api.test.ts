@@ -157,6 +157,37 @@ describe("HTTP API", () => {
     expect(xss.body).toContain("&lt;script&gt;");
     expect((await get(`/receipt/${"0".repeat(64)}`)).status).toBe(404);
   });
+  it("/docs and /legal render the Markdown documents as static pages, linked from every page", async () => {
+    for (const [path, heading] of [["/docs", "The agent flow"], ["/legal", "Terms of use"]] as const) {
+      const r = await get(path);
+      expect(r.status).toBe(200);
+      expect(r.headers["content-security-policy"]).toContain("default-src 'none'");
+      expect(r.body).not.toMatch(/<script/i);
+      expect(r.body).toContain(heading);
+      expect(r.body).toContain("On this page");
+    }
+    for (const path of ["/", `/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`, "/docs", "/legal"]) {
+      const body = (await get(path)).body;
+      expect(body).toContain('<a href="/docs">Docs</a>');
+      expect(body).toContain('<a href="/legal">Legal</a>');
+    }
+    // links between the two Markdown files point at the routes, not at file names
+    expect((await get("/docs")).body).not.toContain("LEGAL.md)");
+    expect((await get("/legal")).body).toContain('<a href="/docs">guide</a>');
+  });
+  it("/legal shows the operator contact from FIANGSHI_CONTACT, escaped, and never invents one", async () => {
+    const saved = process.env.FIANGSHI_CONTACT;
+    delete process.env.FIANGSHI_CONTACT;
+    expect((await get("/legal")).body).toContain("has no operator contact set");
+    process.env.FIANGSHI_CONTACT = "ops@fiangshi.example";
+    expect((await get("/legal")).body).toContain('<a href="mailto:ops@fiangshi.example">ops@fiangshi.example</a>');
+    process.env.FIANGSHI_CONTACT = '"><script>x()</script>';
+    const odd = (await get("/legal")).body;
+    expect(odd).not.toMatch(/<script/i);
+    expect(odd).toContain("&lt;script&gt;x()&lt;/script&gt;");
+    if (saved === undefined) delete process.env.FIANGSHI_CONTACT;
+    else process.env.FIANGSHI_CONTACT = saved;
+  });
   it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
     const saved = process.env.FIANGSHI_PAYTO;
     delete process.env.FIANGSHI_PAYTO;

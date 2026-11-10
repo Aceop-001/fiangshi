@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { corroborate, identityLevel, tokens } from "../src/core/identity.js";
+import { contradicts, corroborate, identityLevel, operatorName, tokens } from "../src/core/identity.js";
 import { components, score } from "../src/core/score.js";
 import { evaluateVows } from "../src/core/vows.js";
+import { censusIdentity } from "../scripts/audit.js";
 import { clean, LABELS } from "./helpers.js";
 
 describe("identity v3 corroboration sources", () => {
@@ -46,5 +47,46 @@ describe("regression: self-claims are never penalised for existing", () => {
     const c = { ...base, identity: { claims_org: "Acme", claims_product: null, corroborated: false, sources: [], contradicted: true } };
     const v = evaluateVows({ signals: c, price: 0.05, funder_labels: LABELS }).find((r) => r.vow === "identity")!;
     expect(v).toMatchObject({ fired: true, band: "BLOCK" });
+  });
+});
+
+describe("only an operator label can contradict a claim (2026-11-10)", () => {
+  it("an exchange's own wallet names its operator, so an unrelated listing name is contradicted", () => {
+    expect(operatorName({ entity_name: "Kraken", entity_type: "cex" })).toBe("Kraken");
+    expect(contradicts(["Acme Weather"], operatorName({ entity_name: "Kraken", entity_type: "cex" }))).toBe(true);
+    expect(contradicts(["Kraken Prices"], operatorName({ entity_name: "Kraken", entity_type: "cex" }))).toBe(false); // shares a word: not contradicted
+  });
+  it("a person's handle contradicts nothing: people sell products under other names (the live false positive)", () => {
+    const handle = { entity_name: "@example_person", entity_type: "individual" };
+    expect(operatorName(handle)).toBeNull();
+    expect(contradicts(["Crawl Pre-Flight"], operatorName(handle))).toBe(false);
+  });
+  it("a deposit address names the platform, not the wallet's owner", () => {
+    expect(operatorName({ entity_name: "Stake Deposit", entity_type: "casino_deposit" })).toBeNull();
+    expect(operatorName({ entity_name: "OKX Deposit", entity_type: "cex" })).toBeNull();
+    expect(contradicts(["Acme"], operatorName({ entity_name: "OKX Deposit", entity_type: "cex" }))).toBe(false);
+  });
+  it("a label of unknown kind, or no label, never BLOCKs", () => {
+    expect(operatorName({ entity_name: "Somebody", entity_type: null })).toBeNull();
+    expect(operatorName({ entity_name: null, entity_type: "cex" })).toBeNull();
+    expect(operatorName(undefined)).toBeNull();
+    expect(contradicts(["Acme"], null)).toBe(false);
+  });
+});
+
+describe("a wallet label stands in as the seller's name only when it names the operator", () => {
+  const payee = (service: string | null) => ({ payee: "0xabc", example_url: "https://seller.example/v1/data", service, price_usd: 0.01 }) as any;
+  const label = (entity_name: string, entity_type: string) => ({ address: "0xabc", entity_name, entity_type }) as any;
+  it("no catalog name + an operator label -> the label is the claim, backed by the label itself", () => {
+    expect(censusIdentity(payee(null), label("Kraken", "cex"))).toMatchObject({ claims_org: "Kraken", corroborated: true, sources: ["label"] });
+  });
+  it("no catalog name + a person's handle or a deposit address -> no claim at all (and the handle is never published)", () => {
+    expect(censusIdentity(payee(null), label("@example_person", "individual"))).toBeUndefined();
+    expect(censusIdentity(payee(null), label("Stake Deposit", "casino_deposit"))).toBeUndefined();
+    expect(censusIdentity(payee(null), label("OKX Deposit", "cex"))).toBeUndefined();
+  });
+  it("a catalog name is contradicted by an operator label only", () => {
+    expect(censusIdentity(payee("Crawl Pre-Flight"), label("@example_person", "individual"))?.contradicted).toBe(false);
+    expect(censusIdentity(payee("Crawl Pre-Flight"), label("Kraken", "cex"))?.contradicted).toBe(true);
   });
 });

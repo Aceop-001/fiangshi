@@ -7,11 +7,12 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, num } from "./config.js";
+import { ROOT, env, num } from "./config.js";
 import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
-import { HERO_CSS, bareUrl, esc, logoSvg, page, probeForm, short, usd } from "./site-theme.js";
+import { renderMarkdown } from "./md.js";
+import { HERO_CSS, SITE_LINKS, bareUrl, esc, logoSvg, page, probeForm, short, usd } from "./site-theme.js";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const BANDS = ["ALLOW", "REVIEW", "BLOCK"] as const;
@@ -285,7 +286,7 @@ ${ledger(c)}
 <section class="sec" id="api"><div class="wrap">
 <p class="eyebrow">API</p>
 <h2>For agents</h2>
-<p class="lede">Paid routes answer 402 with x402 v2 payment terms until an X-PAYMENT header is sent. Settlement is dry-run in this build: the header is checked for structure and nothing is settled.</p>
+<p class="lede">Paid routes answer 402 with x402 v2 payment terms until an X-PAYMENT header is sent. Settlement is dry-run in this build: the header is checked for structure and nothing is settled. The <a href="/docs">guide</a> has the full flow with real requests and responses.</p>
 <div class="scroll"><table class="tbl"><tr><th>route</th><th class="n">price</th><th>returns</th></tr>
 <tr><td><code>GET /v1/check?url=</code></td><td class="n">$${cached.toFixed(2)}</td><td>Verdict, vows, SERV advice and a fresh receipt. A null payee answers BLOCK for free.</td></tr>
 <tr><td><code>GET /v1/payee/:address</code></td><td class="n">$${payeePrice.toFixed(2)}</td><td>The census record for one payee.</td></tr>
@@ -300,7 +301,7 @@ ${ledger(c)}
     title: "Fiangshi · who is behind the 402?",
     description: "Fiangshi checks the wallet behind an x402 paid endpoint before an agent pays it: ALLOW, REVIEW or BLOCK, with quoted evidence and a hash-chained receipt.",
     status: censusStatus(c),
-    nav: [["#census", "Census"], ["#cases", "Cases"], ["#vows", "Vows"], ["#funders", "Funders"], ["#ledger", "Ledger"], ["#api", "API"]],
+    nav: [["#census", "Census"], ["#cases", "Cases"], ["#vows", "Vows"], ["#funders", "Funders"], ["#ledger", "Ledger"], ["#api", "API"], ...SITE_LINKS],
     body,
     foot: footer(c, stats),
     css: HERO_CSS,
@@ -441,6 +442,45 @@ ${hashBars(r.receipt_hash)}
     body,
     foot: footer(c, stats),
   });
+}
+
+/* ---------------------------------------------------------------- documents ------------------------------------ */
+
+const DOCS = {
+  docs: { file: "GUIDE.md", fallback: "Fiangshi guide", description: "How an agent uses Fiangshi, how a verdict is made, and how to run it." },
+  legal: { file: "LEGAL.md", fallback: "Legal", description: "Fiangshi terms of use, what a verdict about a seller means, privacy, licence." },
+} as const;
+export type DocKind = keyof typeof DOCS;
+
+/** The operator of this copy, from FIANGSHI_CONTACT (an https URL, an email address, or plain text). Never invented. */
+function contactBlock(): string {
+  const raw = env("FIANGSHI_CONTACT").trim();
+  const shown = !raw
+    ? `This copy of Fiangshi has no operator contact set. Whoever runs it for other people should set <code>FIANGSHI_CONTACT</code>.`
+    : /^https:\/\/\S+$/.test(raw)
+      ? `<a href="${esc(raw)}" rel="noreferrer">${esc(raw)}</a>`
+      : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)
+        ? `<a href="mailto:${esc(raw)}">${esc(raw)}</a>`
+        : esc(raw);
+  return `<aside class="contact"><h2 id="operator-contact">Operator contact</h2><p>${shown}</p></aside>`;
+}
+
+/**
+ * docs/GUIDE.md and docs/LEGAL.md rendered as pages: one source for the repository and the site.
+ * Links between the two files (LEGAL.md, GUIDE.md) are pointed at their routes.
+ */
+export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): string {
+  const d = DOCS[kind];
+  const src = readFileSync(join(ROOT, "docs", d.file), "utf8")
+    .replace(/\]\(GUIDE\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/docs${hash ?? ""})`)
+    .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`);
+  const r = renderMarkdown(src);
+  const toc = r.headings.filter((h) => h.level === 2).map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`);
+  const body = `<main class="wrap doc-wrap">
+<nav class="toc" aria-label="On this page"><p class="eyebrow">On this page</p><ol>${toc.join("")}</ol></nav>
+<article class="doc">${r.html}${kind === "legal" ? contactBlock() : ""}</article>
+</main>`;
+  return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats) });
 }
 
 export function renderNotFound(what: string, c: Census, stats: DemoStats | null): string {

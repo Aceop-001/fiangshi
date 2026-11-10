@@ -3,6 +3,7 @@
  *   GET /                       the site: census, case files, vows, funders, ledger (static HTML, no JS)
  *   GET /check?url=             free HTML probe: unpaid GET, null-payee gate, cached census band (no model, no data call)
  *   GET /receipt/:id            a receipt as an HTML slip with its verification result
+ *   GET /docs, GET /legal       docs/GUIDE.md and docs/LEGAL.md rendered as pages
  *   GET /health                 free
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
@@ -18,7 +19,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import { loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
-import { badgeSvg, renderCheck, renderIndex, renderNotFound, renderReceipt } from "../site.js";
+import { badgeSvg, renderCheck, renderDoc, renderIndex, renderNotFound, renderReceipt } from "../site.js";
 import { CSP } from "../site-theme.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
@@ -104,6 +105,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
     if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats()));
+    if (u.pathname === "/docs" || u.pathname === "/legal") return html(res, 200, renderDoc(u.pathname === "/docs" ? "docs" : "legal", c, loadDemoStats()));
     if (u.pathname === "/check") {
       // Free page: one unpaid probe, the V6 gate, and the census band already published in /v1/index.json. Never a model call.
       const input = (u.searchParams.get("url") ?? "").trim();

@@ -203,11 +203,11 @@ Free-tier arithmetic at 50 payees per batch:
 
 | identity examination | payees | ALLOW before | ALLOW after |
 |---|---|---|---|
-| no claim (weight excluded) | 312 | 12 | 12 |
+| no claim (weight excluded) | 314 | 12 | 12 |
 | claim, 0 corroborating sources | 63 | **0** | **5** |
-| claim, 1 source (I 0.5) | 344 | 26 | 26 |
-| claim, 2+ sources (I 0.75) | 80 | 6 | 6 |
-| contradicted | 1 | 0 | 0 |
+| claim, 1 source (I 0.5) | 342 | 26 | 26 |
+| claim, 2+ sources (I 0.75) | 81 | 6 | 6 |
+| contradicted | 0 | 0 | 0 |
 
 A payee whose listing name was examined and found uncorroborated could never ALLOW (V5 REVIEW), while the same payee with no listing could. Live, all three lab ALLOWs had `enrichment: incomplete`: an ALLOW was reachable only when the extractor failed to examine the seller.
 
@@ -223,4 +223,12 @@ The "optional components can only add" rule stays, so a corroborated claim never
 
 **Lab** (`fixtures/lab/results-attempt4.json`, expectations in `cases-v2.json` left unedited): **8/9**. B4 (anon-claimant, expected REVIEW · identity) still lands on REVIEW by score (60.49), but V5 no longer fires, so it is recorded as a FAILURE against its pre-written expectation. The synthetic lookalike fixture still BLOCKs, by score (48.3) rather than by V5.
 
-**Current census band counts (the only split stated on this page):** **49 ALLOW · 464 REVIEW · 287 BLOCK** of 800 (`npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90`).
+**Current census band counts (the only split stated on this page):** **49 ALLOW · 465 REVIEW · 286 BLOCK** of 800 (`npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90`).
+
+## Operator labels only (2026-11-10)
+
+The identity vow had fired on one census payee, and it was a false positive. The listing said "Crawl Pre-Flight"; Surf labelled the wallet with a person's social handle (`entity_type: individual`). The two share no word, so the old rule called it a contradiction and BLOCKed. A person selling a product under another name contradicts nothing.
+
+A label now contradicts a claim only when it names the wallet's **operator** (`operatorName` in `src/core/identity.ts`): it must have an `entity_type`, must not be `individual`, and must not be a deposit address (`casino_deposit`, "OKX Deposit"), which names the platform where the owner is a customer. Tests: `tests/identity.test.ts`. That payee moves BLOCK to REVIEW; nothing else changes. The composition table and band counts above are for this rule.
+
+The same test decides whether a label can stand in as a seller's name when the catalog gives none. Two census payees are labelled as deposit addresses (an exchange's and a casino's): they now count as having no claim. Their scores move 78.54 → 76.58 and 49.83 → 47.84 and neither changes band. A label naming a person is never used as a name and never printed.

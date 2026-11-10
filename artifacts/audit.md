@@ -144,10 +144,10 @@ None: no payee was excluded. Every failed **payee** query was resolved by bisect
 | band | payees | share |
 |---|---|---|
 | ALLOW | 49 | 6.1% |
-| REVIEW | 464 | 58.0% |
-| BLOCK | 287 | 35.9% |
+| REVIEW | 465 | 58.1% |
+| BLOCK | 286 | 35.8% |
 
-Vows fired: kinship 243 · identity 1 · silence 35 · null_payee 1.
+Vows fired: kinship 243 · silence 35 · null_payee 1.
 
 E v1 → v2: **53 of 800 payees changed band** between E v1 and the current E v2 scoring. 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
 
@@ -209,7 +209,7 @@ Binding constraint: of 12 checks, 5 were capped to REVIEW because Dolphin timed 
 
 - Ages are floors. 84 payees sit at the window start, so their true age is ≥ 90d, never stated in years. The 48h age vow is unaffected: its threshold sits inside the window.
 - The band counts above are the only split this report states: they are what the committed rules produce today. Earlier rule sets are in git history (`git log scripts/audit.ts src/core`), not restated here.
-- Identity neutrality (2026-11-09): an uncorroborated claim is treated exactly like no claim (identity weight excluded, no vow). Only a claim a Surf label contradicts BLOCKs. Extraction must never penalise being examined.
+- Identity neutrality (2026-11-09): an uncorroborated claim is treated exactly like no claim (identity weight excluded, no vow). Only a claim contradicted by a label that names the wallet operator BLOCKs; a person handle or a deposit address contradicts nothing (2026-11-10). Extraction must never penalise being examined.
 - Clusters are 1-hop within the audited set. 2-hop kinship needs funder-of-funder data, which this audit did not query.
 - Identity is corroborated by the catalog listing name matching the URL host or path, or by a Surf `entity_name` label. Dolphin claim extraction is not run in this audit (census receipts carry `enrichment: skipped`).
 - E v2 excludes a labelled-exchange first funder from the payer count. Other exchange or relayer senders are not individually labelled at this scale.

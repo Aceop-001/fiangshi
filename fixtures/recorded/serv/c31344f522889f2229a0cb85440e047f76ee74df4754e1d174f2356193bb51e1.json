@@ -1,0 +1,7 @@
+{
+  "url": "https://x402.tbs-digital.com/weather/current",
+  "payee": "0xd6fce15298fc9d60f867d9455d497177da9bfb0a",
+  "terms_hash": "7a3502dc8ef0bc354c115fe96ed0b3e92eb8cab44e4d9f8371f221cd1950adda",
+  "model": "gpt-5.4-mini",
+  "text": "{\"band\":\"ALLOW\",\"citations\":[{\"signal\":\"identity\",\"quote\":\"catalog listing name: TBS Weather & Climate API\"},{\"signal\":\"tx_count\",\"quote\":\"416 inbound + 0 outbound transfers in window\"},{\"signal\":\"distinct_payers\",\"quote\":\"101 distinct inbound senders, 416 inbound transfers\"},{\"signal\":\"wallet_age_hours\",\"quote\":\"first transfer 2026-08-12T13:41:21.000Z (surf agent.base_transfers)\"}],\"rationale\":\"The endpoint appears to be a legitimate weather API listing with substantial transaction history and many distinct payers, which supports proceeding with payment.\"}"
+}

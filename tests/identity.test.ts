@@ -3,6 +3,7 @@ import { contradicts, corroborate, identityLevel, operatorName, tokens } from ".
 import { components, score } from "../src/core/score.js";
 import { evaluateVows } from "../src/core/vows.js";
 import { censusIdentity } from "../scripts/audit.js";
+import { signalsFromSurf } from "../src/adapters/surf.js";
 import { clean, LABELS } from "./helpers.js";
 
 describe("identity v3 corroboration sources", () => {
@@ -88,5 +89,19 @@ describe("a wallet label stands in as the seller's name only when it names the o
   it("a catalog name is contradicted by an operator label only", () => {
     expect(censusIdentity(payee("Crawl Pre-Flight"), label("@example_person", "individual"))?.contradicted).toBe(false);
     expect(censusIdentity(payee("Crawl Pre-Flight"), label("Kraken", "cex"))?.contradicted).toBe(true);
+  });
+});
+
+describe("identity evidence says where the name came from", () => {
+  const row = { payee: "0xabc", first_inbound_at: 1_700_000_000, inbound_count: 3, outbound_count: 0, distinct_inbound_senders: 2 } as any;
+  const ctx = { now: 1_700_100_000, windowStart: 1_690_000_000, tokenContracts: [] };
+  const ev = (claimFrom?: "catalog" | "label") => signalsFromSurf(row, { ...ctx, identity: { claims_org: "Acme", corroborated: true, claimFrom } }).evidence.identity;
+  it("catalog listing, Surf label, or unknown", () => {
+    expect(ev("catalog")).toBe("catalog listing name: Acme");
+    expect(ev("label")).toBe("surf label: Acme");
+    expect(ev()).toBe("claimed name: Acme");
+  });
+  it("the census passes the source through", () => {
+    expect(censusIdentity({ payee: "0xabc", example_url: "https://acme.example/v1", service: "Acme", price_usd: 0.01 } as any, undefined)?.claimFrom).toBe("catalog");
   });
 });

@@ -87,7 +87,7 @@ const iso = (t: number) => new Date(t * 1000).toISOString();
  */
 export function signalsFromSurf(
   r: SurfPayeeRow,
-  ctx: { now: number; windowStart: number; tokenContracts: string[]; identity?: { claims_org: string | null; claims_product?: string | null; corroborated: boolean | null; sources?: string[]; contradicted?: boolean } },
+  ctx: { now: number; windowStart: number; tokenContracts: string[]; identity?: { claims_org: string | null; claims_product?: string | null; corroborated: boolean | null; sources?: string[]; contradicted?: boolean; claimFrom?: "catalog" | "label" } },
 ): PayeeSignals {
   const times = [r.first_inbound_at, r.first_outbound_at].filter((x): x is number => typeof x === "number" && x > 0);
   const lasts = [r.last_inbound_at, r.last_outbound_at].filter((x): x is number => typeof x === "number" && x > 0);
@@ -104,7 +104,8 @@ export function signalsFromSurf(
   if (funder) evidence.first_funder = `first inbound transfer from ${funder}`;
   if (distinct !== null) evidence.distinct_payers = `${distinct} distinct inbound senders, ${inbound} inbound transfers`;
   if (typeof r.inbound_usd === "number") evidence.total_received_usd = `$${r.inbound_usd.toFixed(2)} inbound (USD pricing lags ~3d)`;
-  if (ctx.identity?.claims_org) evidence.identity = `surf label: ${ctx.identity.claims_org}`;
+  // say where the name came from: the seller's own catalog listing, or a Surf wallet label
+  if (ctx.identity?.claims_org) evidence.identity = `${ctx.identity.claimFrom === "label" ? "surf label" : ctx.identity.claimFrom === "catalog" ? "catalog listing name" : "claimed name"}: ${ctx.identity.claims_org}`;
   return {
     payee: r.payee.toLowerCase(),
     wallet_age_hours: first !== null ? Math.max(0, (ctx.now - first) / 3600) : null,

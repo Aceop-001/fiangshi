@@ -171,10 +171,18 @@ async function liveText(i: AdjudicationInput, strict: boolean): Promise<string> 
   });
 }
 
+/**
+ * A saved SERV reply is only valid for the evidence it was shown: its quotes must be substrings of that evidence.
+ * So both the live cache and the replay recordings are keyed by payee, terms AND evidence: when the evidence text
+ * changes, the old reply is simply not found, and the model is asked again (live) or the check degrades (replay).
+ */
+export const servReplayKey = (i: Pick<AdjudicationInput, "terms" | "signals">) =>
+  hashOf({ payee: i.signals.payee, terms_hash: i.terms?.terms_hash ?? null, evidence: i.signals.evidence });
+
 export async function adjudicate(i: AdjudicationInput): Promise<ModelAdvice> {
   if (replayMode()) {
     // fixture mode: the recorded SERV reply, validated exactly like a live one; no recording -> degraded (fail closed)
-    const p = join(replayDir(), "serv", `${hashOf({ payee: i.signals.payee, terms_hash: i.terms?.terms_hash ?? null })}.json`);
+    const p = join(replayDir(), "serv", `${servReplayKey(i)}.json`);
     if (!existsSync(p)) {
       process.stderr.write(`WARN serv replay: no recorded response for ${i.signals.payee}; degraded verdict\n`);
       return { model: "replay:missing", validation: null, attempts: 0 };
@@ -185,7 +193,7 @@ export async function adjudicate(i: AdjudicationInput): Promise<ModelAdvice> {
   const mode = mockModels();
   const useMock = mode !== "" || isOffline();
   const model = useMock ? `mock:${mode || "broken"}` : env("SERV_MODEL", "unset");
-  const cacheKey = hashOf({ payee: i.signals.payee, terms_hash: i.terms?.terms_hash ?? null, model });
+  const cacheKey = hashOf({ payee: i.signals.payee, terms_hash: i.terms?.terms_hash ?? null, evidence: i.signals.evidence, model });
   const cachePath = join(dataDir(), "cache", "serv", `${cacheKey}.json`);
   if (!useMock && existsSync(cachePath)) {
     const text = (JSON.parse(readFileSync(cachePath, "utf8")) as { text: string }).text;

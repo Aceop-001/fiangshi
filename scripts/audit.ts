@@ -556,16 +556,16 @@ export interface ReportInputs {
 export function censusIdentity(
   p: SamplePayee,
   l: SurfWalletLabel | undefined,
-): { claims_org: string | null; claims_product: string | null; corroborated: boolean | null; sources: string[]; contradicted?: boolean } | undefined {
+): { claims_org: string | null; claims_product: string | null; corroborated: boolean | null; sources: string[]; contradicted?: boolean; claimFrom: "catalog" | "label" } | undefined {
   const self = p.service?.trim() || null;
   if (self) {
     const sources = corroborate({ claims: [self], claimFrom: "catalog", url: p.example_url, labelName: l?.entity_name ?? null });
-    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources, contradicted: contradicts([self], operatorName(l)) };
+    return { claims_org: self, claims_product: null, corroborated: sources.length > 0, sources, contradicted: contradicts([self], operatorName(l)), claimFrom: "catalog" };
   }
   const operator = operatorName(l); // a person handle or a deposit address is not the seller identity (and a handle is never published)
   if (operator) {
     const sources = ["label", ...corroborate({ claims: [operator], claimFrom: "label", url: p.example_url })];
-    return { claims_org: operator, claims_product: null, corroborated: true, sources };
+    return { claims_org: operator, claims_product: null, corroborated: true, sources, claimFrom: "label" };
   }
   return undefined; // no claim at all -> I = 0
 }

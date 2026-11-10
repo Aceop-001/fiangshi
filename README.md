@@ -48,7 +48,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | kinship BLOCKs | 243, all on funders Surf could not name (an upper bound) | same |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9** cases match expectations written before the run; 3 / 3 real controls ALLOW. B4 is a recorded FAILURE: it is still REVIEW, but identity neutrality means V5 no longer fires on it | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 248 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| tests | 250 passing; accept 11 / 11 | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
@@ -58,7 +58,7 @@ These are the only band counts the repo states; every page (README, `artifacts/a
 | | latency | price |
 |---|---|---|
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
-| cached check (payee in the census) | **warm p50 488 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-10, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the five runs committed so far ranged from 294 to 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
+| cached check (payee in the census) | **warm p50 333 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-10, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the six runs committed so far ranged from 294 to 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | first check of a census payee (no cached model reply) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.05** |
 | cold check (payee not in the census: Surf + SERV + Dolphin) | **not served in this build.** The route makes no live data call, so such a payee answers REVIEW through the silence vow | **$0.15** is the price worked out for it (`FIANGSHI_PRICE_CHECK_COLD`, `scripts/pricing.ts`); today the route charges $0.05 |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |
@@ -139,3 +139,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-09 Phase 3h.** The ALLOW composition audit found examination penalised: 63 examined-but-uncorroborated payees had 0 ALLOWs, and all live lab ALLOWs had `enrichment: incomplete`. Identity neutrality: an uncorroborated claim is identical to no claim, and V5 fires only on contradiction. Lab 8/9 (B4 recorded as a FAILURE). `localhost-check` defaults to fixture mode (zero keys, loopback only); `-- --live` for real providers.
 - **2026-11-10 Phase 3i.** The frontend: three static pages in the logo's black, white and red (`/`, `/check?url=`, `/receipt/:id`), with no JavaScript and a CSP that forbids it. The free check page reuses its own probe for the null-payee gate and never calls a model. 229 tests; localhost-check 10/10 in fixture and live mode.
 - **2026-11-10 Phase 3j.** The identity vow's only live BLOCK was a false positive: the wallet's label was a person's handle, not an organisation. Now only a label that names the wallet's operator can contradict a claim or stand in as a seller's name (`operatorName` in `src/core/identity.ts`), and a label naming a person is never printed. That payee moves BLOCK to REVIEW. Added the guide and the legal page (`docs/GUIDE.md`, `docs/LEGAL.md`), shown on the site at `/docs` and `/legal`. 248 tests.
+- **2026-11-10 Phase 3k.** Receipts quoted every seller name as "surf label: …", even names taken from the seller's own catalog listing. Identity evidence now says where the name came from: `catalog listing name`, `surf label` or `claimed name`. Saved SERV replies are keyed by the evidence they were shown, so changed evidence re-asks the model instead of failing validation. One live SERV call re-recorded the fixture reply; the old recording stays in `fixtures/recorded/serv` unused, since raw fixtures are never overwritten. 250 tests.

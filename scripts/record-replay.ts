@@ -1,7 +1,7 @@
 /**
  * Records the provider responses that `npm run localhost-check` (fixture mode) replays. 0 Surf credits, 0 model calls:
  *  - raw unpaid 402s for the demo URLs -> fixtures/402/real/<host>.json (one live unpaid GET each; never overwrites)
- *  - the SERV verdict already cached by a live check -> fixtures/recorded/serv/<hash(payee, terms_hash)>.json {model, text}
+ *  - the SERV verdict already cached by a live check -> fixtures/recorded/serv/<servReplayKey: hash(payee, terms_hash, evidence)>.json {model, text}
  *  - the Dolphin extraction already cached by a live check -> fixtures/recorded/dolphin/<sha256(listing text)>.json
  * Run a live check first (`npm run localhost-check -- --live`) so the caches exist.
  * Usage: npx tsx scripts/record-replay.ts
@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { ROOT, dataDir, env, loadDotEnv } from "../src/config.js";
 import { parse402 } from "../src/adapters/probe.js";
 import { hashOf, sha256 } from "../src/core/canonical.js";
+import { servReplayKey } from "../src/adapters/serv.js";
 import { loadCensus } from "../src/census.js";
 
 loadDotEnv();
@@ -43,8 +44,13 @@ for (const url of URLS) {
   }
   const cp = c.payees.find((x) => x.payee === p.terms.payee);
   const model = env("SERV_MODEL", "unset");
-  const cached = join(dataDir(), "cache", "serv", `${hashOf({ payee: p.terms.payee, terms_hash: p.terms.terms_hash, model })}.json`);
-  const servOut = join(rec, "serv", `${hashOf({ payee: p.terms.payee, terms_hash: p.terms.terms_hash })}.json`);
+  const signals = c.signals.get(p.terms.payee);
+  if (!signals) {
+    console.log(`${url}: payee not in the census, no SERV reply to record`);
+    continue;
+  }
+  const cached = join(dataDir(), "cache", "serv", `${hashOf({ payee: p.terms.payee, terms_hash: p.terms.terms_hash, evidence: signals.evidence, model })}.json`);
+  const servOut = join(rec, "serv", `${servReplayKey({ terms: p.terms, signals })}.json`);
   if (existsSync(cached) && !existsSync(servOut)) {
     const { text } = JSON.parse(readFileSync(cached, "utf8")) as { text: string };
     writeFileSync(servOut, JSON.stringify({ url, payee: p.terms.payee, terms_hash: p.terms.terms_hash, model, text }, null, 2) + "\n");

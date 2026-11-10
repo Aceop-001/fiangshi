@@ -254,3 +254,4 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 | 2026-11-09T08:18:36.508Z | dolphin | extract 2fe9b583 | 50/200 | - | error: Error |
 | 2026-11-09T08:18:48.521Z | dolphin | extract 2fe9b583 | 51/200 | - | error: Error |
 | 2026-11-09T08:19:01.051Z | dolphin | extract aaebd7b0 | 52/200 | - | error: Error |
+| 2026-11-10T11:54:30.212Z | serv | adjudicate 0xd6fce152 | 25/100 | 1026 | ok |

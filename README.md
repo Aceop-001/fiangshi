@@ -51,6 +51,8 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | tests | 263 passing; accept 11 / 11 | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
+**Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
+
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
 
 ## Latency and price
@@ -143,3 +145,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-11 Final pass, phase A.** Kinship threshold v2: an unlabelled funder shared with 21+ other catalog payees gives REVIEW with the flag `kinship_suspected_exchange`; 3 to 20 still BLOCK (lab B2 sits at 20). It never creates a BLOCK. Census 49 / 539 / 212; BLOCK moved 25.9%, over the 15% limit first set, accepted by the owner. `artifacts/sensitivity.md` compares three policies. Lab 8 pass, 1 superseded (B4, documented in `fixtures/lab/supersessions.json`).
 - **2026-11-11 Final pass, phase B.** Asked Surf again about all 19 funders behind a kinship firing (one `wallet-labels-batch` call, 4 credits by balance, 1,060 → 1,056). 3 came back with no name or type, 16 returned nothing: 0 exchange, 0 relayer, 0 individual, 19 unnamed. 123 kinship BLOCKs and 120 suspected-exchange REVIEWs stand.
 - **2026-11-11 Final pass, phase C.** Cold check wired (`src/cold.ts`): a Base payee outside the census is fetched live with two Surf SQL calls (inbound, outbound; 90 days), behind the budget guard and a 32-credit floor checked before spending, then scored, adjudicated and sealed. $0.15. Cached 72 h, so the repeat is $0.05 with zero Surf calls (tested). Fail closed: `budget_guard`, `surf_error`, `network_not_base` or `unavailable` give REVIEW with the reason on the receipt. One live run: 8 credits, 10.8 s, ALLOW 86.36 (`artifacts/cold-live.md`).
+- **2026-11-11 Final pass, phase D.** `scripts/winrate.ts` → `artifacts/winrate.md`: lab 9/9 (8 pass, 1 superseded), per-vow precision and recall, a false-block upper bound (at most 66% of BLOCKs, if every unnamed funder were an exchange), BaseScan agreement on one hand-checked payee (now a fixture), label coverage before and after, and verdictable coverage (95.6%).

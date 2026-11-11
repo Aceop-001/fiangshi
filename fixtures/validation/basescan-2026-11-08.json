@@ -1,0 +1,13 @@
+{
+  "note": "Values read by hand from BaseScan's public token-transfer page; recorded here so scripts/winrate.ts can compare them with the committed Surf rows (fixtures/surf/smoke-2payees.json). The first-funder address was noted in shortened form.",
+  "source": "https://basescan.org/tokentxns?a=0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+  "retrieved_at": "2026-11-08T16:30:00Z",
+  "payee": "0xf567cfe0fdb87a1d6ca330e3f30f0d3da0f7cb98",
+  "endpoint": "api.402rates.com",
+  "observed": {
+    "first_seen": "2026-07-31T09:06:07Z",
+    "first_seen_block": 49349710,
+    "first_funder_shortened": "0x278eE9A9…82DE",
+    "erc20_transfer_count": 342
+  }
+}

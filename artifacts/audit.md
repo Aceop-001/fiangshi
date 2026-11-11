@@ -108,13 +108,15 @@ Clusters (1-hop: payees sharing a direct first funder; the kinship vow fires at 
 
 243 surviving kinship firings rest on funders that **were** label-checked and came back unnamed or untyped. Surf knows these addresses but cannot say they are exchanges or relayers, so the vow stands.
 
+**Measured labels of the 19 funders behind a kinship firing** (asked again on 2026-11-11, one call): 0 exchange, 0 relayer, 0 individual, **19 unnamed**. Under kinship threshold v2 they give **123 kinship BLOCKs** (up to 20 other payees on one funder) and 120 REVIEWs flagged `kinship_suspected_exchange` (21 or more). Every one of these funders has now been sent to Surf twice and has no name, so the BLOCKs rest on checked, unnamed funders rather than on unchecked ones.
+
 *For a buyer:* most large "clusters" here are wallets funded from the same exchange or bridge, which is normal. What remains after labelling is a shared **unnamed** funder: treat those payees as one counterparty until you know otherwise.
 
 ## Labels
 
-Label coverage: **16 of 463 addresses (3.5%)** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.
+Label coverage: **19 of 482 addresses (3.9%)** returned a Surf label (payees + their first funders). Phase 3d baseline: 6 of 23 (26.1%). Unlabelled funders fall back to the fanout heuristic.
 
-**Partial label pass:** labels were queried for 463 of 1291 addresses (payees + first funders). The run stopped at the credit floor. Keyed label calls cost 4 credits by balance delta, while `meta.credits_used` reports 1.
+**Partial label pass:** labels were queried for 482 of 1291 addresses (payees + first funders). The run stopped at the credit floor. Keyed label calls cost 4 credits by balance delta, while `meta.credits_used` reports 1.
 
 **Fanout heuristic not applied:** funder-outbound refused for 497 funders (funder set failed in an earlier run; not re-sent); fanout heuristic not applied, exchanges excluded by Surf label only.
 
@@ -125,9 +127,9 @@ Label coverage: **16 of 463 addresses (3.5%)** returned a Surf label (payees + t
 | call | count | credits / call (measured) | documented |
 |---|---|---|---|
 | on-chain SQL (sync) | 33 | 5 | 4 |
-| wallet-labels-batch | 24 | 1 | 4 |
+| wallet-labels-batch | 25 | 1 | 4 |
 
-Total **189 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
+Total **190 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
 
 **Metering:** Surf's `meta.credits_used` reports 5 per keyed synchronous SQL call, but the account balance drops by 4. This audit uses the balance delta (`chunk_costs` in the checkpoint) as the source of truth.
 

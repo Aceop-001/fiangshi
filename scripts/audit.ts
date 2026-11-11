@@ -19,7 +19,8 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, write
 import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parse402 } from "../src/adapters/probe.js";
-import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
+import { INFRA_TYPES, funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWalletLabel } from "../src/adapters/surf.js";
+import { evaluateVows } from "../src/core/vows.js";
 import { hashOf, sha256 } from "../src/core/canonical.js";
 import { kinshipExempt, type Band, type PayeeSignals } from "../src/core/types.js";
 import { loadDotEnv } from "../src/config.js";
@@ -721,6 +722,25 @@ export function auditReport(inp: ReportInputs): string {
     const unnamed = v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && queried.has(e.s.first_funder));
     if (unnamed.length)
       L.push(``, `${unnamed.length} surviving kinship firings rest on funders that **were** label-checked and came back unnamed or untyped. Surf knows these addresses but cannot say they are exchanges or relayers, so the vow stands.`);
+  }
+  {
+    // measured label status of every funder behind a kinship firing (final pass, 2026-11-11: Surf asked again, 1 call)
+    const firing = [...new Set(v2.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder).map((e) => e.s.first_funder!))];
+    const status = { cex: 0, relayer: 0, individual: 0, unnamed: 0 };
+    for (const fu of firing) {
+      const t = (labelOf.get(fu)?.entity_type ?? "").toLowerCase();
+      if (t === "cex") status.cex++;
+      else if (INFRA_TYPES.includes(t)) status.relayer++;
+      else if (t === "individual") status.individual++;
+      else status.unnamed++;
+    }
+    const kinRow = (e: (typeof v2)[number]) => evaluateVows({ signals: e.s, price: e.price, funder_labels: funderLabels }).find((r) => r.vow === "kinship")!;
+    const kBlock = v2.filter((e) => kinRow(e).fired && kinRow(e).band === "BLOCK").length;
+    const kReview = v2.filter((e) => kinRow(e).fired && kinRow(e).band === "REVIEW").length;
+    L.push(
+      ``,
+      `**Measured labels of the ${firing.length} funders behind a kinship firing** (asked again on 2026-11-11, one call): ${status.cex} exchange, ${status.relayer} relayer, ${status.individual} individual, **${status.unnamed} unnamed**. Under kinship threshold v2 they give **${kBlock} kinship BLOCKs** (up to 20 other payees on one funder) and ${kReview} REVIEWs flagged \`kinship_suspected_exchange\` (21 or more). Every one of these funders has now been sent to Surf twice and has no name, so the BLOCKs rest on checked, unnamed funders rather than on unchecked ones.`,
+    );
   }
   L.push(``, `*For a buyer:* most large "clusters" here are wallets funded from the same exchange or bridge, which is normal. What remains after labelling is a shared **unnamed** funder: treat those payees as one counterparty until you know otherwise.`, ``);
 

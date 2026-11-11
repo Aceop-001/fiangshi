@@ -10306,6 +10306,25 @@
   "0x171d8021b98c53dcbb3c9c30cbbbeb1b01850fca",
   "0x3a0aa040b8785babc28b8436065dd2057c17773e",
   "0x0a2854fbbd9b3ef66f17d47284e7f899b9509330",
+  "0xa52594688397ded0d5ba660f0d8e2747cdbcc6c5",
+  "0x843b544bf5f0aa6cbf13e94563874878c98cc4a7",
+  "0x644678ad37833c0d52f0170f1f73a5e62bc3e6d5",
+  "0x2b2c2004df4d70dc5f3132eab7ee9bbb1e5480d8",
+  "0x4b5c71082d027d16d2a146465d66f9eec11634f6",
+  "0xc59e74ed6386b2a12d892fff2509a6965a0498dc",
+  "0xc533bf5268a2f64adde58dce380651f70aa92d7a",
+  "0xa1d1c0cf717402ff3651aa4873ccf96410b01978",
+  "0x1ded5e8bb5c8135038cf05ac446f090631780649",
+  "0x753249647baa9601f54b4b1f09c67f10ab6906c0",
+  "0x7dd81398fac7de0bf843bfd874cbea68face17d2",
+  "0x4c4138cf1cb7db0a48476b2c808cb3ce0dd1f807",
+  "0x8a1a037b4fb377fcecd0f8a0b91a6a35df78aa53",
+  "0x87db3c25d1e8e40f8ef240d48a711b0c355cf8cf",
+  "0x27abcddd44c4959ac729d080703e677f13a3248c",
+  "0xc9c7b38c0942914fc8ea12063bc92dcd3b581670",
+  "0x8237c40ca4317867509b9173b667f58b01a75a46",
+  "0x171d8021b98c53dcbb3c9c30cbbbeb1b01850fca",
+  "0x3a0aa040b8785babc28b8436065dd2057c17773e",
   "0xa52594688397ded0d5ba660f0d8e2747cdbcc6c5"
  ],
  "labels": [
@@ -10432,6 +10451,18 @@
      "label": "Spender"
     }
    ]
+  },
+  {
+   "address": "0xa52594688397ded0d5ba660f0d8e2747cdbcc6c5",
+   "labels": []
+  },
+  {
+   "address": "0x4b5c71082d027d16d2a146465d66f9eec11634f6",
+   "labels": []
+  },
+  {
+   "address": "0x27abcddd44c4959ac729d080703e677f13a3248c",
+   "labels": []
   },
   {
    "address": "0xa52594688397ded0d5ba660f0d8e2747cdbcc6c5",
@@ -10780,6 +10811,12 @@
    "ms": 1799,
    "credits": 1,
    "at": "2026-11-09T03:25:45.692Z"
+  },
+  {
+   "label": "wallet-labels-batch n=19 (cluster funders)",
+   "ms": 1619,
+   "credits": 1,
+   "at": "2026-11-11T02:31:42.565Z"
   }
  ],
  "stopped": "balance 72 − 1 for wallet-labels-batch would fall below the 72-credit buffer. Checkpoint saved.",

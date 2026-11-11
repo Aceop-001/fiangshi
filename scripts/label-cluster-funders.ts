@@ -1,6 +1,7 @@
 /**
  * Label the funders behind kinship BLOCKs that were never label-checked. Budget-guarded, balance floor enforced.
- * Usage: npx tsx scripts/label-cluster-funders.ts --sample fixtures/audit/sample-census.json --days 90 --floor 56 [--chunk 20]
+ * Usage: npx tsx scripts/label-cluster-funders.ts --sample fixtures/audit/sample-census.json --days 90 --floor 56 [--chunk 20] [--requery] [--max-calls N]
+ * --requery: ask again about every funder behind a kinship firing (BLOCK or REVIEW), even if checked before (final pass, 2026-11-11).
  * Merges results into the checkpoint (labels + labels_done) so `audit.ts report` re-scores kinship with them.
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -26,12 +27,21 @@ const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
 const ranAt = (cp.calls as { label: string; at: string }[]).filter((c) => c.label.startsWith("onchain-sql")).map((c) => c.at).sort().pop()!;
 const { scored } = scoredSet(sample, cp, ranAt);
 const queried = new Set<string>(cp.labels_done);
-const funders = [...new Set(scored.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && !queried.has(e.s.first_funder)).map((e) => e.s.first_funder!))];
-console.log(`kinship funders never label-checked: ${funders.length}`);
+const requery = process.argv.includes("--requery");
+const maxCalls = Number(arg("--max-calls") ?? 4);
+const funders = [...new Set(scored.filter((e) => e.r.fired.includes("kinship") && e.s.first_funder && (requery || !queried.has(e.s.first_funder))).map((e) => e.s.first_funder!))];
+console.log(`kinship funders to label${requery ? " (requery)" : " (never checked)"}: ${funders.length}`);
+console.log(`balance before ${surfBalance()}`);
+let calls = 0;
 
 const got: SurfWalletLabel[] = [];
 for (let i = 0; i < funders.length; i += chunkSize) {
   const chunk = funders.slice(i, i + chunkSize);
+  if (calls >= maxCalls) {
+    console.log(`STOP: ${maxCalls}-call cap reached`);
+    break;
+  }
+  calls++;
   const bal = surfBalance();
   if (bal === null || bal - 4 < floor) {
     console.log(`STOP: balance ${bal} − 4 would fall below the ${floor} floor`);

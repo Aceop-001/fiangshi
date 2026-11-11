@@ -17,7 +17,9 @@
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { pathToFileURL } from "node:url";
-import { loadDotEnv, num, providerMode } from "../config.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { ROOT, loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderIndex, renderNotFound, renderReceipt } from "../site.js";
 import { CSP } from "../site-theme.js";
@@ -36,6 +38,12 @@ import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
 import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
+
+/** Static brand images the pages use (img-src 'self'). */
+const ASSETS: Record<string, { file: string; type: string }> = {
+  "/assets/dragon.webp": { file: "dragon.webp", type: "image/webp" },
+  "/assets/guardian-poster.webp": { file: "guardian-poster.webp", type: "image/webp" },
+};
 
 /** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
 const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) => {
@@ -111,6 +119,11 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
     if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats()));
+    if (ASSETS[u.pathname]) {
+      // brand images, by exact name only (no path is ever built from the request)
+      res.writeHead(200, { "content-type": ASSETS[u.pathname]!.type, "cache-control": "max-age=3600", "x-content-type-options": "nosniff", "x-fiangshi-mode": providerMode() });
+      return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
+    }
     if (u.pathname === "/docs" || u.pathname === "/legal") return html(res, 200, renderDoc(u.pathname === "/docs" ? "docs" : "legal", c, loadDemoStats()));
     if (u.pathname === "/check") {
       // Free page: one unpaid probe, the V6 gate, and the census band already published in /v1/index.json. Never a model call.

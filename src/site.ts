@@ -246,7 +246,7 @@ ${probeForm()}
 <section class="sec" id="census"><div class="wrap">
 <p class="eyebrow">Census</p>
 <h2>${n} of ${c.catalog_payees.toLocaleString("en-US")} Base payees, ${c.window_days}-day window</h2>
-<p class="lede">${((100 * n) / Math.max(1, c.catalog_payees)).toFixed(1)}% of the x402 Bazaar catalog on Base. The catalog lists ${c.base_resources.toLocaleString("en-US")} paid endpoints, but they resolve to ${c.catalog_payees.toLocaleString("en-US")} wallets: ${c.endpoints_per_payee} endpoints per payee. Spreading payments across endpoints is not spreading them across counterparties.</p>
+<p class="lede">${((100 * n) / Math.max(1, c.catalog_payees)).toFixed(1)}% of the x402 Bazaar catalog on Base. The catalog lists ${c.base_resources.toLocaleString("en-US")} paid endpoints, but they resolve to ${c.catalog_payees.toLocaleString("en-US")} wallets: ${c.endpoints_per_payee} endpoints per payee. Spreading payments across endpoints is not spreading them across counterparties. These counts are defined in <code>data/numbers.json</code> (<code>npx tsx scripts/numbers.ts</code>).</p>
 <div class="tiles">${BANDS.map((b) => `<div class="tile ${b}"><p class="tile-l"><i class="st ${b}"></i>${b}</p><p class="tile-v">${c.bands[b]}</p><p class="tile-s">${share(c.bands[b])} · ${tileNote[b]}</p></div>`).join("")}</div>
 <div class="seg" role="img" aria-label="${BANDS.map((b) => `${b} ${c.bands[b]} (${share(c.bands[b])})`).join(", ")}">${BANDS.map((b) => `<i class="${b}" style="flex-grow:${c.bands[b]}" title="${b} ${c.bands[b]} · ${share(c.bands[b])}"></i>`).join("")}</div>
 ${scoreChart(c)}

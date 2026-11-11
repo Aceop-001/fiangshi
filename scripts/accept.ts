@@ -185,6 +185,61 @@ await gate("G11 fixtures/402/real intact, all parse", () => {
   return `${files.length} files, ${files.length - bad.length} parse, 0 empty`;
 });
 
+await gate("G12 numbers consistency (docs vs data/numbers.json)", async () => {
+  const { computeNumbers, checkDocs } = await import("./numbers.js");
+  const n = computeNumbers();
+  const bad = checkDocs(n);
+  assert(bad.length === 0, `${bad.length} disagreement(s): ${bad.slice(0, 2).join(" ; ")}`);
+  assert(n.bands.ALLOW + n.bands.REVIEW + n.bands.BLOCK === n.census.payees, "bands do not sum to the census size");
+  return `bands ${n.bands.ALLOW}/${n.bands.REVIEW}/${n.bands.BLOCK}, every document agrees`;
+});
+
+await gate("G13 cold check: repeat makes zero Surf calls", async () => {
+  const { coldSignals } = await import("../src/cold.js");
+  const { loadCensus } = await import("../src/census.js");
+  const c = loadCensus();
+  let fetches = 0;
+  const now = Math.floor(Date.now() / 1000);
+  const fetcher = {
+    balance: () => 1000,
+    fetch: async (payee: string) => {
+      fetches++;
+      return { row: { payee, first_inbound_at: now - 40 * 86400, inbound_count: 10, outbound_count: 1, distinct_inbound_senders: 8, top_payer_share: 0.2, inbound_usd: 5 } as never, calls: 2 };
+    },
+  };
+  const p = "0x9999999999999999999999999999999999999999";
+  const a = await coldSignals(p, "eip155:8453", c, fetcher);
+  const b = await coldSignals(p, "eip155:8453", c, fetcher);
+  assert(a.ok && a.surf_calls === 2, "first cold check did not fetch");
+  assert(b.ok && b.source === "cache" && b.surf_calls === 0 && fetches === 1, "repeat made Surf calls");
+  const low = await coldSignals("0x8888888888888888888888888888888888888888", "base", c, { ...fetcher, balance: () => 39 });
+  assert(!low.ok && low.reason === "budget_guard", "floor not enforced before spending");
+  return "first 2 calls, repeat 0 (cache), floor refuses before spending";
+});
+
+await gate("G14 kinship threshold v2", async () => {
+  const { evaluateVows, KINSHIP_MIN, KINSHIP_REVIEW_AT } = await import("../src/core/vows.js");
+  const fx = JSON.parse(readFileSync(join(ROOT, "fixtures", "payees.json"), "utf8"))[0];
+  const band = (fanout: number) => evaluateVows({ signals: { ...fx, first_funder: "0xring", funder_fanout: fanout }, price: 0.05, funder_labels: {} }).find((r) => r.vow === "kinship")!;
+  assert(KINSHIP_MIN === 3 && KINSHIP_REVIEW_AT === 21, `thresholds ${KINSHIP_MIN}/${KINSHIP_REVIEW_AT}`);
+  assert(!band(2).fired && band(3).band === "BLOCK" && band(20).band === "BLOCK", "3..20 must BLOCK");
+  assert(band(21).band === "REVIEW" && band(21).flags?.includes("kinship_suspected_exchange"), "21+ must be REVIEW with the flag");
+  return "fanout 3..20 BLOCK, 21+ REVIEW (kinship_suspected_exchange)";
+});
+
+await gate("G15 sensitivity table matches numbers", async () => {
+  const { sensitivity } = await import("./sensitivity.js");
+  const { computeNumbers } = await import("./numbers.js");
+  const s = sensitivity();
+  const n = computeNumbers();
+  const B = s.policies.B;
+  assert(B.ALLOW === n.bands.ALLOW && B.REVIEW === n.bands.REVIEW && B.BLOCK === n.bands.BLOCK, `policy B ${JSON.stringify(B)} vs numbers ${JSON.stringify(n.bands)}`);
+  const md = readFileSync(join(ROOT, "artifacts", "sensitivity.md"), "utf8");
+  assert(md.includes(`| B | ${B.ALLOW} | ${B.REVIEW} | ${B.BLOCK} |`), "artifacts/sensitivity.md is stale: run npx tsx scripts/sensitivity.ts --write");
+  assert(s.newBlocks === 0, `calibration created ${s.newBlocks} BLOCKs`);
+  return `policy B ${B.ALLOW}/${B.REVIEW}/${B.BLOCK} = numbers.json, 0 new BLOCKs`;
+});
+
 const total = Math.round(performance.now() - t0);
 const attempts = (globalThis as { __fiangshiNetAttempts?: number }).__fiangshiNetAttempts ?? 0;
 const failed = rows.filter((r) => !r.ok).length;

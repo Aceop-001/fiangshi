@@ -14,6 +14,8 @@ import { checkpointPath, scoredSet, setWindowDays, type Sample } from "../script
 export const CENSUS_DAYS = 90;
 
 export interface CensusPayee {
+  /** CAIP-2 chain (Base only) */
+  chain: "eip155:8453";
   payee: string;
   url: string;
   service: string | null;
@@ -89,7 +91,7 @@ export function loadCensus(): Census {
     prev = r.receipt_hash;
     ledger.push(r);
     receipts.set(r.receipt_hash, r);
-    payees.push({ payee: e.s.payee, url: m.example_url, service: m.service, price_usd: m.price_usd, band: e.r.band, score: e.r.score, vows: e.r.fired, identity: e.s.identity, first_funder: e.s.first_funder, receipt_id: r.receipt_hash });
+    payees.push({ chain: "eip155:8453", payee: e.s.payee, url: m.example_url, service: m.service, price_usd: m.price_usd, band: e.r.band, score: e.r.score, vows: e.r.fired, identity: e.s.identity, first_funder: e.s.first_funder, receipt_id: r.receipt_hash });
   }
   const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
   for (const p of payees) bands[p.band]++;

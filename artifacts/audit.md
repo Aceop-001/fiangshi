@@ -129,7 +129,7 @@ Label coverage: **19 of 482 addresses (3.9%)** returned a Surf label (payees + t
 | on-chain SQL (sync) | 33 | 5 | 4 |
 | wallet-labels-batch | 25 | 1 | 4 |
 
-Total **190 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
+Billed: **252 credits** for 800 payees (balance 324 → 72, fixtures/audit/balances.json); Surf's `meta.credits_used` summed to 189 for the same calls. Slowest SQL call 13230 ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.
 
 **Metering:** Surf's `meta.credits_used` reports 5 per keyed synchronous SQL call, but the account balance drops by 4. This audit uses the balance delta (`chunk_costs` in the checkpoint) as the source of truth.
 
@@ -142,6 +142,8 @@ Total **190 credits** for 800 payees. Slowest SQL call 13230 ms (30 s synchronou
 None: no payee was excluded. Every failed **payee** query was resolved by bisecting it into 25-payee halves at the same window. The refused **funder** pass is not an exclusion; it is covered under Labels, where exchanges are excluded by label only.
 
 ## Policy bands (E v2, deterministic score + vows, no model)
+
+The same counts are defined in `data/numbers.json` (`npx tsx scripts/numbers.ts`); accept gate G12 fails if they disagree.
 
 | band | payees | share |
 |---|---|---|

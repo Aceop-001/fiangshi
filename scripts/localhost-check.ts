@@ -205,7 +205,7 @@ try {
     return `p50 ${warmP50} ms (${ts.join(", ")} ms)${LIVE ? "" : " [fixture: no provider latency]"}`;
   });
 
-  await step("10 accept 11/11 + tests green, server running", async () => {
+  await step("10 accept all gates + tests green, server running", async () => {
     const t = run("npx vitest run");
     const m = /Tests\s+(\d+) passed/.exec(t.stdout);
     testsPassed = m ? Number(m[1]) : 0;
@@ -213,7 +213,8 @@ try {
     assert(t.status === 0 && testsPassed > 0, `vitest exit ${t.status}: ${failed || t.stdout.slice(-200)}`);
     const a = run("npm run accept");
     acceptLine = /(\d+\/\d+) PASS/.exec(a.stdout)?.[1] ?? "?";
-    assert(a.status === 0 && acceptLine === "11/11", `accept exit ${a.status}, ${acceptLine}`);
+    const [okN = 0, allN = -1] = acceptLine.split("/").map(Number);
+    assert(a.status === 0 && okN === allN && allN >= 15, `accept exit ${a.status}, ${acceptLine}`);
     return `${testsPassed} tests passed; accept ${acceptLine}`;
   });
 } catch (e) {

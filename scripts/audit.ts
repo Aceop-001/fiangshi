@@ -627,7 +627,10 @@ export function auditReport(inp: ReportInputs): string {
 
   const sqlCalls = cp.calls.filter((c) => c.label.startsWith("onchain-sql") && !/job-(get|results)/.test(c.label));
   const labelCalls = cp.calls.filter((c) => c.label.startsWith("wallet-labels"));
-  const credits = cp.calls.reduce((a, c) => a + (c.credits ?? 0), 0);
+  // metered (meta.credits_used) total for the census itself; the final-pass re-ask (2026-11-11) is not part of the census
+  const credits = cp.calls.filter((c) => !(c as { at?: string }).at || String((c as { at?: string }).at) < "2026-11-11").reduce((a, c) => a + (c.credits ?? 0), 0);
+  const bal = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8")).census as { census_start: number; labels_stopped: number };
+  const billed = bal.census_start - bal.labels_stopped;
   const sqlCredits = [...new Set(sqlCalls.map((c) => c.credits))];
   const slowest = sqlCalls.length ? Math.max(...sqlCalls.map((c) => c.ms)) : 0;
 
@@ -757,7 +760,7 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`| call | count | credits / call (measured) | documented |`, `|---|---|---|---|`);
   L.push(`| on-chain SQL (${cp.mode}) | ${sqlCalls.length} | ${sqlCredits.join(", ") || "-"} | 4 |`);
   L.push(`| wallet-labels-batch | ${labelCalls.length} | ${[...new Set(labelCalls.map((c) => c.credits))].join(", ") || "-"} | 4 |`);
-  L.push(``, `Total **${credits} credits** for ${n} payees. Slowest SQL call ${slowest} ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.`, ``);
+  L.push(``, `Billed: **${billed} credits** for ${n} payees (balance ${bal.census_start} → ${bal.labels_stopped}, fixtures/audit/balances.json); Surf's \`meta.credits_used\` summed to ${credits} for the same calls. Slowest SQL call ${slowest} ms (30 s synchronous limit). Phase 3d baseline: 5 credits per SQL call for both 2 and 12 payees, against 4 documented. Billing is per call, not per payee.`, ``);
   const refusals = cp.refusals ?? [];
   L.push(`**Metering:** Surf's \`meta.credits_used\` reports 5 per keyed synchronous SQL call, but the account balance drops by 4. This audit uses the balance delta (\`chunk_costs\` in the checkpoint) as the source of truth.`, ``);
   L.push(`**Billed failures:** ${refusals.length} queries in this run were refused for scan size or killed at the 25 s per-call limit, about ${refusals.length * BILLED_REFUSAL} credits at ${BILLED_REFUSAL} each. Surf charges for a query it refuses, and for one it was still running when killed. A failed address set is never re-sent; it is bisected.`, ``);
@@ -772,7 +775,7 @@ export function auditReport(inp: ReportInputs): string {
     L.push(`None: no payee was excluded. Every failed **payee** query was resolved by bisecting it into 25-payee halves at the same window. The refused **funder** pass is not an exclusion; it is covered under Labels, where exchanges are excluded by label only.`, ``);
   }
 
-  L.push(`## Policy bands (E v2, deterministic score + vows, no model)`, ``);
+  L.push(`## Policy bands (E v2, deterministic score + vows, no model)`, ``, `The same counts are defined in \`data/numbers.json\` (\`npx tsx scripts/numbers.ts\`); accept gate G12 fails if they disagree.`, ``);
   L.push(`| band | payees | share |`, `|---|---|---|`);
   for (const b of ["ALLOW", "REVIEW", "BLOCK"] as Band[]) L.push(`| ${b} | ${bands[b]} | ${pct(bands[b])} |`);
   L.push(``, `Vows fired: ${[...vowCount.entries()].map(([v, c]) => `${v} ${c}`).join(" · ") || "none"}.`, ``);

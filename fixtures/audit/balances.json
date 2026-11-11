@@ -1,0 +1,17 @@
+{
+  "note": "Surf account balance readings (surf me-credits), the billed source of truth: meta.credits_used overstates SQL (5 vs 4) and understates labels (1 vs 4). Census readings from data/census-w90.log and data/labels-w90.log (2026-11-09); final-pass readings printed by scripts/label-cluster-funders.ts and scripts/cold-live.ts (2026-11-11, artifacts/cold-live.md).",
+  "census": {
+    "census_start": 324,
+    "payees_done": 188,
+    "funder_refused": 184,
+    "labels_stopped": 72,
+    "label_calls": 27
+  },
+  "final_pass": {
+    "start": 1060,
+    "after_funder_labels": 1056,
+    "after_cold_live": 1048,
+    "surf_calls": 3
+  },
+  "cold_live": { "url": "https://api.bitrefill.com/x402/gift-cards/search", "before": 1056, "after": 1048, "ms": 10772, "repeat_ms": 237, "band": "ALLOW", "score": 86.36 }
+}

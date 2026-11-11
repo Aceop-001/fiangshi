@@ -43,12 +43,12 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | | value | source |
 |---|---|---|
 | census coverage | **800 of 1,923 Base payees, 90-day window** (41.6%) | `npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90` → `artifacts/audit.md` |
-| bands | **49 ALLOW · 539 REVIEW · 212 BLOCK** | same; also `GET /v1/index.json` |
+| bands | **49 ALLOW · 539 REVIEW · 212 BLOCK** | `data/numbers.json` (`npx tsx scripts/numbers.ts`); also `GET /v1/index.json` |
 | ALLOW composition | 12 no claim · 5 claim with 0 sources · 26 with 1 source · 6 with 2+ | `npx tsx scripts/allow-composition.ts` |
 | kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 263 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| tests | 263 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 **Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
@@ -146,3 +146,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-11 Final pass, phase B.** Asked Surf again about all 19 funders behind a kinship firing (one `wallet-labels-batch` call, 4 credits by balance, 1,060 → 1,056). 3 came back with no name or type, 16 returned nothing: 0 exchange, 0 relayer, 0 individual, 19 unnamed. 123 kinship BLOCKs and 120 suspected-exchange REVIEWs stand.
 - **2026-11-11 Final pass, phase C.** Cold check wired (`src/cold.ts`): a Base payee outside the census is fetched live with two Surf SQL calls (inbound, outbound; 90 days), behind the budget guard and a 32-credit floor checked before spending, then scored, adjudicated and sealed. $0.15. Cached 72 h, so the repeat is $0.05 with zero Surf calls (tested). Fail closed: `budget_guard`, `surf_error`, `network_not_base` or `unavailable` give REVIEW with the reason on the receipt. One live run: 8 credits, 10.8 s, ALLOW 86.36 (`artifacts/cold-live.md`).
 - **2026-11-11 Final pass, phase D.** `scripts/winrate.ts` → `artifacts/winrate.md`: lab 9/9 (8 pass, 1 superseded), per-vow precision and recall, a false-block upper bound (at most 66% of BLOCKs, if every unnamed funder were an exchange), BaseScan agreement on one hand-checked payee (now a fixture), label coverage before and after, and verdictable coverage (95.6%).
+- **2026-11-11 Final pass, phase E.** `scripts/numbers.ts` → `data/numbers.json` is the one definition of bands, census size, credit spend (census billed 252 by balance, `fixtures/audit/balances.json`), cost per payee, latency and label coverage; `--check` fails on any document that disagrees, run as accept gate G12. New gates G13 (cold cache), G14 (kinship thresholds), G15 (sensitivity = numbers): accept 15/15. Every receipt and payee now carries `chain: "eip155:8453"`.

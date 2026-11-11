@@ -138,7 +138,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         window_days: c.window_days,
         coverage: `${c.payees.length} of ${c.catalog_payees} Base payees`,
         bands: c.bands,
-        payees: c.payees.map((p) => ({ payee: p.payee, url: p.url, band: p.band, score: p.score, vows: p.vows, receipt_id: p.receipt_id })),
+        chain: "eip155:8453",
+        payees: c.payees.map((p) => ({ chain: p.chain, payee: p.payee, url: p.url, band: p.band, score: p.score, vows: p.vows, receipt_id: p.receipt_id })),
       });
     let m = /^\/v1\/badge\/(0x[0-9a-fA-F]{40})\.svg$/.exec(u.pathname);
     if (m) {

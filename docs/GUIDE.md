@@ -40,6 +40,7 @@ Fiangshi makes one unpaid request to the endpoint, reads the payment terms from 
     "snapshot_id": "24b754577acdebdc5a358ea60df9314147c088774633eacfc676231d4973bcc2",
     "checked_at": "2026-11-10T07:00:53.938Z",
     "settlement": "dry-run",
+    "chain": "eip155:8453",
     "prev_hash": "genesis",
     "receipt_hash": "a15e6048e6d4780cefa285c278ee1905c2ca36dc85ee40b2dd1a520356bd0c7b"
   },
@@ -138,6 +139,7 @@ The verdict (evidence list shortened here):
     "checked_at": "2026-11-10T07:00:53.959Z",
     "settlement": "dry-run",
     "enrichment": { "status": "complete", "reason": null },
+    "chain": "eip155:8453",
     "prev_hash": "a15e6048e6d4780cefa285c278ee1905c2ca36dc85ee40b2dd1a520356bd0c7b",
     "receipt_hash": "b4175805765067e81538ed8367d6edbc23ae3c2f7fba53fa5e83ebe3f8aea504"
   },
@@ -258,6 +260,7 @@ The pages `/`, `/check?url=` and `/receipt/:id` show the same free data for peop
 | `enrichment` | Optional. The status of identity extraction and, if incomplete, why. |
 | `snapshot_id` | Which data snapshot the signals came from. |
 | `checked_at`, `settlement` | When the check ran, and `dry-run`. |
+| `chain` | `eip155:8453` (Base). Fiangshi is Base only; the field keeps a Base address from ever being confused with the same address on another chain. |
 | `prev_hash`, `receipt_hash` | The id of the receipt before this one, and this receipt's own id. |
 
 `receipt_hash` is the sha256 of the canonical JSON of every other field. Receipts are hash-chained, not signed: there is no signing key. Tampering with a receipt, removing one or reordering them breaks verification.

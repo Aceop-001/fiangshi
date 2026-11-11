@@ -4,8 +4,11 @@ import { Receipt } from "./types.js";
 
 export type ReceiptBody = Omit<Receipt, "receipt_hash" | "prev_hash">;
 
+/** Every receipt names its chain (Base). Older receipts without the field still verify: the hash covers what is there. */
+export const RECEIPT_CHAIN = "eip155:8453" as const;
+
 export function sealReceipt(body: ReceiptBody, prev_hash: string): Receipt {
-  const unsealed = { ...body, prev_hash };
+  const unsealed = { ...body, chain: body.chain ?? RECEIPT_CHAIN, prev_hash };
   return { ...unsealed, receipt_hash: hashOf(unsealed) } as Receipt;
 }
 

@@ -90,6 +90,8 @@ export const Receipt = z.object({
   settlement: Settlement,
   /** optional enrichment (Dolphin identity extraction). "incomplete" never changes the band; the reason says why. */
   enrichment: z.object({ status: z.enum(["complete", "incomplete", "skipped"]), reason: z.string().nullable() }).optional(),
+  /** CAIP-2 chain of the payee (2026-11-11). Base only; stamped so a future chain can never collide with a Base address. */
+  chain: z.literal("eip155:8453").optional(),
 });
 export type Receipt = z.infer<typeof Receipt>;
 

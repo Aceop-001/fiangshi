@@ -188,6 +188,15 @@ describe("HTTP API", () => {
     if (saved === undefined) delete process.env.FIANGSHI_CONTACT;
     else process.env.FIANGSHI_CONTACT = saved;
   });
+  it("a payee outside the census, on a server without live providers: cached price, cold 'unavailable', REVIEW, no Surf", async () => {
+    const url = "https://api.weatherly.example/v1/forecast"; // synthetic fixture payee, not in the census
+    const r402 = JSON.parse((await get(`/v1/check?url=${encodeURIComponent(url)}`)).body);
+    expect(r402.accepts[0].amount).toBe("50000"); // $0.05: no cold fetch can happen here, so the cold price is not asked
+    const r = JSON.parse((await get(`/v1/check?url=${encodeURIComponent(url)}`, { "x-payment": demoXPayment(r402.accepts[0], FROM) })).body);
+    expect(r).toMatchObject({ sku: "cached", in_census: false, band: "REVIEW", cost_usd: 0.05 });
+    expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
+    expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
+  });
   it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
     const saved = process.env.FIANGSHI_PAYTO;
     delete process.env.FIANGSHI_PAYTO;

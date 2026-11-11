@@ -25,6 +25,12 @@ import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
+import { coldCacheHit, coldSignals, type ColdFetcher } from "../cold.js";
+import { surfColdFetcher } from "../cold-surf.js";
+
+/** The cold-check data source. Tests replace it so they never reach the Surf CLI. */
+let coldFetcher: ColdFetcher = surfColdFetcher;
+export const setColdFetcher = (f: ColdFetcher) => (coldFetcher = f);
 import { hashOf } from "../core/canonical.js";
 import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
@@ -181,14 +187,30 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         const r = await check(target, { probe: pr });
         return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired, reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, settlement: "dry-run", ms: Math.round(performance.now() - t0) });
       }
-      const pay = requirePayment(req, res, `${self}/v1/check?url=${encodeURIComponent(target)}`, num("FIANGSHI_PRICE_CHECK", 0.05), "Fiangshi counterparty check");
-      if (!pay) return;
+      // Cached SKU: a census payee or a cold payee fetched in the last 72 h. Cold SKU: anyone else, fetched live from Surf.
       const terms = pr.ok ? pr.terms : null;
       const payee = terms?.payee ?? "unknown";
       const cp = c.payees.find((x) => x.payee === payee);
-      const s = c.signals.get(payee) ?? emptySignals(payee);
+      const coldLive = providerMode() === "live";
+      const cachedCold = !cp && terms ? coldCacheHit(payee) : false;
+      const sku: "cached" | "cold" = cp || cachedCold || !terms || !coldLive ? "cached" : "cold";
+      const price = sku === "cold" ? num("FIANGSHI_PRICE_CHECK_COLD", 0.15) : num("FIANGSHI_PRICE_CHECK", 0.05);
+      const pay = requirePayment(req, res, `${self}/v1/check?url=${encodeURIComponent(target)}`, price, sku === "cold" ? "Fiangshi counterparty check (cold: live on-chain fetch)" : "Fiangshi counterparty check");
+      if (!pay) return;
+      let s = c.signals.get(payee) ?? emptySignals(payee);
+      let cold: Record<string, unknown> | null = null;
+      if (!cp && terms) {
+        if (!coldLive && !cachedCold) cold = { ok: false, reason: "unavailable", detail: `cold checks need live providers (this server runs in ${providerMode()} mode)`, surf_calls: 0 };
+        else {
+          const r = await coldSignals(payee, terms.network, c, coldFetcher);
+          if (r.ok) s = r.signals;
+          const { signals: _omit, ...meta } = r as Record<string, unknown>;
+          cold = meta;
+        }
+      }
       const full = await evaluateFull(terms, s, c.funderLabels, cp?.service?.trim() || null, { url: target, catalogName: cp?.service ?? null, labelName: null });
       const d = full.decision;
+      const coldNote = cold && cold.ok === false ? [{ signal: "cold_check", quote: `${String(cold.reason)}: ${String(cold.detail)}` }] : [];
       const receipt = appendReceipt({
         payee,
         url: target,
@@ -197,9 +219,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         band: d.verdict.band,
         score: d.verdict.score,
         vow_fired: d.verdict.vow_fired ?? null,
-        evidence: d.verdict.citations,
+        evidence: [...d.verdict.citations, ...coldNote],
         model: { verdict: d.modelRawBand, extractor: full.extraction ? (full.extraction.claims ? "dolphin" : "dolphin:failed") : "none", degraded: d.verdict.degraded },
-        snapshot_id: hashOf({ census: "w90", at: c.at }),
+        snapshot_id: cp ? hashOf({ census: "w90", at: c.at }) : hashOf({ cold: payee, fetched_at: (cold?.fetched_at as string | undefined) ?? null }),
         checked_at: new Date().toISOString(),
         settlement: currentSettlement(),
         enrichment: full.enrichment,
@@ -208,12 +230,14 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         band: d.verdict.band,
         score: d.verdict.score,
         vow_fired: d.verdict.vow_fired ?? null,
-        vows: d.vows.filter((v) => v.fired).map((v) => ({ vow: v.vow, band: v.band, reason: v.reason })),
+        vows: d.vows.filter((v) => v.fired).map((v) => ({ vow: v.vow, band: v.band, reason: v.reason, ...(v.flags ? { flags: v.flags } : {}) })),
         model: { serv: d.modelRawBand, degraded: d.verdict.degraded },
         enrichment: full.enrichment,
         in_census: Boolean(cp),
+        sku,
+        cold,
         probe: pr.ok ? { price: pr.terms.price, payee: pr.terms.payee } : { error: pr.error },
-        cost_usd: num("FIANGSHI_PRICE_CHECK", 0.05),
+        cost_usd: price,
         payer: pay.from,
         settlement: "dry-run",
         model_calls: modelCalls.length - mc0,

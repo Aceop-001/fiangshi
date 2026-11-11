@@ -48,7 +48,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 256 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| tests | 263 passing; accept 11 / 11 | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
@@ -60,10 +60,10 @@ These are the only band counts the repo states; every page (README, `artifacts/a
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
 | cached check (payee in the census) | **warm p50 333 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-10, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the six runs committed so far ranged from 294 to 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | first check of a census payee (no cached model reply) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.05** |
-| cold check (payee not in the census: Surf + SERV + Dolphin) | **not served in this build.** The route makes no live data call, so such a payee answers REVIEW through the silence vow | **$0.15** is the price worked out for it (`FIANGSHI_PRICE_CHECK_COLD`, `scripts/pricing.ts`); today the route charges $0.05 |
+| cold check (payee not in the census) | **10.8 s** in the one live run: two Surf SQL calls for that address, then SERV and Dolphin (`artifacts/cold-live.md`). Cached for 72 h; the repeat was $0.05, 0 Surf calls, 237 ms | **$0.15** (`FIANGSHI_PRICE_CHECK_COLD`). Cost $0.0499 measured (8 credits + models), margin 67% |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |
 
-Cost basis (`npx tsx scripts/pricing.ts`, details in `artifacts/costs.md`): a cached check costs $0.0019 in model calls; a cold one costs $0.0979 measured, or $0.1159 if Surf's `meta.credits_used` is taken at face value.
+Cost basis (`npx tsx scripts/pricing.ts`, details in `artifacts/costs.md`): a cached check costs $0.0019 in model calls against a $0.05 price (96% margin). A cold check costs $0.0499 measured (2 SQL calls at 4 credits by balance, plus models) against $0.15 (67%), or $0.0619 if Surf's `meta.credits_used` (5 per call) is taken at face value (59%).
 
 ## The site (127.0.0.1:8787)
 
@@ -142,3 +142,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-10 Phase 3k.** Receipts quoted every seller name as "surf label: …", even names taken from the seller's own catalog listing. Identity evidence now says where the name came from: `catalog listing name`, `surf label` or `claimed name`. Saved SERV replies are keyed by the evidence they were shown, so changed evidence re-asks the model instead of failing validation. One live SERV call re-recorded the fixture reply; the old recording stays in `fixtures/recorded/serv` unused, since raw fixtures are never overwritten. 250 tests.
 - **2026-11-11 Final pass, phase A.** Kinship threshold v2: an unlabelled funder shared with 21+ other catalog payees gives REVIEW with the flag `kinship_suspected_exchange`; 3 to 20 still BLOCK (lab B2 sits at 20). It never creates a BLOCK. Census 49 / 539 / 212; BLOCK moved 25.9%, over the 15% limit first set, accepted by the owner. `artifacts/sensitivity.md` compares three policies. Lab 8 pass, 1 superseded (B4, documented in `fixtures/lab/supersessions.json`).
 - **2026-11-11 Final pass, phase B.** Asked Surf again about all 19 funders behind a kinship firing (one `wallet-labels-batch` call, 4 credits by balance, 1,060 → 1,056). 3 came back with no name or type, 16 returned nothing: 0 exchange, 0 relayer, 0 individual, 19 unnamed. 123 kinship BLOCKs and 120 suspected-exchange REVIEWs stand.
+- **2026-11-11 Final pass, phase C.** Cold check wired (`src/cold.ts`): a Base payee outside the census is fetched live with two Surf SQL calls (inbound, outbound; 90 days), behind the budget guard and a 32-credit floor checked before spending, then scored, adjudicated and sealed. $0.15. Cached 72 h, so the repeat is $0.05 with zero Surf calls (tested). Fail closed: `budget_guard`, `surf_error`, `network_not_base` or `unavailable` give REVIEW with the reason on the receipt. One live run: 8 credits, 10.8 s, ALLOW 86.36 (`artifacts/cold-live.md`).

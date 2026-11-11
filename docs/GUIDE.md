@@ -113,6 +113,8 @@ The verdict (evidence list shortened here):
   "model": { "serv": "ALLOW", "degraded": false },
   "enrichment": { "status": "complete", "reason": null },
   "in_census": true,
+  "sku": "cached",
+  "cold": null,
   "probe": { "price": 0.001, "payee": "0xd6fce15298fc9d60f867d9455d497177da9bfb0a" },
   "cost_usd": 0.05,
   "payer": "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
@@ -151,7 +153,8 @@ The verdict (evidence list shortened here):
 | `vow_fired` | The most severe vow that fired, or `null`. `vows` lists every vow that fired, with its reason. |
 | `model.serv` | What the model advised. `model.degraded` is `true` when the model failed or its answer was rejected; the band is then REVIEW at best. |
 | `enrichment` | Whether the optional identity extraction finished. `incomplete` never lowers the band. |
-| `in_census` | Whether Fiangshi had cached on-chain signals for this payee. |
+| `in_census` | Whether the payee is in the census. |
+| `sku`, `cold` | `cached` ($0.05) when Fiangshi already holds on-chain signals for the payee: it is in the census, or was fetched cold in the last 72 hours. `cold` ($0.15) otherwise: two live on-chain queries for that one address. `cold` says where the signals came from, or why they could not be fetched (`budget_guard`, `surf_error`, `network_not_base`, `unavailable`); without them the answer is REVIEW. |
 | `probe` | The live price and payee read from the endpoint's own 402. |
 | `cost_usd`, `payer`, `settlement` | What the check cost, the wallet in your payment header, and `dry-run`. |
 | `model_calls` | Live model calls made for this answer. `0` means the advice came from cache. |
@@ -227,13 +230,13 @@ Identity is the one optional part: leaving it out rescales the other weights, an
 - A missing signal, a timeout, a broken model answer or a schema error gives REVIEW. Nothing is ALLOW by default.
 - The model cannot raise a band. If it advises BLOCK, Fiangshi applies REVIEW, because a BLOCK must rest on a vow or on a score under 50.
 - Bad data (negative ages, future timestamps, a wallet funding itself) is treated as missing. Data errors never BLOCK.
-- A payee outside the census has no cached signals. This build makes no live data call at check time, so that check answers REVIEW through the silence vow.
+- A payee outside the census is fetched live (the cold check, $0.15): two on-chain queries for that one address, cached for 72 hours. If the data cannot be fetched (budget floor, a provider error, a network other than Base, or a server not running live providers), the answer is REVIEW with the reason. It is never a guess.
 
 ## Routes
 
 | route | price | returns |
 |---|---|---|
-| `GET /v1/check?url=` | $0.05 by default (`FIANGSHI_PRICE_CHECK`) | The verdict above. A null payee answers BLOCK for free. |
+| `GET /v1/check?url=` | $0.05 cached (`FIANGSHI_PRICE_CHECK`), $0.15 cold (`FIANGSHI_PRICE_CHECK_COLD`) | The verdict above. A null payee answers BLOCK for free. The 402 quotes the price that applies. |
 | `GET /v1/payee/:address` | $0.02 by default (`FIANGSHI_PRICE_PAYEE`) | The census record for one payee: band, score, vows fired, listing name and how it was corroborated, first funder, receipt id. |
 | `GET /v1/index.json` | free | Every census payee: address, example endpoint, band, score, vows fired, receipt id. |
 | `GET /v1/receipt/:id` | free | One receipt as JSON. |

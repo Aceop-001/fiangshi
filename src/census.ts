@@ -46,6 +46,8 @@ export interface Census {
   funders: FunderRow[];
   signals: Map<string, PayeeSignals>;
   funderLabels: Record<string, FunderLabel>;
+  /** addresses Surf typed as token contracts: never a first funder */
+  tokenContracts: string[];
 }
 
 let cached: Census | null = null;
@@ -121,6 +123,7 @@ export function loadCensus(): Census {
     funders,
     signals: new Map(set.scored.map((e) => [e.s.payee, e.s])),
     funderLabels: set.funderLabels,
+    tokenContracts: set.tokenContracts,
   };
   return cached;
 }

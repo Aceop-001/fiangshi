@@ -1,7 +1,7 @@
 /**
  * Kinship sensitivity (0 credits): the 800-payee census under three kinship policies, from committed fixtures only.
- *   A (current)    kinship BLOCK when the first funder also first-funded >= 3 other catalog payees (exchange/relayer exempt)
- *   B (calibrated) same trigger; >= 20 other payees on one unlabelled funder -> REVIEW, flag kinship_suspected_exchange
+ *   A (pre-calibration) kinship BLOCK when the first funder also first-funded >= 3 other catalog payees (exchange/relayer exempt)
+ *   B (current, threshold v2) same trigger; >= KINSHIP_REVIEW_AT (21) other payees on one unlabelled funder -> REVIEW, flag kinship_suspected_exchange
  *   C (worst case) every unlabelled shared funder is an exchange: kinship exempt and provenance scored as an exchange
  * "fanout" below is the number of OTHER catalog payees sharing the first funder (the vow's own measure).
  * Usage: npx tsx scripts/sensitivity.ts [--json]  ->  prints the table; --write also writes artifacts/sensitivity.md
@@ -14,7 +14,8 @@ import { components, score } from "../src/core/score.js";
 import { evaluateVows } from "../src/core/vows.js";
 import { bandForScore, kinshipExempt, minBand, type Band, type FunderLabel, type PayeeSignals } from "../src/core/types.js";
 
-export const KINSHIP_SUSPECTED_EXCHANGE_FANOUT = 20;
+import { KINSHIP_REVIEW_AT } from "../src/core/vows.js";
+export const KINSHIP_SUSPECTED_EXCHANGE_FANOUT = KINSHIP_REVIEW_AT;
 type Policy = "A" | "B" | "C";
 const BANDS: Band[] = ["ALLOW", "REVIEW", "BLOCK"];
 
@@ -28,7 +29,8 @@ function bandUnder(policy: Policy, s: PayeeSignals, price: number | null, labels
   let vowBand: Band = "ALLOW";
   for (const r of rows) {
     if (!r.fired) continue;
-    const b: Band = policy === "B" && r.vow === "kinship" && (s.funder_fanout ?? 0) >= KINSHIP_SUSPECTED_EXCHANGE_FANOUT ? "REVIEW" : r.band;
+    // A replays the pre-calibration rule (every kinship firing BLOCKs); B and C use the vow as it is now
+    const b: Band = policy === "A" && r.vow === "kinship" ? "BLOCK" : r.band;
     vowBand = minBand(vowBand, b);
   }
   return minBand(silence ? "REVIEW" : bandForScore(sc), vowBand);
@@ -63,8 +65,8 @@ if (process.argv[1]?.endsWith("sensitivity.ts")) {
   const md = [
     "| policy | ALLOW | REVIEW | BLOCK | change vs A | payees moved | reading |",
     "|---|---|---|---|---|---|---|",
-    line("A", "current rule: every non-exempt shared funder with >= 3 other payees blocks"),
-    line("B", `calibrated: clusters of >= ${KINSHIP_SUSPECTED_EXCHANGE_FANOUT} other payees on one unlabelled funder go to REVIEW`),
+    line("A", "before calibration: every non-exempt shared funder with >= 3 other payees blocks"),
+    line("B", `applied: clusters of >= ${KINSHIP_SUSPECTED_EXCHANGE_FANOUT} other payees on one unlabelled funder go to REVIEW`),
     line("C", "worst case: every unlabelled shared funder is an exchange"),
   ].join("\n");
   console.log(md);
@@ -84,8 +86,8 @@ ${row("A")}
 ${row("B")}
 ${row("C")}
 
-- **A, current.** Every unlabelled shared funder with fanout >= 3 blocks.
-- **B, calibrated (not applied).** Same trigger; fanout >= ${KINSHIP_SUSPECTED_EXCHANGE_FANOUT} on one unlabelled funder becomes REVIEW with the flag \`kinship_suspected_exchange\`. It creates ${r.newBlocks} new BLOCKs, but moves BLOCK by ${r.pct("B", "BLOCK").toFixed(1)}% and REVIEW by +${r.pct("B", "REVIEW").toFixed(1)}%, past the 15% limit set for this pass. It would also turn the lab's sybil case B2 (fanout 20) from BLOCK into REVIEW, which lowers recall. So it was measured and not applied.
+- **A, before calibration.** Every unlabelled shared funder with fanout >= 3 blocks. This was the rule until 2026-11-11.
+- **B, applied (kinship threshold v2, \`KINSHIP_REVIEW_AT\` in src/core/vows.ts).** Same trigger; fanout >= ${KINSHIP_SUSPECTED_EXCHANGE_FANOUT} on one unlabelled funder becomes REVIEW with the flag \`kinship_suspected_exchange\`. It creates ${r.newBlocks} new BLOCKs. The cutoff is the smallest that keeps every lab detection: the sybil case B2 sits at fanout 20 and stays BLOCK. It moves BLOCK by ${r.pct("B", "BLOCK").toFixed(1)}% and REVIEW by +${r.pct("B", "REVIEW").toFixed(1)}%, more than the 15% limit first set for this pass; the owner accepted that on 2026-11-11. At cutoff 20, B2 would have been downgraded; only cutoff 40 stays inside 15% (BLOCK -15.4%).
 - **C, worst case.** If every unlabelled shared funder were an exchange, kinship would never fire on them and their provenance would score as an exchange. This is the upper bound on false blocks: at most ${r.policies.A.BLOCK - r.policies.C.BLOCK} of the ${r.policies.A.BLOCK} BLOCKs depend on those funders being something other than exchanges.
 
 ## Why the funders are still unlabelled

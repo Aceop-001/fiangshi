@@ -1,0 +1,17 @@
+{
+  "written_at": "2026-11-11",
+  "note": "A supersession records that a case's written expectation was made under an earlier rule set and that a later, deliberate rule change makes a different outcome correct. The expectation itself is never edited. Written before results-attempt5 was read.",
+  "rules": {
+    "v3": "until 2026-11-09: an uncorroborated identity claim fires the identity vow (REVIEW at any age)",
+    "v4": "from 2026-11-09/11: identity neutrality (an uncorroborated claim is the same as no claim; only a claim contradicted by an operator label BLOCKs) and kinship threshold v2"
+  },
+  "cases": {
+    "B4": {
+      "expected_under": "v3",
+      "superseded_by": "v4",
+      "rule_change": "identity neutrality, 2026-11-09 (artifacts/capability.md)",
+      "correct_under_v4": { "band": "REVIEW", "vow": null },
+      "why": "Being examined must never be a penalty: an unverified seller name now scores the same as no name, so the identity vow no longer fires. The band stays REVIEW, by score."
+    }
+  }
+}

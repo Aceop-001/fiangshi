@@ -27,10 +27,14 @@ export interface VowRow {
   band: Band; // band imposed when fired
   reason: string;
   signal: string; // evidence key backing the decision
+  /** machine-readable notes, e.g. kinship_suspected_exchange */
+  flags?: string[];
 }
 
 export const AGE_MIN_H = 48;
 export const KINSHIP_MIN = 3;
+/** kinship threshold v2: an unlabelled funder shared with this many or more other payees gives REVIEW, not BLOCK */
+export const KINSHIP_REVIEW_AT = 21;
 export const HISTORY_PRICE_USD = 0.5;
 export const IDENTITY_AGE_H = 7 * 24;
 
@@ -48,16 +52,29 @@ export const RULES: Record<VowName, Rule> = {
     reason: `wallet_age_hours=${s.wallet_age_hours} (block if < ${AGE_MIN_H})`,
     signal: "wallet_age_hours",
   }),
-  kinship: ({ signals: s, funder_labels }) => ({
-    fired:
-      s.funder_fanout !== null &&
-      s.funder_fanout >= KINSHIP_MIN &&
-      s.first_funder !== null &&
-      !kinshipExempt(funder_labels[s.first_funder]),
-    band: "BLOCK",
-    reason: `funder shared with ${s.funder_fanout} other catalog payees (block if >= ${KINSHIP_MIN}, <=2 hops, non-CEX)`,
-    signal: "first_funder",
-  }),
+  /**
+   * Kinship threshold v2 (2026-11-11). Still one vow; only its band depends on cluster size.
+   * A first funder shared with KINSHIP_MIN..KINSHIP_REVIEW_AT-1 other catalog payees: BLOCK (a small, tight ring).
+   * Shared with KINSHIP_REVIEW_AT or more, and the funder carries no label: REVIEW, flag kinship_suspected_exchange.
+   * Rationale: a wallet that first-funded 21+ catalog sellers is more likely an exchange, bridge or payout service
+   * than one operator's ring, and without a label there is no machine-checkable reason to BLOCK. The cutoff is the
+   * smallest that keeps every lab detection (the sybil case B2 sits at 20). It only ever turns BLOCK into REVIEW.
+   * Measured effect: artifacts/sensitivity.md (scripts/sensitivity.ts).
+   */
+  kinship: ({ signals: s, funder_labels }) => {
+    const label = s.first_funder !== null ? funder_labels[s.first_funder] : undefined;
+    const fired = s.funder_fanout !== null && s.funder_fanout >= KINSHIP_MIN && s.first_funder !== null && !kinshipExempt(label);
+    const suspectedExchange = fired && label === undefined && (s.funder_fanout ?? 0) >= KINSHIP_REVIEW_AT;
+    return {
+      fired,
+      band: suspectedExchange ? "REVIEW" : "BLOCK",
+      reason: suspectedExchange
+        ? `funder shared with ${s.funder_fanout} other catalog payees and unlabelled: kinship_suspected_exchange (REVIEW at >= ${KINSHIP_REVIEW_AT}, BLOCK ${KINSHIP_MIN}..${KINSHIP_REVIEW_AT - 1})`
+        : `funder shared with ${s.funder_fanout} other catalog payees (block if >= ${KINSHIP_MIN}, <=2 hops, non-CEX)`,
+      signal: "first_funder",
+      ...(suspectedExchange ? { flags: ["kinship_suspected_exchange"] } : {}),
+    };
+  },
   history: ({ signals: s, price }) => ({
     fired: s.distinct_payers === 0 && price !== null && price > HISTORY_PRICE_USD,
     band: "REVIEW",

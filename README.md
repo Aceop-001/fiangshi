@@ -43,12 +43,12 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | | value | source |
 |---|---|---|
 | census coverage | **800 of 1,923 Base payees, 90-day window** (41.6%) | `npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90` → `artifacts/audit.md` |
-| bands | **49 ALLOW · 465 REVIEW · 286 BLOCK** | same; also `GET /v1/index.json` |
+| bands | **49 ALLOW · 539 REVIEW · 212 BLOCK** | same; also `GET /v1/index.json` |
 | ALLOW composition | 12 no claim · 5 claim with 0 sources · 26 with 1 source · 6 with 2+ | `npx tsx scripts/allow-composition.ts` |
-| kinship BLOCKs | 243, all on funders Surf could not name (an upper bound) | same |
+| kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
-| adversarial lab | **8 / 9** cases match expectations written before the run; 3 / 3 real controls ALLOW. B4 is a recorded FAILURE: it is still REVIEW, but identity neutrality means V5 no longer fires on it | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 250 passing; accept 11 / 11 | `npm test`, `npm run accept` |
+| adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
+| tests | 256 passing; accept 11 / 11 | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
@@ -95,7 +95,7 @@ Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signat
 ## Limits
 
 - **90-day window.** Wallet age is a lower bound: first seen within 90 days.
-- **Unnamed funders.** Surf names few funders. The six largest shared-funder clusters are unnamed, so kinship BLOCKs are an upper bound.
+- **Unnamed funders.** Surf names few funders. Kinship threshold v2 sends clusters of 21+ payees on one unnamed funder to REVIEW (`kinship_suspected_exchange`) instead of BLOCK; smaller clusters still BLOCK. `artifacts/sensitivity.md` shows the effect of each policy.
 - **No live payee under 48 h.** 0 of 800 census payees are that young, so the age vow is tested on fixtures but has not fired live.
 - **Label coverage is thin.** 16 of 463 addresses got a Surf label (3.5%). Missing or uncorroborated identity is scored as neutral (weight excluded), not as trust and not as a penalty.
 - Dolphin identity extraction is **optional enrichment**. A timeout is stamped `enrichment: incomplete` on the receipt and never caps the verdict.
@@ -140,3 +140,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-10 Phase 3i.** The frontend: three static pages in the logo's black, white and red (`/`, `/check?url=`, `/receipt/:id`), with no JavaScript and a CSP that forbids it. The free check page reuses its own probe for the null-payee gate and never calls a model. 229 tests; localhost-check 10/10 in fixture and live mode.
 - **2026-11-10 Phase 3j.** The identity vow's only live BLOCK was a false positive: the wallet's label was a person's handle, not an organisation. Now only a label that names the wallet's operator can contradict a claim or stand in as a seller's name (`operatorName` in `src/core/identity.ts`), and a label naming a person is never printed. That payee moves BLOCK to REVIEW. Added the guide and the legal page (`docs/GUIDE.md`, `docs/LEGAL.md`), shown on the site at `/docs` and `/legal`. 248 tests.
 - **2026-11-10 Phase 3k.** Receipts quoted every seller name as "surf label: …", even names taken from the seller's own catalog listing. Identity evidence now says where the name came from: `catalog listing name`, `surf label` or `claimed name`. Saved SERV replies are keyed by the evidence they were shown, so changed evidence re-asks the model instead of failing validation. One live SERV call re-recorded the fixture reply; the old recording stays in `fixtures/recorded/serv` unused, since raw fixtures are never overwritten. 250 tests.
+- **2026-11-11 Final pass, phase A.** Kinship threshold v2: an unlabelled funder shared with 21+ other catalog payees gives REVIEW with the flag `kinship_suspected_exchange`; 3 to 20 still BLOCK (lab B2 sits at 20). It never creates a BLOCK. Census 49 / 539 / 212; BLOCK moved 25.9%, over the 15% limit first set, accepted by the owner. `artifacts/sensitivity.md` compares three policies. Lab 8 pass, 1 superseded (B4, documented in `fixtures/lab/supersessions.json`).

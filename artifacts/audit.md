@@ -144,12 +144,12 @@ None: no payee was excluded. Every failed **payee** query was resolved by bisect
 | band | payees | share |
 |---|---|---|
 | ALLOW | 49 | 6.1% |
-| REVIEW | 465 | 58.1% |
-| BLOCK | 286 | 35.8% |
+| REVIEW | 539 | 67.4% |
+| BLOCK | 212 | 26.5% |
 
 Vows fired: kinship 243 · silence 35 · null_payee 1.
 
-E v1 → v2: **53 of 800 payees changed band** between E v1 and the current E v2 scoring. 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
+E v1 → v2: **58 of 800 payees changed band** between E v1 and the current E v2 scoring. 663 of 781 active payees take ≥ 99% of inbound USD in one token, which is why v1's token-concentration E was retired.
 
 *For a buyer:* ALLOW means every deterministic check passed. REVIEW means a human or a tighter budget should decide. BLOCK always cites the vow or the sub-50 score that caused it.
 
@@ -159,7 +159,7 @@ E v1 → v2: **53 of 800 payees changed band** between E v1 and the current E v2
 
 The rubric scored it **80.91** on live data (ALLOW range), because burns from many senders look like a mature, busy, well-diversified wallet. **V6 now overrides that score:** it is BLOCKed at probe time with a sealed $0.00 receipt, before any Surf, SERV or Dolphin call. In this report it is BLOCK (null_payee fired).
 
-**Price moved:** the catalog and the first probe said **$5.00**. The live probe on 2026-11-09 (lab case B5) returned **$0.80**, still to the zero address. It still BLOCKs at $0.00.
+**Price moved:** the catalog and the first probe said **$5.00**. The live probe on 2026-11-11 (lab case B5) returned **$0.80**, still to the zero address. It still BLOCKs at $0.00.
 
 V6 rules: zero address (any form) · known burn sinks · `payTo` equal to the payment-asset contract · invalid EIP-55 checksum, all BLOCK. A payee with no contract code and zero outbound transfers is REVIEW only; this needs an `eth_getCode` source, which is not wired yet. The vow set is now frozen at six.
 

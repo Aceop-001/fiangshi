@@ -223,7 +223,7 @@ The "optional components can only add" rule stays, so a corroborated claim never
 
 **Lab** (`fixtures/lab/results-attempt4.json`, expectations in `cases-v2.json` left unedited): **8/9**. B4 (anon-claimant, expected REVIEW · identity) still lands on REVIEW by score (60.49), but V5 no longer fires, so it is recorded as a FAILURE against its pre-written expectation. The synthetic lookalike fixture still BLOCKs, by score (48.3) rather than by V5.
 
-**Current census band counts (the only split stated on this page):** **49 ALLOW · 465 REVIEW · 286 BLOCK** of 800 (`npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90`).
+**Current census band counts (the only split stated on this page):** **49 ALLOW · 539 REVIEW · 212 BLOCK** of 800 (`npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90`).
 
 ## Operator labels only (2026-11-10)
 

@@ -1,0 +1,411 @@
+{
+  "ran_at": "2026-11-11T02:30:00.498Z",
+  "cases_file": "cases-v2.json",
+  "serv_model": "gpt-5.4-mini",
+  "census_at": "2026-11-09T02:57:19.701Z",
+  "results": [
+    {
+      "id": "B1",
+      "archetype": "burner",
+      "payee": "0xdcd07b3fef5399be9c818146bf399e05112d8a3b",
+      "url": null,
+      "construction": "freshly generated random address (crypto.randomBytes(20), generated 2026-11-09T03:49:21.066Z); never funded: Fiangshi cannot fund wallets (no custody). One live inbound SQL call proves it has no history.",
+      "expected_band": "REVIEW",
+      "expected_vow": "silence",
+      "note": "May legitimately land on the silence path (no history at all). Reported as-is; history is not faked.",
+      "alternate_path": true,
+      "expectation_change": "v1 expected BLOCK via age. A never-funded wallet has no first transfer, so age is unknowable: the only honest path is silence (REVIEW). Fiangshi cannot fund a wallet (no custody). Reclassified 2026-11-09 by instruction.",
+      "actual": {
+        "band": "REVIEW",
+        "vows_fired": [
+          "silence"
+        ],
+        "vow_reasons": [
+          "silence: missing: wallet_age_hours, tx_count, first_funder, funder_fanout, distinct_payers, total_received_usd, top_payer_share, price"
+        ],
+        "score": 0,
+        "score_band": "REVIEW",
+        "model_band": "BLOCK",
+        "degraded": true,
+        "identity": {
+          "claims_org": null,
+          "claims_product": null,
+          "corroborated": null
+        },
+        "probe": "no endpoint (burner wallet has no 402); reused the v1 live inbound query (fixtures/lab/results.json: live inbound query: 1 rows): no transfers",
+        "dolphin": null,
+        "enrichment": {
+          "status": "skipped",
+          "reason": "no seller listing text to extract identity from"
+        },
+        "receipt_hash": "9e9c5bc0af33ac8cd4f37265951d85567279995b256fc11752c5e89e34945fc9",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001651,
+      "ms": 5383,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "B2",
+      "archetype": "sybil-funder",
+      "payee": "0x54ebfcf3870439b9db62381848c5dabc05c70d5b",
+      "url": "https://x402.professorsausages.com/gas-oracle/prices",
+      "construction": "cached census row (90d): first funder shared with 3+ other catalog payees, funder not labelled exchange/relayer",
+      "expected_band": "BLOCK",
+      "expected_vow": "kinship",
+      "actual": {
+        "band": "BLOCK",
+        "vows_fired": [
+          "kinship"
+        ],
+        "vow_reasons": [
+          "kinship: funder shared with 20 other catalog payees (block if >= 3, <=2 hops, non-CEX)"
+        ],
+        "score": 62.87,
+        "score_band": "REVIEW",
+        "model_band": "ALLOW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "Multichain Gas Oracle",
+          "claims_product": null,
+          "corroborated": true,
+          "sources": [
+            "path"
+          ],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "402 parsed: $0.02 to 0x54ebfcf3870439b9db62381848c5dabc05c70d5b",
+        "dolphin": {
+          "claims": {
+            "claims_org": null,
+            "claims_product": "Multichain Gas Oracle",
+            "claims_age_claim": null
+          },
+          "error": null
+        },
+        "enrichment": {
+          "status": "complete",
+          "reason": null
+        },
+        "receipt_hash": "d49f9f70fa05dc1fee1f9ff39d2410b731a30b69ca7a98ffcfe48387dcb6a713",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001813,
+      "ms": 3785,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "B3",
+      "archetype": "sleeper",
+      "payee": "synthetic:sleeper",
+      "url": "https://old-quotes.example/v1/quote",
+      "construction": "SYNTHETIC fixture (fixtures/payees.json sleeper): no live census payee is established AND dormant >=60d (0 of 800), and the history vow fired on 0 of 800",
+      "expected_band": "REVIEW",
+      "expected_vow": null,
+      "alternate_path": true,
+      "expectation_change": "v1 expected REVIEW via history. The history vow needs 0 payers and price > $0.50; the only sleeper available is synthetic (no live candidate in 800) with 3 payers at $0.04, so it reaches REVIEW by score (53.34, scripts/lab-predict.ts), not via history. Reclassified 2026-11-09 by instruction.",
+      "actual": {
+        "band": "REVIEW",
+        "vows_fired": [],
+        "vow_reasons": [],
+        "score": 53.34,
+        "score_band": "REVIEW",
+        "model_band": "REVIEW",
+        "degraded": false,
+        "identity": {
+          "claims_org": null,
+          "claims_product": null,
+          "corroborated": null
+        },
+        "probe": "recorded synthetic 402 (fixtures/402)",
+        "dolphin": null,
+        "enrichment": {
+          "status": "skipped",
+          "reason": "no seller listing text to extract identity from"
+        },
+        "receipt_hash": "502c85fd3732e43441301dfeec0d007706637476c425e5620110542909d34f0b",
+        "model_calls": 1
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001652,
+      "ms": 1952,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "B4",
+      "archetype": "anon-claimant",
+      "payee": "0x11dced0487ca3e7d9032029dcb302253ccf4e0de",
+      "url": "https://minty-sprout.onrender.com/v1/base-token-info",
+      "construction": "cached census row: catalog self-claim \"Foundry\" with no corroborating source (host/path/label), 202h old",
+      "expected_band": "REVIEW",
+      "expected_vow": "identity",
+      "expectation_change": "unchanged expectation; V5 now fires on uncorroborated claims at any age (2026-11-09 rule change).",
+      "actual": {
+        "band": "REVIEW",
+        "vows_fired": [],
+        "vow_reasons": [],
+        "score": 60.49,
+        "score_band": "REVIEW",
+        "model_band": "REVIEW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "Foundry",
+          "claims_product": null,
+          "corroborated": false,
+          "sources": [],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "402 parsed: $0.001 to 0x11dced0487ca3e7d9032029dcb302253ccf4e0de",
+        "dolphin": {
+          "claims": {
+            "claims_org": "Foundry",
+            "claims_product": null,
+            "claims_age_claim": null
+          },
+          "error": null
+        },
+        "enrichment": {
+          "status": "complete",
+          "reason": null
+        },
+        "receipt_hash": "9c6a3951b14d6a1dbf636905c47fcbc6519dd6e9fa9e4e23a94b5bb4bab57a64",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001762,
+      "ms": 3150,
+      "outcome": "FAILURE",
+      "why": "intended vow identity did not fire (fired: none)"
+    },
+    {
+      "id": "B5",
+      "archetype": "void",
+      "payee": "0x0000000000000000000000000000000000000000",
+      "url": "https://api.cleave.fi/x402/gas",
+      "construction": "LIVE probe of the real endpoint: payTo is the zero address",
+      "expected_band": "BLOCK",
+      "expected_vow": "null_payee",
+      "expected_cost_usd": 0,
+      "actual": {
+        "band": "BLOCK",
+        "vows_fired": [
+          "null_payee"
+        ],
+        "score": 0,
+        "model_band": null,
+        "degraded": false,
+        "probe": "402 parsed: $0.8 to 0x0000000000000000000000000000000000000000",
+        "reason": "zero_address: payTo 0x0000000000000000000000000000000000000000 is the zero address: funds sent there are unrecoverable",
+        "receipt_hash": "7acc1fbfe8e42c5f653768e8a7c50992019b1aed8275481749c3d270b22a0a12",
+        "model_calls": 0
+      },
+      "surf_credits": 0,
+      "cost_usd": 0,
+      "ms": 558,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "B6",
+      "archetype": "silent",
+      "payee": "0x7914033707876738076f01b462f4aa3e6a17f01f",
+      "url": "https://www.getbags.app/api/agent/link/pl-c5a332aa-4390-4b95",
+      "construction": "cached census row: no transfers in the 90d window (all on-chain signals missing)",
+      "expected_band": "REVIEW",
+      "expected_vow": "silence",
+      "actual": {
+        "band": "REVIEW",
+        "vows_fired": [
+          "silence"
+        ],
+        "vow_reasons": [
+          "silence: missing: wallet_age_hours, tx_count, first_funder, funder_fanout, distinct_payers, total_received_usd, top_payer_share, price"
+        ],
+        "score": 1.96,
+        "score_band": "REVIEW",
+        "model_band": "REVIEW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "Invoice Audit API",
+          "claims_product": null,
+          "corroborated": false,
+          "sources": [],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "probe failed: status 404, expected 402",
+        "dolphin": {
+          "claims": {
+            "claims_org": null,
+            "claims_product": "Invoice Audit API",
+            "claims_age_claim": null
+          },
+          "error": null
+        },
+        "enrichment": {
+          "status": "complete",
+          "reason": null
+        },
+        "receipt_hash": "616a92cf3fab88dbecd6c84c65da2958fb3de0028b862d39a48ab26de2f57048",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001087,
+      "ms": 6807,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "C1",
+      "archetype": "control",
+      "payee": "0x255cdb4e42afefc7120b0388eb78f96d996d387b",
+      "url": "https://riddlex402.vercel.app/api/riddle",
+      "construction": "real v3 census ALLOW (85.39), claim Riddle Oracle corroborated by host+path",
+      "expected_band": "ALLOW",
+      "expected_vow": null,
+      "expectation_change": "unchanged; Dolphin is now optional enrichment (a timeout stamps enrichment:incomplete, never caps the band).",
+      "actual": {
+        "band": "ALLOW",
+        "vows_fired": [],
+        "vow_reasons": [],
+        "score": 84.96,
+        "score_band": "ALLOW",
+        "model_band": "ALLOW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "Riddle Oracle",
+          "claims_product": null,
+          "corroborated": true,
+          "sources": [
+            "host",
+            "path"
+          ],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "402 parsed: $0.002 to 0x255cdb4e42afefc7120b0388eb78f96d996d387b",
+        "dolphin": {
+          "claims": null,
+          "error": "dolphin: output truncated (finish_reason=length)"
+        },
+        "enrichment": {
+          "status": "incomplete",
+          "reason": "dolphin: output truncated (finish_reason=length)"
+        },
+        "receipt_hash": "adf60b31c326ec040ae6cb93fe10c53579cafbcddf99d455fcceefe23b2cee83",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.00181,
+      "ms": 6537,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "C2",
+      "archetype": "control",
+      "payee": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+      "url": "https://laso.finance/auth",
+      "construction": "real v3 census ALLOW (80.75), claim Laso Finance corroborated by host",
+      "expected_band": "ALLOW",
+      "expected_vow": null,
+      "expectation_change": "unchanged; see C1.",
+      "actual": {
+        "band": "ALLOW",
+        "vows_fired": [],
+        "vow_reasons": [],
+        "score": 83.91,
+        "score_band": "ALLOW",
+        "model_band": "ALLOW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "Laso Finance",
+          "claims_product": null,
+          "corroborated": true,
+          "sources": [
+            "host"
+          ],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "402 parsed: $0.001 to 0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+        "dolphin": {
+          "claims": {
+            "claims_org": "Laso Finance",
+            "claims_product": null,
+            "claims_age_claim": null
+          },
+          "error": null
+        },
+        "enrichment": {
+          "status": "complete",
+          "reason": null
+        },
+        "receipt_hash": "3713fc12282126ed208fa4802efea4f06a3ce19c3a1e2df97d251a178a1953e9",
+        "model_calls": 2
+      },
+      "surf_credits": 0,
+      "cost_usd": 0.001692,
+      "ms": 2266,
+      "outcome": "PASS",
+      "why": null
+    },
+    {
+      "id": "C3",
+      "archetype": "control",
+      "payee": "0xd6fce15298fc9d60f867d9455d497177da9bfb0a",
+      "url": "https://x402.tbs-digital.com/weather/current",
+      "construction": "real v3 census ALLOW (86.64), claim TBS Weather & Climate API corroborated by host+path",
+      "expected_band": "ALLOW",
+      "expected_vow": null,
+      "expectation_change": "unchanged; see C1.",
+      "actual": {
+        "band": "ALLOW",
+        "vows_fired": [],
+        "vow_reasons": [],
+        "score": 86.43,
+        "score_band": "ALLOW",
+        "model_band": "ALLOW",
+        "degraded": false,
+        "identity": {
+          "claims_org": "TBS Weather & Climate API",
+          "claims_product": null,
+          "corroborated": true,
+          "sources": [
+            "host",
+            "path"
+          ],
+          "contradicted": false,
+          "claimFrom": "catalog"
+        },
+        "probe": "402 parsed: $0.001 to 0xd6fce15298fc9d60f867d9455d497177da9bfb0a",
+        "dolphin": {
+          "claims": {
+            "claims_org": null,
+            "claims_product": "TBS Weather & Climate API",
+            "claims_age_claim": null
+          },
+          "error": null
+        },
+        "enrichment": {
+          "status": "complete",
+          "reason": null
+        },
+        "receipt_hash": "b6a64c47ab4f3814c46aac47bafeda2983ee1a70c4edfbac228f74853c16ad1a",
+        "model_calls": 0
+      },
+      "surf_credits": 0,
+      "cost_usd": 0,
+      "ms": 808,
+      "outcome": "PASS",
+      "why": null
+    }
+  ]
+}

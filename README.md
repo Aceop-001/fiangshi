@@ -60,7 +60,7 @@ These are the only band counts the repo states; every page (README, `artifacts/a
 | | latency | price |
 |---|---|---|
 | V6 BLOCK (null payee) | one unpaid probe, no model call | **$0.00** |
-| cached check (payee in the census) | **warm p50 333 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-10, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the six runs committed so far ranged from 294 to 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
+| cached check (payee in the census) | **warm p50 251 ms** in the latest live run (`artifacts/demo-stats.json`, 2026-11-11, 3 calls). The live unpaid probe dominates and depends on the seller's own response time: the seven runs committed so far ranged from 251 to 935 ms (`git log -p artifacts/demo-stats.json`) | **$0.05** (`FIANGSHI_PRICE_CHECK`) |
 | first check of a census payee (no cached model reply) | up to ~25 s when Dolphin times out twice (12 s + one retry) | **$0.05** |
 | cold check (payee not in the census) | **10.8 s** in the one live run: two Surf SQL calls for that address, then SERV and Dolphin (`artifacts/cold-live.md`). Cached for 72 h; the repeat was $0.05, 0 Surf calls, 237 ms | **$0.15** (`FIANGSHI_PRICE_CHECK_COLD`). Cost $0.0499 measured (8 credits + models), margin 67% |
 | payee record `/v1/payee/:addr` | census lookup | **$0.02** (`FIANGSHI_PRICE_PAYEE`) |

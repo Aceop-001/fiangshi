@@ -233,20 +233,7 @@ export function renderIndex(c: Census, stats: DemoStats | null): string {
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
 
   const body = `<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
-<div class="shrine"><form class="guard" aria-label="The guardian of Fiangshi">
-<input class="gs" type="radio" name="g" id="g0" checked aria-label="Guardian asleep"><input class="gs" type="radio" name="g" id="g1" aria-label="Guardian out"><input class="gs" type="radio" name="g" id="g2" aria-label="Guardian out, second tap"><input class="gs" type="radio" name="g" id="g1b" aria-label="Guardian out again"><input class="gs" type="radio" name="g" id="g2b" aria-label="Guardian out again, second tap"><input class="gs" type="radio" name="g" id="g3" aria-label="Guardian defending">
-<div class="stage">
-<img class="poster" src="/assets/guardian-poster.webp" width="560" height="1093" alt="Guardian of Fiangshi: black ink numerals on a red seal">
-<div class="dragon" aria-hidden="true"><i class="fire"></i><i class="fire f2"></i><i class="fire f3"></i><img src="/assets/dragon.webp" width="820" height="1062" alt=""></div>
-<label class="tap t0" for="g1"><span>Touch the poster to wake its guardian</span></label>
-<label class="tap t1" for="g2"><span>Tap again</span></label><label class="tap t1x" for="g1b"><span>Send the guardian out again</span></label>
-<label class="tap t2" for="g3"><span>Tap once more</span></label><label class="tap t2x" for="g1b"><span>Send the guardian out again</span></label>
-<label class="tap t1b" for="g2b"><span>Tap again</span></label><label class="tap t1bx" for="g1"><span>Send the guardian out again</span></label>
-<label class="tap t2b" for="g3"><span>Tap once more</span></label><label class="tap t2bx" for="g1"><span>Send the guardian out again</span></label>
-<label class="tap t3" for="g0"><span>Calm the guardian</span></label>
-</div>
-<p class="omen" aria-live="polite"><span class="o0">Touch the poster. Its guardian sleeps.</span><span class="o1">The guardian is out. Touch the poster twice more.</span><span class="o2">Once more, while it is out.</span><span class="o3">It guards the poster. Touch to calm it.</span></p>
-</form></div>
+<figure class="shrine"><img class="poster" src="/assets/guardian-poster.webp" width="560" height="1093" alt="Guardian of Fiangshi: black ink numerals on a red seal"></figure>
 <div class="hud"><div class="hud-h"><span>Pre-payment check</span><span>x402 · Base</span></div><div class="hud-b">
 <p class="kicker">Counterparty oracle for agent payments</p>
 <h1>Who is behind the&nbsp;402?</h1>

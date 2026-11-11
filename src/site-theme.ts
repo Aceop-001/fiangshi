@@ -135,45 +135,9 @@ h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:10px 0 16px}
 .try{margin-top:12px;font-size:12.5px;color:var(--mut)}
 
 
-/* the guardian: a poster and its dragon. No script: six radio states (asleep, out x2 taps, out again x2, guarding)
-   are switched by the labels laid over the poster; timing windows are CSS animations on those labels. */
-.shrine{justify-self:center;width:min(100%,250px);--fx1:46vw;--fx2:14vw}
-.guard{position:relative}
-.gs{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-.stage{position:relative}
-.gs:focus-visible~.stage{outline:2px solid var(--fg);outline-offset:6px}
+/* the guardian poster */
+.shrine{justify-self:center;width:min(100%,250px);margin:0}
 .poster{display:block;width:100%;height:auto;box-shadow:0 18px 50px rgba(0,0,0,.8)}
-.dragon{position:absolute;z-index:20;left:-30%;top:-2%;width:160%;pointer-events:none;transform-origin:50% 50%;filter:drop-shadow(0 0 14px rgba(229,25,28,.45));animation:dfloat 7s ease-in-out infinite}
-.dragon img{display:block;width:100%;height:auto}
-@keyframes dfloat{50%{transform:translateY(-7px) rotate(-1.2deg)}}
-@keyframes dwake{0%,100%{transform:translate(0,0) rotate(0) scale(1.03)}25%{transform:translate(-5px,-9px) rotate(-3deg) scale(1.05)}60%{transform:translate(6px,-4px) rotate(2.5deg) scale(1.04)}}
-#g0:checked~.stage:hover .dragon{animation:dwake 1.5s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(255,60,40,.85)) brightness(1.15)}
-/* out: one long flight across the page and home again (flyA and flyB are the same path under two names, so a new release restarts it) */
-@keyframes flyA{0%{transform:none}7%{transform:translate(3vw,-5vh) rotate(-10deg) scale(1.08)}22%{transform:translate(var(--fx1),8vh) rotate(16deg) scale(.82)}38%{transform:translate(var(--fx2),72vh) rotate(62deg) scale(.7)}54%{transform:translate(var(--fx1),128vh) rotate(150deg) scale(.6)}70%{transform:translate(calc(var(--fx2)*.5),58vh) rotate(255deg) scale(.76)}88%{transform:translate(-2vw,5vh) rotate(348deg) scale(.96)}100%{transform:rotate(360deg)}}
-@keyframes flyB{0%{transform:none}7%{transform:translate(3vw,-5vh) rotate(-10deg) scale(1.08)}22%{transform:translate(var(--fx1),8vh) rotate(16deg) scale(.82)}38%{transform:translate(var(--fx2),72vh) rotate(62deg) scale(.7)}54%{transform:translate(var(--fx1),128vh) rotate(150deg) scale(.6)}70%{transform:translate(calc(var(--fx2)*.5),58vh) rotate(255deg) scale(.76)}88%{transform:translate(-2vw,5vh) rotate(348deg) scale(.96)}100%{transform:rotate(360deg)}}
-#g1:checked~.stage .dragon,#g2:checked~.stage .dragon{animation:flyA 16s cubic-bezier(.45,.05,.4,.95) forwards;filter:drop-shadow(0 0 20px rgba(255,60,40,.8)) brightness(1.12)}
-#g1b:checked~.stage .dragon,#g2b:checked~.stage .dragon{animation:flyB 16s cubic-bezier(.45,.05,.4,.95) forwards;filter:drop-shadow(0 0 20px rgba(255,60,40,.8)) brightness(1.12)}
-/* guarding: it coils back over the poster and breathes fire */
-@keyframes dguard{0%{transform:scale(.6) rotate(-25deg);opacity:0}8%{transform:scale(1.16) rotate(4deg);opacity:1}30%{transform:scale(1.13) rotate(-9deg)}55%{transform:scale(1.17) rotate(7deg)}80%{transform:scale(1.13) rotate(-6deg)}100%{transform:scale(1.16) rotate(4deg)}}
-#g3:checked~.stage .dragon{animation:dguard 3.2s ease-in-out infinite;filter:drop-shadow(0 0 26px rgba(255,120,30,.95)) brightness(1.25) saturate(1.2)}
-.fire{display:none;position:absolute;right:74%;top:21.5%;width:95%;height:13%;transform-origin:100% 50%;border-radius:50% 12% 12% 50%;mix-blend-mode:screen;filter:blur(7px);background:radial-gradient(ellipse 100% 60% at 100% 50%,#fff 0,#ffe27a 14%,#ff9a1f 38%,rgba(229,25,28,.75) 62%,rgba(229,25,28,0) 78%)}
-#g3:checked~.stage .fire{display:block;animation:jet .42s ease-in-out infinite alternate}
-.fire.f2{--a:-17deg;height:10%;animation-delay:-.13s!important}.fire.f3{--a:15deg;height:9%;animation-delay:-.27s!important}
-@keyframes jet{from{transform:rotate(var(--a,0deg)) scaleX(.55) scaleY(.8);opacity:.75}to{transform:rotate(var(--a,0deg)) scaleX(1.15) scaleY(1.15);opacity:1}}
-@keyframes heat{from{box-shadow:0 0 0 2px #ff7a18,0 0 40px 6px rgba(255,90,20,.55)}to{box-shadow:0 0 0 2px #ffd34d,0 0 80px 18px rgba(255,120,20,.85)}}
-#g3:checked~.stage .poster{animation:heat .5s ease-in-out infinite alternate}
-/* the labels over the poster: exactly one takes the next tap */
-.tap{display:none;position:absolute;inset:0;z-index:25;cursor:pointer}
-.tap span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-@keyframes win{to{visibility:hidden}}
-@keyframes late{from{visibility:hidden}to{visibility:visible}}
-#g0:checked~.stage .t0,#g3:checked~.stage .t3{display:block}
-#g1:checked~.stage .t1,#g2:checked~.stage .t2,#g1b:checked~.stage .t1b,#g2b:checked~.stage .t2b{display:block;animation:win 16s steps(1,end) forwards}
-#g1:checked~.stage .t1x,#g2:checked~.stage .t2x,#g1b:checked~.stage .t1bx,#g2b:checked~.stage .t2bx{display:block;animation:late 16s steps(1,end) forwards}
-.omen{margin-top:16px;min-height:3.2em;text-align:center;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
-.omen span{display:none}
-#g0:checked~.omen .o0,#g1:checked~.omen .o1,#g1b:checked~.omen .o1,#g2:checked~.omen .o2,#g2b:checked~.omen .o2,#g3:checked~.omen .o3{display:inline}
-#g3:checked~.omen{color:var(--red-text)}
 
 /* sections */
 .sec{padding:64px 0 0}
@@ -383,7 +347,7 @@ footer{margin-top:72px;border-top:1px solid var(--line2);color:var(--mut);font-s
 .toc{position:static;border:1px solid var(--line2);padding:14px 16px}
 .hero-in{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:30px;padding-bottom:42px}
 .clock{max-width:230px}
-.shrine{width:min(62%,190px);--fx1:14vw;--fx2:-18vw}
+.shrine{width:min(62%,190px)}
 .notes,.vows,.cols{grid-template-columns:minmax(0,1fr)}
 .pipe{grid-template-columns:repeat(2,minmax(0,1fr))}
 .pipe li{border-top:1px solid var(--line2)}
@@ -403,7 +367,7 @@ footer{margin-top:72px;border-top:1px solid var(--line2);color:var(--mut);font-s
 }
 @media(prefers-reduced-motion:reduce){
 html{scroll-behavior:auto}
-.rain::before,.rain::after,.clock .sec,.pulse,.polaroid,.col,.dragon,.fire,.poster{animation:none!important}
+.rain::before,.rain::after,.clock .sec,.pulse,.polaroid,.col{animation:none}
 a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 }
 `;

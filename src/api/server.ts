@@ -41,7 +41,6 @@ import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
-  "/assets/dragon.webp": { file: "dragon.webp", type: "image/webp" },
   "/assets/guardian-poster.webp": { file: "guardian-poster.webp", type: "image/webp" },
 };
 

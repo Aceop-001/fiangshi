@@ -197,22 +197,15 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the guardian hero is pure CSS: poster, dragon, six radio states, served images, still no script", async () => {
+  it("the guardian poster is served and shown, still no script", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
     expect(home).toContain('src="/assets/guardian-poster.webp"');
-    expect(home).toContain('src="/assets/dragon.webp"');
-    expect(home.match(/<input class="gs" type="radio"/g)?.length).toBe(6);
-    for (const id of ["g0", "g1", "g2", "g1b", "g2b", "g3"]) expect(home).toContain(`for="${id}"`);
-    expect(home).toContain("@keyframes flyA");
-    expect(home).toContain("prefers-reduced-motion");
-    for (const a of ["/assets/dragon.webp", "/assets/guardian-poster.webp"]) {
-      const r = await get(a);
-      expect(r.status).toBe(200);
-      expect(r.headers["content-type"]).toBe("image/webp");
-    }
+    const r = await get("/assets/guardian-poster.webp");
+    expect(r.status).toBe(200);
+    expect(r.headers["content-type"]).toBe("image/webp");
+    expect((await get("/assets/dragon.webp")).status).toBe(404);
     expect((await get("/assets/../.env")).status).toBe(404);
-    expect((await get("/assets/secret.webp")).status).toBe(404);
   });
   it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
     const saved = process.env.FIANGSHI_PAYTO;

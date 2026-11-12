@@ -13,7 +13,7 @@ import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
 import { renderMarkdown } from "./md.js";
 import { lang, t as T } from "./i18n.js";
-import { HERO_CSS, SITE_LINKS, bareUrl, esc, logoSvg, page, probeForm, short, usd } from "./site-theme.js";
+import { HERO_CSS, SITE_LINKS, bareUrl, esc, page, probeForm, short, usd } from "./site-theme.js";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const BANDS = ["ALLOW", "REVIEW", "BLOCK"] as const;
@@ -234,7 +234,6 @@ export function renderIndex(c: Census, stats: DemoStats | null): string {
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
 
   const body = `<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
-<div class="clock">${logoSvg({ bezel: true, label: "Fiangshi: a clock face with red roman numerals" })}</div>
 <div class="hud"><div class="hud-h"><span>${T("Pre-payment check")}</span><span>x402 · Base</span></div><div class="hud-b">
 <p class="kicker">${T("Counterparty oracle for agent payments")}</p>
 <h1>${T("Who is behind the 402?").replace(" 402", "&nbsp;402")}</h1>
@@ -399,7 +398,7 @@ export function renderReceipt(r: Receipt, proof: { valid: boolean; errors: strin
   const enr = r.enrichment ? `${r.enrichment.status}${r.enrichment.reason ? ` (${r.enrichment.reason})` : ""}` : null;
   const body = `<main class="wrap rc-wrap">
 <article class="rc" aria-label="Receipt">
-<div class="rc-head">${logoSvg()}<b>FIANGSHI</b><span>counterparty check receipt</span></div>
+<div class="rc-head"><b>FIANGSHI</b><span>counterparty check receipt</span></div>
 <hr>
 <div class="rc-band ${r.band}"><span class="stamp">${r.band}</span><div><b>${r.score}</b><small>score</small></div></div>
 <hr>

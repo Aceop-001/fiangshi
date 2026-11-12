@@ -199,10 +199,11 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the hero shows the clock mark again; no poster, no dragon, no asset route", async () => {
+  it("the hero is the check panel alone: no clock, no poster, no dragon, no asset route", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
-    expect(home).toContain('<div class="clock">');
+    expect(home).not.toContain('class="clock"');
+    expect(home).toContain('<form class="probe"');
     expect(home).not.toContain("/assets/");
     for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp"]) expect((await get(a)).status).toBe(404);
   });

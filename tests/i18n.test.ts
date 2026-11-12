@@ -72,7 +72,7 @@ describe("pages in four languages", () => {
     expect(r.body).toContain('<a class="brand" href="/">FIANGSHI</a>');
     expect(r.body).toContain('<nav class="langs"');
     expect(r.body).toContain('href="/zh"');
-    expect(r.body).toContain("菲昂"); // the clock logo carries the Chinese name
+    expect(r.body).not.toContain('class="clock"');
   });
   it("/zh: Chinese page, links stay in Chinese, API links and the English switch do not", async () => {
     const r = await get("/zh");

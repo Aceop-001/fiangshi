@@ -221,3 +221,24 @@ describe("HTTP API", () => {
     process.env.FIANGSHI_PAYTO = saved;
   });
 });
+
+describe("the server survives a failing request", () => {
+  it("an error after the reply has started ends that reply; the server keeps answering", async () => {
+    const { handle } = await import("../src/api/server.js");
+    const { ServerResponse, IncomingMessage } = await import("node:http");
+    const { Socket } = await import("node:net");
+    const req = new IncomingMessage(new Socket());
+    req.method = "GET";
+    req.url = "/health";
+    const res = new ServerResponse(req);
+    // simulate a handler that already sent headers and then threw: writeHead twice must not throw out of handle()
+    res.writeHead(200);
+    const write = res.writeHead.bind(res);
+    res.writeHead = (() => {
+      throw Object.assign(new Error("Cannot write headers after they are sent to the client"), { code: "ERR_HTTP_HEADERS_SENT" });
+    }) as typeof res.writeHead;
+    await expect(handle(req, res)).resolves.toBeUndefined();
+    res.writeHead = write;
+    expect((await get("/health")).status).toBe(200);
+  });
+});

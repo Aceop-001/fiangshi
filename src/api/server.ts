@@ -262,6 +262,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     }
     return json(res, 404, { error: "not found" });
   } catch (e) {
+    // a reply already under way cannot get a second status line: end it instead of crashing the server
+    if (res.headersSent) return void res.end();
     return json(res, 500, { error: (e as Error).message.slice(0, 300) });
   }
 }
@@ -271,7 +273,14 @@ export function startServer(port = num("PORT", 8787), host = process.env.HOST ??
   if (process.env.FIANGSHI_OFFLINE !== "1") process.env.SNAPSHOT_SOURCE = "live"; // probe live endpoints
   process.env.MOCK_MODELS ??= "";
   loadCensus(); // fail fast if fixtures are missing
-  const server = createServer((req, res) => void handle(req, res));
+  // one failed request must never take the server down
+  const server = createServer((req, res) =>
+    handle(req, res).catch((e) => {
+      process.stderr.write(`request failed: ${(e as Error).message}\n`);
+      if (!res.headersSent) res.writeHead(500, { "content-type": "application/json; charset=utf-8" });
+      res.end();
+    }),
+  );
   return new Promise<typeof server>((resolve) => server.listen(port, host, () => resolve(server)));
 }
 

@@ -41,7 +41,6 @@ import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
-  "/assets/guardian-poster.webp": { file: "guardian-poster.webp", type: "image/webp" },
 };
 
 /** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
@@ -123,7 +122,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       res.writeHead(200, { "content-type": ASSETS[u.pathname]!.type, "cache-control": "max-age=3600", "x-content-type-options": "nosniff", "x-fiangshi-mode": providerMode() });
       return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
     }
-    if (u.pathname === "/docs" || u.pathname === "/legal") return html(res, 200, renderDoc(u.pathname === "/docs" ? "docs" : "legal", c, loadDemoStats()));
+    if (u.pathname === "/guide" || u.pathname === "/docs") return html(res, 200, renderDoc("docs", c, loadDemoStats()));
+    if (u.pathname === "/report") return html(res, 200, renderDoc("report", c, loadDemoStats()));
+    if (u.pathname === "/legal") return html(res, 200, renderDoc("legal", c, loadDemoStats()));
     if (u.pathname === "/check") {
       // Free page: one unpaid probe, the V6 gate, and the census band already published in /v1/index.json. Never a model call.
       const input = (u.searchParams.get("url") ?? "").trim();

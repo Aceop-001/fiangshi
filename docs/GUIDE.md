@@ -2,7 +2,39 @@
 
 Fiangshi answers one question before an agent pays an x402 endpoint: who is on the other side of this payment? It returns ALLOW, REVIEW or BLOCK, quotes the evidence it used, and seals a receipt you can verify later. It is advisory only and never holds funds.
 
-This guide covers the agent flow, how a verdict is made, and how to run Fiangshi yourself. Examples use the local default address, `http://127.0.0.1:8787`.
+This guide covers real endpoints you can try, the agent flow, how a verdict is made, and how to run Fiangshi yourself. Examples use the local default address, `http://127.0.0.1:8787`.
+
+## Try it: real paid endpoints
+
+These are live x402 endpoints from the public Bazaar catalog, all paid in USDC on Base. Paste one into the box on the [home page](/), or follow the link. The free check makes one unpaid request, applies the null-payee rule and shows the census answer. Every answer below is checked by a test (`tests/guide-examples.test.ts`), so this table cannot drift from what the site says.
+
+| endpoint | answer | why |
+|---|---|---|
+| [x402.tbs-digital.com/weather/current](/check?url=https%3A%2F%2Fx402.tbs-digital.com%2Fweather%2Fcurrent) | ALLOW | A weather API whose listing name matches its own web address. 101 different wallets have paid it, and no rule fires. |
+| [api.nansen.ai/…/current-balance](/check?url=https%3A%2F%2Fapi.nansen.ai%2Fapi%2Fv1%2Fprofiler%2Faddress%2Fcurrent-balance) | ALLOW | An established data provider with many paying customers. One of the highest scores in the census. |
+| [x402.glassnode.com/v1/metrics/market/mvrv](/check?url=https%3A%2F%2Fx402.glassnode.com%2Fv1%2Fmetrics%2Fmarket%2Fmvrv) | ALLOW | Same pattern: an old wallet, many payers, no shared funder. |
+| [api.cleave.fi/x402/gas](/check?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas) | BLOCK | It asks to be paid to the zero address, where money is lost for good. Rule I (null payee) stops it before anything else runs, at no cost. |
+| [kronossignals.com/api/v1/funding-extremes](/check?url=https%3A%2F%2Fkronossignals.com%2Fapi%2Fv1%2Ffunding-extremes) | BLOCK | Its score alone would pass. But the wallet that first funded it also funded a small group of other sellers, so rule III (kinship) treats them as one operator and blocks. |
+| [api.hyperextend.xyz/v1/candles/BTC/1m/latest](/check?url=https%3A%2F%2Fapi.hyperextend.xyz%2Fv1%2Fcandles%2FBTC%2F1m%2Flatest) | REVIEW | Its first funder also funded 21 or more other sellers and has no public name. That looks more like an exchange than a ring, so kinship gives REVIEW, flagged `kinship_suspected_exchange`, instead of BLOCK. |
+| [api.bitrefill.com/x402/gift-cards/search](/check?url=https%3A%2F%2Fapi.bitrefill.com%2Fx402%2Fgift-cards%2Fsearch) | no record (free) | A real seller outside the 800-payee census. The free page does not fetch new data. The paid check does (the cold check, $0.15): two on-chain queries, then a full verdict. |
+
+### What happens on one check, step by step
+
+Take `api.cleave.fi/x402/gas`:
+
+1. **Probe.** Fiangshi sends one GET without paying. The endpoint answers `402 Payment Required` with its terms: $0.80 in USDC, payable to `0x0000000000000000000000000000000000000000`.
+2. **Gate.** Rule I sees the zero address and stops. No on-chain data, no model call, no cost.
+3. **Receipt.** The verdict, the reason and the payment terms are sealed into a receipt: a sha256 hash of its contents, chained to the receipt before it. Change one byte and verification fails.
+
+Now `x402.tbs-digital.com/weather/current`, a paid check:
+
+1. **Probe.** The 402 asks $0.001, payable to `0xd6fc…fb0a`.
+2. **Gate.** The address is a normal wallet, so the check continues.
+3. **Signals.** The wallet is in the census: first seen at the start of the 90-day window, 416 transfers, 101 different payers, and its listing name matches its URL.
+4. **Score.** Six parts (age, funding, revenue, identity, concentration, evidence) give 86.43 out of 100, which is ALLOW territory (80 and up).
+5. **Model.** SERV reads the terms and signals and advises ALLOW. Each quote it cites must be an exact piece of the stored evidence, or its answer is thrown out.
+6. **Rules.** None of the six rules fires, so nothing lowers the band.
+7. **Receipt.** ALLOW, sealed and chained.
 
 ## The agent flow
 

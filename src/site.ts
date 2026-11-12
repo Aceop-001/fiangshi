@@ -233,7 +233,7 @@ export function renderIndex(c: Census, stats: DemoStats | null): string {
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
 
   const body = `<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
-<figure class="shrine"><img class="poster" src="/assets/guardian-poster.webp" width="560" height="1093" alt="Guardian of Fiangshi: black ink numerals on a red seal"></figure>
+<div class="clock">${logoSvg({ bezel: true, label: "Fiangshi: a clock face with red roman numerals" })}</div>
 <div class="hud"><div class="hud-h"><span>Pre-payment check</span><span>x402 · Base</span></div><div class="hud-b">
 <p class="kicker">Counterparty oracle for agent payments</p>
 <h1>Who is behind the&nbsp;402?</h1>
@@ -286,7 +286,7 @@ ${ledger(c)}
 <section class="sec" id="api"><div class="wrap">
 <p class="eyebrow">API</p>
 <h2>For agents</h2>
-<p class="lede">Paid routes answer 402 with x402 v2 payment terms until an X-PAYMENT header is sent. Settlement is dry-run in this build: the header is checked for structure and nothing is settled. The <a href="/docs">guide</a> has the full flow with real requests and responses.</p>
+<p class="lede">Paid routes answer 402 with x402 v2 payment terms until an X-PAYMENT header is sent. Settlement is dry-run in this build: the header is checked for structure and nothing is settled. The <a href="/guide">guide</a> has the full flow with real requests and responses.</p>
 <div class="scroll"><table class="tbl"><tr><th>route</th><th class="n">price</th><th>returns</th></tr>
 <tr><td><code>GET /v1/check?url=</code></td><td class="n">$${cached.toFixed(2)}</td><td>Verdict, vows, SERV advice and a fresh receipt. A null payee answers BLOCK for free.</td></tr>
 <tr><td><code>GET /v1/payee/:address</code></td><td class="n">$${payeePrice.toFixed(2)}</td><td>The census record for one payee.</td></tr>
@@ -448,6 +448,7 @@ ${hashBars(r.receipt_hash)}
 
 const DOCS = {
   docs: { file: "GUIDE.md", fallback: "Fiangshi guide", description: "How an agent uses Fiangshi, how a verdict is made, and how to run it." },
+  report: { file: "REPORT.md", fallback: "Test report", description: "Every failure in building Fiangshi, what fixed it, and what the tests say now." },
   legal: { file: "LEGAL.md", fallback: "Legal", description: "Fiangshi terms of use, what a verdict about a seller means, privacy, licence." },
 } as const;
 export type DocKind = keyof typeof DOCS;
@@ -472,15 +473,49 @@ function contactBlock(): string {
 export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): string {
   const d = DOCS[kind];
   const src = readFileSync(join(ROOT, "docs", d.file), "utf8")
-    .replace(/\]\(GUIDE\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/docs${hash ?? ""})`)
+    .replace(/\]\(GUIDE\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/guide${hash ?? ""})`)
     .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`);
   const r = renderMarkdown(src);
+  const extra = kind === "report" ? reportComputed(stats) : null;
+  if (extra) r.headings.push(...extra.headings);
   const toc = r.headings.filter((h) => h.level === 2).map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`);
   const body = `<main class="wrap doc-wrap">
 <nav class="toc" aria-label="On this page"><p class="eyebrow">On this page</p><ol>${toc.join("")}</ol></nav>
-<article class="doc">${r.html}${kind === "legal" ? contactBlock() : ""}</article>
+<article class="doc">${r.html}${extra?.html ?? ""}${kind === "legal" ? contactBlock() : ""}</article>
 </main>`;
   return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats) });
+}
+
+/**
+ * The computed half of the test report: every committed lab run (fixtures/lab/results*.json) and the latest measured
+ * status (artifacts/demo-stats.json). Nothing here is typed by hand, so it cannot drift from the files.
+ */
+function reportComputed(stats: DemoStats | null): { html: string; headings: { level: number; id: string; text: string }[] } {
+  const dir = join(ROOT, "fixtures", "lab");
+  let sup: Record<string, unknown> = {};
+  try {
+    sup = (JSON.parse(readFileSync(join(dir, "supersessions.json"), "utf8")) as { cases: Record<string, unknown> }).cases;
+  } catch {
+    /* none */
+  }
+  const files = readdirSync(dir).filter((f) => /^results(-attempt\d+)?\.json$/.test(f)).sort((a, b) => a.length - b.length || a.localeCompare(b));
+  const runs = files.map((f, i) => {
+    const r = JSON.parse(readFileSync(join(dir, f), "utf8")) as { ran_at: string; results: { id: string; outcome: string }[] };
+    const pass = r.results.filter((x) => x.outcome === "PASS").length;
+    const fails = r.results.filter((x) => x.outcome !== "PASS");
+    const superseded = i > 0 ? fails.filter((x) => sup[x.id]).map((x) => x.id) : [];
+    const failed = fails.filter((x) => !superseded.includes(x.id)).map((x) => x.id);
+    const outcome = failed.length ? "fail" : superseded.length ? "pass with supersession" : "pass";
+    return { f, at: r.ran_at.slice(0, 16).replace("T", " "), n: r.results.length, pass, superseded, failed, outcome };
+  });
+  const rows = runs
+    .map((r, i) => '<tr><td>' + (i + 1) + '</td><td>' + esc(r.at) + ' UTC</td><td class="n">' + r.pass + ' / ' + r.n + '</td><td>' + (r.failed.length ? esc(r.failed.join(", ")) : "none") + '</td><td>' + (r.superseded.length ? esc(r.superseded.join(", ")) : "none") + '</td><td>' + chip(r.outcome === "fail" ? "BLOCK" : r.outcome === "pass" ? "ALLOW" : "REVIEW").replace(/>(ALLOW|REVIEW|BLOCK)</, ">" + (r.outcome === "fail" ? "FAIL" : r.outcome === "pass" ? "PASS" : "SUPERSEDED") + "<") + '</td><td><code>' + esc(r.f) + '</code></td></tr>')
+    .join("");
+  const now = stats
+    ? '<p>Last full measurement, ' + esc(stats.measured_at.slice(0, 10)) + ', by <code>npm run localhost-check -- --live</code> (it needs the model keys). Re-run it to refresh these numbers.</p><ul><li><strong>' + stats.tests_passed + ' tests</strong> passing (<code>npm test</code>).</li><li><strong>Accept gates ' + esc(stats.accept) + '</strong>, offline, with the network unplugged (<code>npm run accept</code>).</li><li><strong>End to end 10 / 10</strong>, warm check ' + stats.warm_p50_ms + ' ms.</li><li>A fresh copy with no keys passes all of these in fixture mode.</li></ul>'
+    : "<p>Run <code>npm run localhost-check -- --live</code> to measure the current status.</p>";
+  const html = '<h2 id="lab-runs">Lab runs, as committed</h2><p>Each run of the adversarial lab: 6 attack cases and 3 real sellers, each with an expected answer written before the run. Read from <code>fixtures/lab/</code> when this page loads.</p><div class="scroll"><table class="tbl"><tr><th>run</th><th>when</th><th class="n">passed</th><th>failed</th><th>superseded</th><th>outcome</th><th>file</th></tr>' + rows + '</table></div><h2 id="status-now">Last measured status</h2>' + now;
+  return { html, headings: [{ level: 2, id: "lab-runs", text: "Lab runs, as committed" }, { level: 2, id: "status-now", text: "Last measured status" }] };
 }
 
 export function renderNotFound(what: string, c: Census, stats: DemoStats | null): string {

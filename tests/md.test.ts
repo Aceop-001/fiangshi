@@ -50,7 +50,7 @@ describe("the documents themselves", () => {
   it("the guide and the legal page render, with the sections the site links to", () => {
     const guide = renderMarkdown(read("GUIDE.md"));
     expect(guide.title).toBe("Fiangshi guide");
-    expect(guide.headings.filter((h) => h.level === 2).map((h) => h.text)).toEqual(["The agent flow", "How a verdict is made", "Routes", "Receipts", "Limits", "Run it yourself"]);
+    expect(guide.headings.filter((h) => h.level === 2).map((h) => h.text)).toEqual(["Try it: real paid endpoints", "The agent flow", "How a verdict is made", "Routes", "Receipts", "Limits", "Run it yourself"]);
     const legal = renderMarkdown(read("LEGAL.md"));
     expect(legal.headings.filter((h) => h.level === 2).map((h) => h.text)).toEqual(["In short", "Terms of use", "Verdicts about sellers", "Privacy", "Licence and third parties", "Contact"]);
   });

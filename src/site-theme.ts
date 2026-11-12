@@ -94,7 +94,7 @@ code{font-family:var(--mono)}
 /* top bar */
 .bar{border-bottom:1px solid var(--line2);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 .bar-in{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;padding-top:11px;padding-bottom:11px}
-.brand{font:400 19px/1 "Songti SC","Noto Serif CJK SC","Source Han Serif SC",SimSun,"Microsoft YaHei",var(--serif);letter-spacing:.3em;color:var(--fg);text-decoration:none;margin-right:auto}
+.brand{font:400 17px/1 var(--serif);letter-spacing:.34em;color:var(--fg);text-decoration:none;margin-right:auto}
 .bar nav{display:flex;flex-wrap:wrap;gap:4px 16px}
 .bar nav a{text-decoration:none}
 .state{display:flex;align-items:baseline;gap:8px;min-width:0}
@@ -135,9 +135,6 @@ h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:10px 0 16px}
 .try{margin-top:12px;font-size:12.5px;color:var(--mut)}
 
 
-/* the guardian poster */
-.shrine{justify-self:center;width:min(100%,250px);margin:0}
-.poster{display:block;width:100%;height:auto;box-shadow:0 18px 50px rgba(0,0,0,.8)}
 
 /* sections */
 .sec{padding:64px 0 0}
@@ -347,7 +344,6 @@ footer{margin-top:72px;border-top:1px solid var(--line2);color:var(--mut);font-s
 .toc{position:static;border:1px solid var(--line2);padding:14px 16px}
 .hero-in{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:30px;padding-bottom:42px}
 .clock{max-width:230px}
-.shrine{width:min(62%,190px)}
 .notes,.vows,.cols{grid-template-columns:minmax(0,1fr)}
 .pipe{grid-template-columns:repeat(2,minmax(0,1fr))}
 .pipe li{border-top:1px solid var(--line2)}
@@ -373,7 +369,7 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 `;
 
 /** The document pages every page links to, in the bar and in the footer. */
-export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"], ["/legal", "Legal"]];
+export const SITE_LINKS: [href: string, label: string][] = [["/guide", "Guide"], ["/report", "Test report"], ["/legal", "Legal"]];
 
 const MODE_NOTE: Record<string, string> = {
   fixture: `<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain. Live providers: <code>npm run localhost-check -- --live</code>`,
@@ -405,7 +401,7 @@ export function page(s: Shell): string {
 <title>${esc(s.title)}</title>
 <link rel="icon" href="${FAVICON}">
 <style>${CSS}${s.css ?? ""}</style></head><body>
-<header class="bar"><div class="wrap bar-in"><a class="brand" href="/" aria-label="Fiangshi" lang="zh-Hans">菲昂诗</a>${nav}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · providers ${mode} · settlement dry-run</span></div></header>
+<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · providers ${mode} · settlement dry-run</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${MODE_NOTE[mode]}</p></div>` : ""}
 ${s.body}
 <footer><div class="wrap foot"><p class="foot-links">${SITE_LINKS.map(([h, l]) => `<a href="${h}">${l}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>MIT licence</span></p>${s.foot}</div></footer>

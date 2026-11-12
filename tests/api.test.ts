@@ -158,7 +158,7 @@ describe("HTTP API", () => {
     expect((await get(`/receipt/${"0".repeat(64)}`)).status).toBe(404);
   });
   it("/docs and /legal render the Markdown documents as static pages, linked from every page", async () => {
-    for (const [path, heading] of [["/docs", "The agent flow"], ["/legal", "Terms of use"]] as const) {
+    for (const [path, heading] of [["/guide", "Try it: real paid endpoints"], ["/docs", "The agent flow"], ["/report", "What broke, and what fixed it"], ["/legal", "Terms of use"]] as const) {
       const r = await get(path);
       expect(r.status).toBe(200);
       expect(r.headers["content-security-policy"]).toContain("default-src 'none'");
@@ -166,14 +166,16 @@ describe("HTTP API", () => {
       expect(r.body).toContain(heading);
       expect(r.body).toContain("On this page");
     }
-    for (const path of ["/", `/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`, "/docs", "/legal"]) {
+    for (const path of ["/", `/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`, "/guide", "/report", "/legal"]) {
       const body = (await get(path)).body;
-      expect(body).toContain('<a href="/docs">Docs</a>');
+      expect(body).toContain('<a href="/guide">Guide</a>');
+      expect(body).toContain('<a href="/report">Test report</a>');
+      expect(body).toContain('<a class="brand" href="/">FIANGSHI</a>');
       expect(body).toContain('<a href="/legal">Legal</a>');
     }
     // links between the two Markdown files point at the routes, not at file names
-    expect((await get("/docs")).body).not.toContain("LEGAL.md)");
-    expect((await get("/legal")).body).toContain('<a href="/docs">guide</a>');
+    expect((await get("/guide")).body).not.toContain("LEGAL.md)");
+    expect((await get("/legal")).body).toContain('<a href="/guide">guide</a>');
   });
   it("/legal shows the operator contact from FIANGSHI_CONTACT, escaped, and never invents one", async () => {
     const saved = process.env.FIANGSHI_CONTACT;
@@ -197,15 +199,20 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the guardian poster is served and shown, still no script", async () => {
+  it("the hero shows the clock mark again; no poster, no dragon, no asset route", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
-    expect(home).toContain('src="/assets/guardian-poster.webp"');
-    const r = await get("/assets/guardian-poster.webp");
-    expect(r.status).toBe(200);
-    expect(r.headers["content-type"]).toBe("image/webp");
-    expect((await get("/assets/dragon.webp")).status).toBe(404);
-    expect((await get("/assets/../.env")).status).toBe(404);
+    expect(home).toContain('<div class="clock">');
+    expect(home).not.toContain("/assets/");
+    for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp"]) expect((await get(a)).status).toBe(404);
+  });
+  it("/report computes the lab history from fixtures/lab and lists every run", async () => {
+    const body = (await get("/report")).body;
+    expect(body).toContain("Lab runs, as committed");
+    expect(body).toContain("results.json");
+    expect(body).toContain("results-attempt5.json");
+    expect(body).toContain("3 / 9");
+    expect(body).toContain("SUPERSEDED");
   });
   it("paid endpoints refuse to run without a configured payTo (no address invented)", async () => {
     const saved = process.env.FIANGSHI_PAYTO;

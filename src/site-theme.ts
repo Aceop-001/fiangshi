@@ -4,6 +4,11 @@
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
  */
 import { providerMode } from "./config.js";
+import { LANGS, lang, t as T } from "./i18n.js";
+
+/** The page path without its language prefix, set by the server per request (for the language switcher). */
+let pagePath = "/";
+export const setPagePath = (p: string) => void (pagePath = p);
 
 export const CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'none'";
 
@@ -16,15 +21,15 @@ const RED = "#e5191c";
 const NUMERALS = ["XII", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
 
 /**
- * The Fiangshi mark, redrawn from the logo as SVG: red roman numerals set radially on a black dial, white serif
- * wordmark. `bezel` adds the minute ticks and the stepping seconds marker used in the hero (decoration only).
+ * The Fiangshi mark, redrawn from the logo as SVG: red roman numerals set radially on a black dial, and the name
+ * in Chinese (菲昂诗) at the centre. `bezel` adds the minute ticks and the stepping seconds marker used in the hero (decoration only).
  */
 export function logoSvg(o: { bezel?: boolean; label?: string } = {}): string {
   const numerals = NUMERALS.map((n, i) => `<text transform="rotate(${i * 30} 200 200) translate(200 42) scale(.84 1)">${n}</text>`).join("");
   const ticks = o.bezel
     ? `<g stroke="#f2f2f2">${Array.from({ length: 60 }, (_, k) => `<line x1="200" y1="${k % 5 ? 5 : 2}" x2="200" y2="9" stroke-opacity="${k % 5 ? 0.35 : 0.8}" transform="rotate(${k * 6} 200 200)"/>`).join("")}</g><rect class="sec" x="198.5" y="0" width="3" height="11" fill="${RED}"/>`
     : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="${esc(o.label ?? "Fiangshi")}"><circle cx="200" cy="200" r="${o.bezel ? 188 : 200}" fill="#000"/>${ticks}<g fill="${RED}" font-family="'Times New Roman',Times,serif" font-size="39" text-anchor="middle">${numerals}</g><g fill="#fff" font-family="'Times New Roman',Times,serif" font-size="50" text-anchor="middle" letter-spacing="5"><text x="202.5" y="171">FIANG</text><text x="202.5" y="250">SHI</text></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="${esc(o.label ?? "Fiangshi")}"><circle cx="200" cy="200" r="${o.bezel ? 188 : 200}" fill="#000"/>${ticks}<g fill="${RED}" font-family="'Times New Roman',Times,serif" font-size="39" text-anchor="middle">${numerals}</g><g fill="#fff" font-family="'Songti SC','Noto Serif CJK SC','Source Han Serif SC','Noto Serif SC',SimSun,serif" font-size="62" text-anchor="middle" lang="zh-Hans"><text x="200" y="190" letter-spacing="10">菲昂</text><text x="200" y="262">诗</text></g></svg>`;
 }
 
 const FAVICON = `data:image/svg+xml,${encodeURIComponent(
@@ -338,6 +343,11 @@ footer{margin-top:72px;border-top:1px solid var(--line2);color:var(--mut);font-s
 .foot p{max-width:86ch}
 .foot-links{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 20px;letter-spacing:.12em;text-transform:uppercase;font-size:11.5px}
 .foot-links a{text-decoration:none;color:var(--fg)}
+.langs{display:flex;gap:2px;border:1px solid var(--line2);font-size:11.5px;letter-spacing:.06em;text-transform:none}
+.langs a,.langs b{padding:3px 8px;text-decoration:none;color:var(--mut);font-weight:400}
+.langs b{background:var(--fg);color:#000}
+.langs a:hover{color:var(--fg)}
+.doc-note{border:1px solid var(--line2);padding:10px 14px;color:var(--mut)!important;font-size:12.5px}
 
 @media(max-width:860px){
 .doc-wrap{grid-template-columns:minmax(0,1fr);gap:22px;padding-top:30px}
@@ -372,8 +382,8 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 export const SITE_LINKS: [href: string, label: string][] = [["/guide", "Guide"], ["/report", "Test report"], ["/legal", "Legal"]];
 
 const MODE_NOTE: Record<string, string> = {
-  fixture: `<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain. Live providers: <code>npm run localhost-check -- --live</code>`,
-  mock: `<strong>Mock mode.</strong> Probes replay recorded 402s and the model is mocked. Set FIANGSHI_OFFLINE=0 and MOCK_MODELS= in .env for live providers.`,
+  fixture: "<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain.",
+  mock: "<strong>Mock mode.</strong> Probes are live; model advice is mocked because no model keys are set.",
 };
 
 export interface Shell {
@@ -392,24 +402,25 @@ export interface Shell {
 export function page(s: Shell): string {
   const mode = providerMode();
   const links = s.nav ?? ([["/#census", "Census"], ...SITE_LINKS] as [string, string][]);
-  const nav = `<nav aria-label="Site">${links.map(([h, l]) => `<a href="${esc(h)}">${esc(l)}</a>`).join("")}</nav>`;
+  const nav = `<nav aria-label="Site">${links.map(([h, l]) => `<a href="${esc(h)}">${esc(T(l))}</a>`).join("")}</nav>`;
+  const switcher = `<nav class="langs" aria-label="${T("Language")}">${LANGS.map((l) => (l.code === lang() ? `<b aria-current="true">${l.label}</b>` : `<a href="${esc(l.code === "en" ? pagePath : `/${l.code}${pagePath === "/" ? "" : pagePath}`)}" hreflang="${l.html}" lang="${l.html}" data-nolang>${l.label}</a>`)).join("")}</nav>`;
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="${LANGS.find((l) => l.code === lang())!.html}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="${CSP}">
 <meta name="description" content="${esc(s.description)}">
 <meta name="theme-color" content="#000000">
 <title>${esc(s.title)}</title>
 <link rel="icon" href="${FAVICON}">
 <style>${CSS}${s.css ?? ""}</style></head><body>
-<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · providers ${mode} · settlement dry-run</span></div></header>
-${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${MODE_NOTE[mode]}</p></div>` : ""}
+<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}</span></div></header>
+${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
-<footer><div class="wrap foot"><p class="foot-links">${SITE_LINKS.map(([h, l]) => `<a href="${h}">${l}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>MIT licence</span></p>${s.foot}</div></footer>
+<footer><div class="wrap foot"><p class="foot-links">${SITE_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
 </body></html>
 `;
 }
 
 /** The free probe form (plain GET, no script). */
 export function probeForm(value = "", id = "u"): string {
-  return `<form class="probe" action="/check" method="get"><label for="${id}">Paid endpoint URL</label><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><input id="${id}" name="url" type="url" required maxlength="2000" placeholder="https://api.example.com/paid" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}"><button type="submit">Probe</button></div></form>`;
+  return `<form class="probe" action="/check" method="get"><label for="${id}">${T("Paid endpoint URL")}</label><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><input id="${id}" name="url" type="url" required maxlength="2000" placeholder="https://api.example.com/paid" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}"><button type="submit">${T("Probe")}</button></div></form>`;
 }

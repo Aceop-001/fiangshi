@@ -22,7 +22,8 @@ import { join } from "node:path";
 import { ROOT, loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderIndex, renderNotFound, renderReceipt } from "../site.js";
-import { CSP } from "../site-theme.js";
+import { CSP, setPagePath } from "../site-theme.js";
+import { lang, setLang, type Lang } from "../i18n.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
@@ -59,9 +60,19 @@ const html = (res: ServerResponse, status: number, body: string) => {
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
     "x-fiangshi-mode": providerMode(),
+    "content-language": lang() === "zh" ? "zh-Hans" : lang(),
   });
-  res.end(body);
+  res.end(localiseLinks(body));
 };
+
+/** Keep visitors in their language: site links and the probe form get the /zh|/ja|/ko prefix; API, assets and the switcher do not. */
+function localiseLinks(body: string): string {
+  const l = lang();
+  if (l === "en") return body;
+  return body.replace(/<(a|form)\b([^>]*)>/g, (tag, _name: string, attrs: string) =>
+    attrs.includes("data-nolang") ? tag : tag.replace(/\b(href|action)="\/(?!v1\/)([^"]*)"/, (_m, k: string, rest: string) => `${k}="/${l}${rest ? `/${rest}` : ""}"`),
+  );
+}
 
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
   const c = loadCensus();
@@ -112,6 +123,11 @@ function requirePayment(req: IncomingMessage, res: ServerResponse, resource: str
 
 export async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const u = new URL(req.url ?? "/", "http://localhost");
+  // language prefix for the HTML pages: /zh, /ja, /ko (no cookie, no script); English has none
+  const lm = /^\/(zh|ja|ko)(?=\/|$)/.exec(u.pathname);
+  setLang(lm ? (lm[1] as Lang) : "en");
+  if (lm) u.pathname = u.pathname.slice(lm[0].length) || "/";
+  setPagePath(u.pathname + u.search);
   const c = loadCensus();
   const self = `http://${req.headers.host ?? "127.0.0.1"}`;
   try {

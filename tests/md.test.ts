@@ -70,7 +70,7 @@ describe("the documents themselves", () => {
   });
   it("every tagged JSON example in the guide is valid JSON", () => {
     const blocks = fencedBlocks(read("GUIDE.md"));
-    expect(Object.keys(blocks).sort()).toEqual(["check-402", "check-block", "check-paid", "verify", "x-payment"]);
+    expect(Object.keys(blocks).sort()).toEqual(["check-402", "check-block", "check-paid", "live-402", "verify", "x-payment"]);
     for (const b of Object.values(blocks)) expect(() => JSON.parse(b)).not.toThrow();
   });
   it("the documents state no census band counts (those live on the index and in /v1/index.json only)", () => {

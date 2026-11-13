@@ -5,6 +5,9 @@ import { join } from "node:path";
 import { ROOT } from "../src/config.js";
 import { loadCensus } from "../src/census.js";
 import { evaluateVows, KINSHIP_REVIEW_AT } from "../src/core/vows.js";
+import { fencedBlocks } from "../src/md.js";
+import { parse402 } from "../src/adapters/probe.js";
+import { v6 } from "../src/core/v6.js";
 
 const guide = readFileSync(join(ROOT, "docs", "GUIDE.md"), "utf8");
 const c = loadCensus();
@@ -63,5 +66,16 @@ describe("guide examples are true", () => {
     expect(t.p.issued_band).toBe("REVIEW");
     expect(t.p.vows).toEqual(["kinship"]);
     expect(t.s.funder_fanout).toBe(46);
+  });
+  it("the captured live 402 has the same terms as the local one, and a payTo that passes rule I", () => {
+    const blocks = fencedBlocks(guide);
+    const live = JSON.parse(blocks["live-402"]!);
+    const local = JSON.parse(blocks["check-402"]!);
+    const { payTo, ...terms } = live.accepts[0];
+    const { payTo: _p, ...localTerms } = local.accepts[0];
+    expect(terms).toEqual(localTerms);
+    expect(v6({ payTo, asset: terms.asset }).band).toBeNull();
+    const p = parse402({ url: live.resource.url, status: 402, headers: {}, body: live });
+    expect(p.ok && p.terms).toMatchObject({ price: 0.05, payee: payTo.toLowerCase() });
   });
 });

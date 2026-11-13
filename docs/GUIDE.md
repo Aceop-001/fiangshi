@@ -115,6 +115,32 @@ Fiangshi makes one unpaid request to the endpoint, reads the payment terms from 
 
 `amount` is in atomic USDC (6 decimals), so `50000` is $0.05. `payTo` is the operator's wallet, set with `FIANGSHI_PAYTO`. If the operator has not set one, paid routes answer 503 instead of inventing an address.
 
+The public API answers the same way. Captured from `https://api.fiangshi.xyz` on 13 Nov 2026; its `payTo` is the operator's wallet and passes rule I:
+
+```json live-402
+{
+  "mode": "live",
+  "x402Version": 2,
+  "error": "X-PAYMENT header is required",
+  "resource": {
+    "url": "https://api.fiangshi.xyz/v1/check?url=https%3A%2F%2Fapi.bitrefill.com%2Fx402%2Fgift-cards%2Fsearch",
+    "description": "Fiangshi counterparty check",
+    "mimeType": "application/json"
+  },
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "amount": "50000",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "payTo": "0x0FdEe24dbc6EDCa4316312C7461658F4A26e6007",
+      "maxTimeoutSeconds": 60,
+      "extra": { "name": "USD Coin", "version": "2" }
+    }
+  ]
+}
+```
+
 ### 2. Pay and get the verdict
 
 Send the same request again with an `X-PAYMENT` header. Its value is the base64 encoding of a JSON payment payload for the terms you were given:

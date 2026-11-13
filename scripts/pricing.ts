@@ -9,7 +9,7 @@
 import { appendFileSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const CREDIT = 0.006;
 const PRICE = { cold: 0.15, cached: 0.05 };
 const SERV_PER_M = { in: 1.0, out: 6.0 }; // gpt-5.4-mini, docs.openserv.ai/serv-reasoning/models

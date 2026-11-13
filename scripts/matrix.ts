@@ -7,7 +7,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const LAB = join(ROOT, "fixtures", "lab");
 type Run = { ran_at: string; cases_file?: string; serv_model: string; census_at: string; results: Record<string, any>[] };
 const files = readdirSync(LAB).filter((f) => /^results(-attempt\d+)?\.json$/.test(f)).sort((a, b) => a.length - b.length || a.localeCompare(b));

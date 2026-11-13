@@ -20,6 +20,7 @@
     "verify": "tsx scripts/verify-receipt.ts",
     "fiangshi": "tsx src/cli/index.ts",
     "dev": "tsx src/api/server.ts",
+    "start": "node dist/src/api/server.js --host 0.0.0.0",
     "localhost-check": "tsx scripts/localhost-check.ts",
     "mcp": "tsx src/mcp/server.ts"
   },

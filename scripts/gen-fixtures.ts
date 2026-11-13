@@ -10,7 +10,7 @@ import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const FIX = join(ROOT, "fixtures");
 const addr = (name: string) => "0x" + createHash("sha256").update(name).digest("hex").slice(0, 40);
 const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";

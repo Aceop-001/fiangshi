@@ -3,10 +3,11 @@
  * Usage: npx tsx scripts/probe-real.ts <candidates.json>   ([{url}, ...])
  * Writes fixtures/402/real/<host>.json as {url, status, headers, body}. Zero credits (no Surf calls).
  */
+import { ROOT } from "../src/config.js";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const OUT = join(import.meta.dirname, "..", "fixtures", "402", "real");
+const OUT = join(ROOT, "fixtures", "402", "real");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function getOnce(url: string): Promise<{ url: string; status: number; headers: Record<string, string>; body: unknown }> {

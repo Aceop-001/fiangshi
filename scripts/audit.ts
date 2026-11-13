@@ -32,7 +32,7 @@ import { v6 } from "../src/core/v6.js";
 import { contradicts, corroborate, operatorName } from "../src/core/identity.js";
 import { runAsync, runSync, type Call } from "./surf/payee-facts.js";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const AUD = join(ROOT, "fixtures", "audit");
 const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env.HOME ?? "", ".local", "bin", "surf.exe");
 const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Server } from "node:http";
 import { ROOT } from "../src/config.js";
@@ -77,5 +77,20 @@ describe("the Fiangshi skill", () => {
     expect(installSkill("claude", { dir }).code).toBe(1);
     expect(installSkill("claude", { dir, force: true }).code).toBe(0);
     expect(installSkill("nope", { dir }).code).toBe(2);
+  });
+});
+
+describe("production build", () => {
+  it("no source or script finds the project folder from its own location (wrong once compiled into dist/)", () => {
+    const bad: string[] = [];
+    const walk = (d: string): void => {
+      for (const e of readdirSync(join(ROOT, d), { withFileTypes: true })) {
+        const p = `${d}/${e.name}`;
+        if (e.isDirectory()) walk(p);
+        else if (p.endsWith(".ts") && readFileSync(join(ROOT, p), "utf8").includes("import.meta." + "dirname")) bad.push(p);
+      }
+    };
+    for (const d of ["src", "scripts"]) walk(d);
+    expect(bad).toEqual([]);
   });
 });

@@ -8,3 +8,5 @@ data/
 *.pem
 coverage/
 .claude/
+__pycache__/
+*.pyc

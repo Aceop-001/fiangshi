@@ -10,7 +10,7 @@ import { funderLabelsFromSurf, signalsFromSurf, type SurfPayeeRow, type SurfWall
 import { diffE } from "../src/policy.js";
 import { buildSnapshot } from "../src/snapshot.js";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 process.env.SNAPSHOT_SOURCE = "fixture";
 
 const { snapshot } = await buildSnapshot();

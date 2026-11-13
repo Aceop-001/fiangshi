@@ -6,7 +6,7 @@
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const URL_ = "https://api.cdp.coinbase.com/platform/v2/x402/discovery/resources";
 const LIMIT = 200;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

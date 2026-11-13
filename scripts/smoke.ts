@@ -17,7 +17,7 @@ import { evaluate } from "../src/check.js";
 import { env, loadDotEnv, num } from "../src/config.js";
 
 loadDotEnv();
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const provider = process.argv[2];
 if (provider !== "serv" && provider !== "dolphin") {
   console.error("usage: smoke.ts serv|dolphin");

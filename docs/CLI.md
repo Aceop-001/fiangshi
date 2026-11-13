@@ -89,3 +89,38 @@ The folders above are the ones these tools use on the machine where this guide w
 Start a new session after installing. In Claude Code you can call it by name with `/fiangshi`, but you do not need to: the description makes the agent load it whenever a payment comes up. In Hermes, `hermes skills list` shows it.
 
 For the best result, give the agent the skill **and** the tools: the skill says what to do, and the MCP server or the CLI does it. See [Connect](CONNECT.md) for the MCP setup in each tool.
+
+## Python client
+
+For agents written in Python (LangChain, CrewAI, AutoGen, or the OpenAI, xAI and DeepSeek SDKs), there is a one-file client with no dependencies: `clients/python/fiangshi_client.py`, Python 3.9 or newer. Copy the file next to your code, or add `clients/python` to your path.
+
+```python
+from fiangshi_client import Fiangshi
+
+fs = Fiangshi()  # FIANGSHI_URL, default http://127.0.0.1:8787
+v = fs.preview("https://api.cleave.fi/x402/gas")
+if v.allowed:
+    ...  # pay with your x402 client
+elif v.blocked:
+    print("do not pay:", v.rule, v.reason)
+else:
+    ...  # REVIEW or no record: ask a human
+```
+
+`v.allowed` is true only for an exact ALLOW; anything else is REVIEW. An unreachable server raises `FiangshiError`, which you should treat as "do not pay". The other calls are `fs.payee(address)`, `fs.verify_receipt(id)` and `fs.quote(url)`, which never pays.
+
+For function calling with an OpenAI-compatible API, pass the ready-made tool definitions and hand each tool call back to the client:
+
+```python
+reply = client.chat.completions.create(model=MODEL, messages=messages, tools=Fiangshi.tools())
+for call in reply.choices[0].message.tool_calls or []:
+    messages.append({"role": "tool", "tool_call_id": call.id, "content": fs.call_tool(call.function.name, call.function.arguments)})
+```
+
+The client also works as a command line, with the same exit codes as the Node CLI:
+
+```bash
+python clients/python/fiangshi_client.py preview "https://api.cleave.fi/x402/gas" --json
+```
+
+Its tests run with `python -m unittest discover -s clients/python` (set `FIANGSHI_URL` to include the ones that need a server), and `npm test` runs them against a real server whenever Python is installed.

@@ -12,7 +12,7 @@ import { guarded } from "../budget.js";
 import { buildSql, type Template } from "./payee-facts.js";
 
 loadDotEnv();
-const ROOT = join(import.meta.dirname, "..", "..");
+import { ROOT } from "../../src/config.js";
 const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env.HOME ?? "", ".local", "bin", "surf.exe");
 const [samplePath, nArg, tArg] = process.argv.slice(2);
 const days = Number(process.argv[process.argv.indexOf("--days") + 1]) || 365;

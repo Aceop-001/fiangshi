@@ -274,6 +274,8 @@ and the environment variables `DEEPSEEK_API_KEY` and `DEEPSEEK_MODEL`.
 
 The same pattern works for any OpenAI-compatible API (for example a local model server): change `base_url`, the key and the model id.
 
+If you would rather not write the tool plumbing yourself, the Python client in `clients/python/fiangshi_client.py` provides `Fiangshi.tools()` and `call_tool()`; see [CLI and skill](CLI.md#python-client).
+
 ## Plain HTTP
 
 Every route is a GET. Free routes answer JSON straight away; paid routes answer `402 Payment Required` with x402 terms until you send a valid `X-PAYMENT` header.

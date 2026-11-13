@@ -23,7 +23,7 @@ import type { PayeeSignals, Terms } from "../src/core/types.js";
 
 loadDotEnv();
 Object.assign(process.env, { MOCK_MODELS: "", SNAPSHOT_SOURCE: "live", FIANGSHI_OFFLINE: "0" });
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const DAYS = 90;
 setWindowDays(DAYS);
 

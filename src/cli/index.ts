@@ -5,8 +5,8 @@ import { check } from "../check.js";
 import { explain } from "./explain.js";
 import { verifyPath } from "../../scripts/verify-receipt.js";
 import { buildIndex } from "../../scripts/build-index.js";
-import { AGENT_HELP, installSkill, payee, preview, quote, receipt } from "./agent.js";
-import { serveStdio } from "../mcp/server.js";
+// agent commands and the MCP server load only when used, so `check` keeps its cold-start budget (accept G5)
+const agent = () => import("./agent.js");
 
 loadDotEnv();
 const [cmd, ...rest] = process.argv.slice(2);
@@ -21,23 +21,23 @@ async function main(): Promise<number> {
   };
   switch (cmd) {
     case "preview":
-      return emit(await preview(args[0]));
+      return emit(await (await agent()).preview(args[0]));
     case "payee":
-      return emit(await payee(args[0]));
+      return emit(await (await agent()).payee(args[0]));
     case "receipt":
-      return emit(await receipt(args[0]));
+      return emit(await (await agent()).receipt(args[0]));
     case "quote":
-      return emit(await quote(args[0]));
+      return emit(await (await agent()).quote(args[0]));
     case "skill":
       if (args[0] !== "install") return emit({ code: 2, json: { error: "usage" }, text: "usage: fiangshi skill install <claude|codex|grok|hermes> [--project] [--force]" });
-      return emit(installSkill(args[1], { project: flags.has("--project"), force: flags.has("--force") }));
+      return emit((await agent()).installSkill(args[1], { project: flags.has("--project"), force: flags.has("--force") }));
     case "mcp":
-      serveStdio();
+      (await import("../mcp/server.js")).serveStdio();
       return await new Promise<number>(() => {});
     case "help":
     case "--help":
     case undefined:
-      console.log(AGENT_HELP);
+      console.log((await agent()).AGENT_HELP);
       return 0;
     case "check": {
       const url = args[0];
@@ -74,8 +74,8 @@ async function main(): Promise<number> {
   }
 }
 
-function usage(): number {
-  console.error(AGENT_HELP);
+async function usage(): Promise<number> {
+  console.error((await agent()).AGENT_HELP);
   return 2;
 }
 

@@ -57,6 +57,13 @@ describe("first-visit tour", () => {
     expect(zh).toContain("欢迎使用 Fiangshi");
     expect(zh).toContain('href="/zh/tour/done?next=/"');
   });
+  it("behind an HTTPS proxy the cookie is Secure and handed-out links use https", async () => {
+    const r = await get("/tour/done?next=/", { "x-forwarded-proto": "https", host: "fiangshi.xyz" });
+    expect(String(r.headers["set-cookie"])).toContain("; Secure");
+    const p = JSON.parse((await get(`/v1/preview?url=${encodeURIComponent("https://example.invalid/x")}`, { "x-forwarded-proto": "https", host: "fiangshi.xyz" })).body.toString("utf8"));
+    if (p.paid_check) expect(p.paid_check).toMatch(/^https:\/\/fiangshi\.xyz\/v1\/check/);
+    expect(String((await get("/tour/done?next=/")).headers["set-cookie"])).not.toContain("Secure");
+  });
   it("the redirect never leaves the site", () => {
     for (const bad of ["https://evil.example", "//evil.example", "/\\evil.example", "javascript:alert(1)", "", null, "/a b"]) expect(safeNext(bad)).toBe("/");
     expect(safeNext("/guide#limits")).toBe("/guide#limits");

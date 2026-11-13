@@ -25,7 +25,7 @@ import { currentSettlement } from "../src/adapters/x402.js";
 
 loadDotEnv();
 process.env.MOCK_MODELS = "";
-const ROOT = join(import.meta.dirname, "..");
+import { ROOT } from "../src/config.js";
 const arg = (k: string) => {
   const i = process.argv.indexOf(k);
   return i >= 0 ? process.argv[i + 1] : undefined;

@@ -20,7 +20,7 @@ import { writeNoClobber } from "../../src/fsutil.js";
 import { loadDotEnv } from "../../src/config.js";
 import { guarded } from "../budget.js";
 
-const ROOT = join(import.meta.dirname, "..", "..");
+import { ROOT } from "../../src/config.js";
 const SURF = process.env.SURF_BIN ?? join(process.env.USERPROFILE ?? process.env.HOME ?? "", ".local", "bin", "surf.exe");
 const ADDR = /^0x[0-9a-f]{40}$/;
 

@@ -140,7 +140,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   if (lm) u.pathname = u.pathname.slice(lm[0].length) || "/";
   setPagePath(u.pathname + u.search);
   const c = loadCensus();
-  const self = `http://${req.headers.host ?? "127.0.0.1"}`;
+  // behind a hosting proxy the public scheme arrives in x-forwarded-proto; links we hand out must use it
+  const https = String(req.headers["x-forwarded-proto"] ?? "").split(",")[0]!.trim() === "https";
+  const self = `${https ? "https" : "http"}://${req.headers.host ?? "127.0.0.1"}`;
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
     if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats(), { tour: !tourDone(req) || u.searchParams.get("tour") === "1" }));
@@ -148,7 +150,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       // Closing the tour sets the one functional cookie, then returns to the page asked for, in the same language.
       let next = safeNext(u.searchParams.get("next"));
       if (lang() !== "en" && !next.startsWith(`/${lang()}/`) && next !== `/${lang()}`) next = next === "/" ? `/${lang()}` : `/${lang()}${next}`;
-      res.writeHead(303, { location: next, "set-cookie": `${TOUR_COOKIE}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax`, "cache-control": "no-store" });
+      res.writeHead(303, { location: next, "set-cookie": `${TOUR_COOKIE}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax${https ? "; Secure" : ""}`, "cache-control": "no-store" });
       return void res.end();
     }
     if (ASSETS[u.pathname]) {
@@ -337,8 +339,10 @@ export function startServer(port = num("PORT", 8787), host = process.env.HOST ??
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   loadDotEnv();
-  const portArg = process.argv.indexOf("--port");
-  const s = portArg > 0 && Number(process.argv[portArg + 1]) > 0 ? await startServer(Number(process.argv[portArg + 1])) : await startServer();
+  // --port N and --host H override PORT / HOST; a hosting platform sets PORT and needs --host 0.0.0.0 (npm start)
+  const arg = (k: string) => (process.argv.indexOf(k) > 0 ? process.argv[process.argv.indexOf(k) + 1] : undefined);
+  const port = Number(arg("--port")) > 0 ? Number(arg("--port")) : num("PORT", 8787);
+  const s = await startServer(port, arg("--host") ?? process.env.HOST ?? "127.0.0.1");
   const a = s.address();
   console.log(`fiangshi listening on http://${typeof a === "object" && a ? `${a.address}:${a.port}` : a} (providers: ${providerMode()})`);
 }

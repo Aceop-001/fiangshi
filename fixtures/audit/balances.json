@@ -13,5 +13,32 @@
     "after_cold_live": 1048,
     "surf_calls": 3
   },
-  "cold_live": { "url": "https://api.bitrefill.com/x402/gift-cards/search", "before": 1056, "after": 1048, "ms": 10772, "repeat_ms": 237, "band": "ALLOW", "score": 86.36 }
+  "cold_live": {
+    "url": "https://api.bitrefill.com/x402/gift-cards/search",
+    "before": 1056,
+    "after": 1048,
+    "ms": 10772,
+    "repeat_ms": 237,
+    "band": "ALLOW",
+    "score": 86.36
+  },
+  "refresh": {
+    "start": 2048,
+    "cap": 620,
+    "floor": 1428,
+    "at": "2026-11-13T10:44:08.518Z",
+    "after_gate": 2044,
+    "after_payees": 1732,
+    "after_labels": 1428,
+    "spent": 620,
+    "payee_sql_calls": 68,
+    "label_calls": 76,
+    "gate_calls": 1,
+    "billed_refusals": 0,
+    "payees_collected": 1922,
+    "v6_blocked_before_any_call": 1,
+    "labels_reused": 482,
+    "labels_new": 1444,
+    "stopped": "credit floor 1428 (2048 − 620 cap) reached during labels"
+  }
 }

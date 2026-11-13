@@ -8,6 +8,9 @@ export interface PolicyResult {
   score: number;
   vow: VowName | null;
   fired: VowName[];
+  /** the two parts the band is the lower of: the score band (REVIEW under silence) and the deciding vow's band */
+  score_band: Band;
+  vow_band: Band;
 }
 
 export function policyBand(s: PayeeSignals, price: number | null, labels: Record<string, FunderLabel>, eVersion: "v1" | "v2" = "v2", windowH?: number): PolicyResult {
@@ -17,7 +20,9 @@ export function policyBand(s: PayeeSignals, price: number | null, labels: Record
   const rows = evaluateVows({ signals: probe, price, funder_labels: labels });
   const silence = rows.find((r) => r.vow === "silence")!.fired;
   const dv = decidingVow(rows);
-  return { band: minBand(silence ? "REVIEW" : bandForScore(sc), dv?.band ?? "ALLOW"), score: sc, vow: dv?.vow ?? null, fired: rows.filter((r) => r.fired).map((r) => r.vow) };
+  const scoreBand: Band = silence ? "REVIEW" : bandForScore(sc);
+  const vowBand: Band = dv?.band ?? "ALLOW";
+  return { band: minBand(scoreBand, vowBand), score: sc, vow: dv?.vow ?? null, fired: rows.filter((r) => r.fired).map((r) => r.vow), score_band: scoreBand, vow_band: vowBand };
 }
 
 export interface BandDiff {

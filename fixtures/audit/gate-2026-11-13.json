@@ -1,0 +1,11 @@
+{
+ "at": "2026-11-13T10:44:22.558Z",
+ "mode": "sync",
+ "ok": false,
+ "reasons": [
+  "call failed: offline: refusing live surf call (onchain-sql payee-inbound payees=5)"
+ ],
+ "values": {},
+ "calls": [],
+ "rows": []
+}

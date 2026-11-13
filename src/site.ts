@@ -287,7 +287,7 @@ ${probeForm()}
 
 <section class="sec" id="census"><div class="wrap">
 <p class="eyebrow">${T("Census")}</p>
-<h2>${T("{n} of {total} Base payees, {days}-day window", { n, total: c.catalog_payees.toLocaleString("en-US"), days: c.window_days })}</h2>
+<h2>${T("{n} of {total} Base payees, {days}-day window", { n: n.toLocaleString("en-US"), total: c.catalog_payees.toLocaleString("en-US"), days: c.window_days })}</h2>
 ${(() => {
   const stale = c.payees_stale;
   return `<p class="age${stale ? " stale" : ""}"><i class="st ${stale ? "REVIEW" : "ALLOW"}"></i>${T("{n} of {m} verdicts are past the {ttl}-hour freshness window.", { n: stale, m: c.payees.length, ttl: c.stale_limit_hours })} ${T("Each record carries its own collection time ({oldest} to {newest}). A stale ALLOW is capped at REVIEW; a stale BLOCK stays BLOCK.", { oldest: c.oldest_as_of.slice(0, 16).replace("T", " ") + " UTC", newest: c.newest_as_of.slice(0, 16).replace("T", " ") + " UTC" })}</p>`;

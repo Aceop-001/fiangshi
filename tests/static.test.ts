@@ -25,7 +25,7 @@ describe("static edition (GitHub Pages)", () => {
     process.env.FIANGSHI_STATIC = "1";
     const html = renderDoc("guide", loadCensus(), loadDemoStats());
     expect(html).not.toMatch(SERVER_ONLY);
-    expect(html).toMatch(/<a href="\/receipt\/[0-9a-f]{64}">x402\.tbs-digital\.com/);
+    expect(html).toMatch(/<a href="\/receipt\/[0-9a-f]{64}">api\.bitrefill\.com/);
   });
   it("the docs home does not offer a live check on the static edition", () => {
     process.env.FIANGSHI_STATIC = "1";
@@ -61,7 +61,7 @@ describe("static edition (GitHub Pages)", () => {
     expect(home).toMatch(/href="https:\/\/api\.fiangshi\.xyz\/check\?url=/);
     expect(home).not.toMatch(SERVER_ONLY);
     const guide = renderDoc("guide", loadCensus(), loadDemoStats());
-    expect(guide).toMatch(/<a href="https:\/\/api\.fiangshi\.xyz\/check\?url=https%3A%2F%2Fx402\.tbs-digital\.com/);
+    expect(guide).toMatch(/<a href="https:\/\/api\.fiangshi\.xyz\/check\?url=https%3A%2F%2Fapi\.bitrefill\.com/);
   });
   it("an API address that is not a plain https origin is ignored (fail closed to the no-API static page)", () => {
     for (const bad of ["http://api.fiangshi.xyz", "https://api.fiangshi.xyz/path", "javascript:alert(1)", "https://x\"onload=1"]) {

@@ -1,0 +1,77 @@
+{
+ "at": "2026-11-13T10:45:32.050Z",
+ "mode": "sync",
+ "ok": true,
+ "reasons": [],
+ "values": {
+  "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26": 0.2674381669302851,
+  "0x52e29e0d2aa49bfbfc548c0a9f2196f4aa51f3ea": 0.008134427643494863,
+  "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37": 0.5366457801944589,
+  "0x589a2314a2e05f45e40c4823da3ba58d421db3d8": 0.014973568101313572,
+  "0x17cd53c04d707ef0dd615ef56c633f02915a7905": 0.028422416910599414
+ },
+ "calls": [
+  {
+   "label": "onchain-sql payee-inbound payees=5",
+   "ms": 3408,
+   "credits": 5
+  }
+ ],
+ "rows": [
+  {
+   "payee": "0x4aabe17c239ef71c3a26ba7c2b3e0aebbfc1df26",
+   "distinct_inbound_senders": 150,
+   "first_inbound_at": 1786752145,
+   "first_inbound_from": "0x9676e833b681f636809b5cd898aa8303ed3799a6",
+   "inbound_count": 1096,
+   "inbound_usd": 1009.332584493048,
+   "last_inbound_at": 1794177331,
+   "top_payer_share": 0.2674381669302851,
+   "top_token_share": 1
+  },
+  {
+   "payee": "0x52e29e0d2aa49bfbfc548c0a9f2196f4aa51f3ea",
+   "distinct_inbound_senders": 5160,
+   "first_inbound_at": 1786755481,
+   "first_inbound_from": "0xa12f8527a98d09e26d401ce1b54ee7ec74721462",
+   "inbound_count": 43584,
+   "inbound_usd": 171.19286565803463,
+   "last_inbound_at": 1794176544,
+   "top_payer_share": 0.008134427643494863,
+   "top_token_share": 1
+  },
+  {
+   "payee": "0x3291e96b3bff7ed56e3ca8364273c5b4654b2b37",
+   "distinct_inbound_senders": 327,
+   "first_inbound_at": 1786759297,
+   "first_inbound_from": "0xf2ce71121c32730f7fac85ea7c8bc279a1320030",
+   "inbound_count": 2463,
+   "inbound_usd": 58912.71007341377,
+   "last_inbound_at": 1794166331,
+   "top_payer_share": 0.5366457801944589,
+   "top_token_share": 0.999116658453985
+  },
+  {
+   "payee": "0x589a2314a2e05f45e40c4823da3ba58d421db3d8",
+   "distinct_inbound_senders": 877,
+   "first_inbound_at": 1789130185,
+   "first_inbound_from": "0x6fa5b6d93e2539caea358518d3fe8f75418e5a1d",
+   "inbound_count": 104533,
+   "inbound_usd": 6611.1855096515155,
+   "last_inbound_at": 1794177337,
+   "top_payer_share": 0.014973568101313572,
+   "top_token_share": 0.9964352093829265
+  },
+  {
+   "payee": "0x17cd53c04d707ef0dd615ef56c633f02915a7905",
+   "distinct_inbound_senders": 164,
+   "first_inbound_at": 1786957107,
+   "first_inbound_from": "0xbd78b972560efe06bc46a5d45be93fe523025463",
+   "inbound_count": 52331,
+   "inbound_usd": 1653.3729704307852,
+   "last_inbound_at": 1794177078,
+   "top_payer_share": 0.028422416910599414,
+   "top_token_share": 0.9715118703894179
+  }
+ ]
+}

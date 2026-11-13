@@ -11,7 +11,7 @@
  * (src/adapters/x402.ts demoXPayment), never a real signature.
  */
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { referenceTime } from "../src/reference-time.js";
+import { FIXTURE_TIME } from "../src/reference-time.js";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -83,7 +83,7 @@ async function startServer(): Promise<ChildProcess> {
         ...common,
         FIANGSHI_REPLAY: "1",
         FIANGSHI_OFFLINE: "1",
-        FIANGSHI_NOW: process.env.FIANGSHI_NOW ?? referenceTime(), // fixture mode replays a recorded moment
+        FIANGSHI_NOW: process.env.FIANGSHI_NOW ?? FIXTURE_TIME, // fixture mode replays a recorded moment
         MOCK_MODELS: "",
         SERV_REASONING_API_KEY: "",
         DOLPHIN_API_KEY: "",

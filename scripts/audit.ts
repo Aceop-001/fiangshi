@@ -178,6 +178,11 @@ interface Checkpoint {
   labels: SurfWalletLabel[];
   calls: { label: string; ms: number; credits: number | null; at: string }[];
   stopped: string | null;
+  /** Per-record collection time (policy v5): when this payee's inbound + outbound rows were persisted. */
+  payee_as_of?: Record<string, string>;
+  /** Labels copied from an earlier checkpoint instead of re-bought (entity labels, not activity). */
+  labels_reused_from?: { checkpoint: string; addresses: number };
+  run_budget?: { start_balance: number; floor: number; max_per_payee?: number };
 }
 
 export function creditsUsedTodayUtc(costsMd = join(ROOT, "artifacts", "costs.md"), today = new Date().toISOString().slice(0, 10)): number {
@@ -296,6 +301,9 @@ export function surfBalance(): number | null {
   }
 }
 
+/** A Surf key is usable when one is in the environment or in the CLI's own store (`surf auth`): the free balance read answers. */
+export const surfKeyed = (): boolean => Boolean(process.env.SURF_API_KEY) || surfBalance() !== null;
+
 /** Stage verification: rows must be a subset of the submitted addresses with a sane top_payer_share. Pure. */
 export function verifyStageRows(addrs: string[], rows: Record<string, unknown>[], template: string): string[] {
   const problems: string[] = [];
@@ -335,17 +343,37 @@ export interface RunOpts {
   labelChunk?: number;
   /** Funder-outbound chunk size (default max(batch, 300)). */
   funderChunk?: number;
+  /** Keyed runs: stop once cumulative credits per payee in this run exceed this (checked after 5 chunks). */
+  maxPerPayee?: number;
+  /** New checkpoint only: copy labels (and the funder-outbound decision) from this earlier checkpoint. */
+  seedFrom?: string;
 }
 
 async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Promise<Checkpoint> {
   const { batch: batchSize, gateMs } = opts;
-  const keyed = Boolean(process.env.SURF_API_KEY);
+  const keyed = surfKeyed();
   const asyncMode = keyed && opts.mode !== "sync";
   const cpPath = checkpointPath(samplePath);
   const costsPath = join(ROOT, "artifacts", "costs.md");
-  const cp: Checkpoint = existsSync(cpPath)
+  const fresh = !existsSync(cpPath);
+  const cp: Checkpoint = !fresh
     ? (JSON.parse(readFileSync(cpPath, "utf8")) as Checkpoint)
     : { sample: basename(samplePath), mode: keyed ? "async" : "sync", batch: batchSize, payee_rows: {}, batches_done: [], funders_done: false, funder_rows: [], labels_done: [], labels: [], calls: [], stopped: null };
+  if (fresh && opts.seedFrom) {
+    const old = JSON.parse(readFileSync(opts.seedFrom, "utf8")) as Checkpoint;
+    cp.labels = [...old.labels];
+    cp.labels_done = [...old.labels_done];
+    cp.labels_reused_from = { checkpoint: basename(opts.seedFrom), addresses: old.labels_done.length };
+    if (old.funders_skipped) {
+      cp.funders_done = true;
+      cp.funders_skipped = `${old.funders_skipped} (decision carried over from ${basename(opts.seedFrom)}; the set is not re-sent)`;
+    }
+    console.log(`seeded from ${basename(opts.seedFrom)}: ${old.labels_done.length} labelled addresses reused`);
+  }
+  cp.payee_as_of ??= {};
+  const startBal = keyed ? surfBalance() : null;
+  let runPayees = 0;
+  let runChunks = 0;
   cp.stopped = null;
   cp.mode = asyncMode ? "async" : "sync";
   cp.inbound_done ??= [];
@@ -428,6 +456,10 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
           // persist this part immediately — a later failure must never discard rows already paid for
           for (const p of addrs) cp.payee_rows[p] = { ...(cp.payee_rows[p] ?? { payee: p }), ...((r.rows.find((x) => x.payee === p) ?? {}) as Partial<SurfPayeeRow>) } as SurfPayeeRow;
           doneList.push(...addrs);
+          if (t === "payee-outbound") {
+            const at = new Date().toISOString();
+            for (const p of addrs) cp.payee_as_of![p] = at;
+          }
           save();
           gateCheck(`chunk ${ci + 1} ${t} (${addrs.length})`, Math.max(...r.calls.map((c) => c.ms)));
         } catch (e) {
@@ -472,6 +504,13 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
         console.log(`  chunk ${ci + 1} cost ${spent ?? "?"} credits (${refusals} billed refusals; net ${net ?? "?"}; balance ${balAfter ?? "?"}; limit ${opts.maxChunkCredits})`);
         if (spent === null || net === null) throw new StopRun(`could not read balance after chunk ${ci + 1}; stopping (fail closed).`);
         if (net > opts.maxChunkCredits!) throw new StopRun(`chunk ${ci + 1} net cost ${net} credits > ${opts.maxChunkCredits}. Stopped.`);
+        runPayees += chunk.length;
+        runChunks++;
+        if (opts.maxPerPayee !== undefined && startBal !== null && balAfter !== null && runChunks >= 5) {
+          const per = (startBal - balAfter) / runPayees;
+          console.log(`  run so far: ${startBal - balAfter} credits / ${runPayees} payees = ${per.toFixed(3)} per payee (limit ${opts.maxPerPayee})`);
+          if (per > opts.maxPerPayee) throw new StopRun(`cost per payee ${per.toFixed(3)} > ${opts.maxPerPayee} after ${runChunks} chunks. Stopped.`);
+        }
       }
     }
     const audited = payees.filter((p) => cp.outbound_done!.includes(p) && !(cp.excluded ?? []).includes(p));
@@ -507,7 +546,14 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
       cp.funders_done = true;
       save();
     }
-    const addrs = [...new Set([...audited, ...funders])].filter((a) => !cp.labels_done.includes(a));
+    const funderCount = new Map<string, number>();
+    for (const p of audited) {
+      const f = String(cp.payee_rows[p]?.first_inbound_from ?? "");
+      if (ADDR.test(f)) funderCount.set(f, (funderCount.get(f) ?? 0) + 1);
+    }
+    // shared funders first (kinship depends on their exchange/infra label), then payees, then single funders
+    const shared = funders.filter((f) => (funderCount.get(f) ?? 0) >= 2);
+    const addrs = [...new Set([...shared, ...audited, ...funders])].filter((a) => !cp.labels_done.includes(a));
     const lChunk = opts.labelChunk ?? 100;
     for (let i = 0; i < addrs.length; i += lChunk) {
       const chunk = addrs.slice(i, i + lChunk);
@@ -872,10 +918,12 @@ async function main() {
   } else if (cmd === "gate") {
     process.exit((await runGate()) ? 0 : 2);
   } else if (cmd === "run") {
-    const keyed = Boolean(process.env.SURF_API_KEY);
+    const keyed = surfKeyed();
     // Paid gate first (5 credits), unless a gate already PASSED today (UTC) — a same-day resume must not pay twice.
-    const today = join(AUD, `gate-${new Date().toISOString().slice(0, 10)}.json`);
-    const passedToday = existsSync(today) && (JSON.parse(readFileSync(today, "utf8")) as { ok: boolean }).ok;
+    const day = new Date().toISOString().slice(0, 10);
+    const passedToday = readdirSync(AUD)
+      .filter((f) => f.startsWith(`gate-${day}`) && f.endsWith(".json"))
+      .some((f) => (JSON.parse(readFileSync(join(AUD, f), "utf8")) as { ok: boolean }).ok);
     if (!passedToday && !(await runGate())) process.exit(2);
     // 100 payees took 34.1 s on 2026-11-09 (over the 30 s sync limit) once top_payer_share was added: free default is 50.
     const lim = flag("--limit");
@@ -893,6 +941,8 @@ async function main() {
       funderChunk: flag("--funder-chunk") ? Number(flag("--funder-chunk")) : undefined,
       bisectMin: flag("--bisect-min") ? Number(flag("--bisect-min")) : undefined,
       labelChunk: flag("--label-chunk") ? Number(flag("--label-chunk")) : undefined,
+      maxPerPayee: flag("--max-per-payee") ? Number(flag("--max-per-payee")) : undefined,
+      seedFrom: flag("--seed-from"),
     });
   } else if (cmd === "report") {
     const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;

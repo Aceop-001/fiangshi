@@ -21,7 +21,7 @@ import { pathToFileURL } from "node:url";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
-import { loadCensus, loadDemoStats } from "../census.js";
+import { legacyCensus, loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderNotFound, renderReceipt } from "../site.js";
 import { CSP, setPagePath } from "../site-theme.js";
 import { docByPath } from "../docs-index.js";
@@ -90,7 +90,8 @@ function localiseLinks(body: string): string {
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
   const c = loadCensus();
   const cr = c.receipts.get(id);
-  if (cr) return { r: cr, chain: "census", list: c.ledger };
+  // a v4 census receipt (2026-11-09) links within its own chain, not the refreshed one
+  if (cr) return { r: cr, chain: "census", list: c.ledger.some((x) => x.receipt_hash === id) ? c.ledger : legacyCensus().ledger };
   const list = readLedger(ledgerPath()).flatMap((x) => {
     const p = Receipt.safeParse(x);
     return p.success ? [p.data] : [];
@@ -127,7 +128,7 @@ function rederive(r: Receipt): Pick<VerifyOut, "policy_version" | "band_rederive
     const band = bandFromBasis(r.band_basis);
     return { policy_version: version, band_rederived: band, band_matches: band === r.band, policy_note: `Issued under policy ${version}; the band is the lowest of the score, model, vow and cap bands recorded on the receipt.` };
   }
-  const cp = loadCensus().payees.find((p) => p.receipt_id === r.receipt_hash);
+  const cp = legacyCensus().payees.find((p) => p.receipt_id === r.receipt_hash);
   if (cp)
     return {
       policy_version: version,

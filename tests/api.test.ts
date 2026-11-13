@@ -62,15 +62,15 @@ describe("HTTP API", () => {
   it("/health and /v1/index.json: census payees with band, score, receipt id; bands sum", async () => {
     expect((await get("/health")).status).toBe(200);
     const j = JSON.parse((await get("/v1/index.json")).body);
-    expect(j.payees.length).toBe(800);
-    expect(j.bands.ALLOW + j.bands.REVIEW + j.bands.BLOCK).toBe(800);
+    expect(j.payees.length).toBe(1923); // every Base payee in the catalog (refresh, 2026-11-13)
+    expect(j.bands.ALLOW + j.bands.REVIEW + j.bands.BLOCK).toBe(1923);
     expect(j.payees[0]).toHaveProperty("receipt_id");
   });
   it("/ is static HTML with no script, headline and both cards", async () => {
     const r = await get("/");
     expect(r.status).toBe(200);
     expect(r.body).not.toMatch(/<script/i);
-    expect(r.body).toContain("800 of 1,923 Base payees, 90-day window");
+    expect(r.body).toContain("1,923 of 1,923 Base payees, 90-day window");
     expect(r.body).toContain("cleave.fi");
     expect(r.body).toContain("Featured · ALLOW");
   });
@@ -122,7 +122,7 @@ describe("HTTP API", () => {
   });
   it("/ lists every census payee with a receipt link, and the six vows", async () => {
     const body = (await get("/")).body;
-    expect(new Set(body.match(/\/receipt\/[0-9a-f]{64}/g)).size).toBeGreaterThanOrEqual(800);
+    expect(new Set(body.match(/\/receipt\/[0-9a-f]{64}/g)).size).toBeGreaterThanOrEqual(1923);
     for (const v of ["null_payee", "age", "kinship", "history", "identity", "silence"]) expect(body).toContain(v);
     expect(body).toContain('action="/check"');
   });
@@ -140,7 +140,7 @@ describe("HTTP API", () => {
   });
   it("/check: a census payee shows its cached band; an unknown payee gets no verdict; neither calls a model", async () => {
     const before = modelCalls.length;
-    const tbs = await get(`/check?url=${encodeURIComponent("https://x402.tbs-digital.com/weather/current")}`);
+    const tbs = await get(`/check?url=${encodeURIComponent("https://api.bitrefill.com/x402/gift-cards/search")}`);
     expect(tbs.body).toMatch(/Census band ALLOW, score \d/);
     const other = await get(`/check?url=${encodeURIComponent("https://api.weatherly.example/v1/forecast")}`); // synthetic fixture, not in the census
     expect(other.body).toContain("This payee is not in the census.");
@@ -220,7 +220,7 @@ describe("HTTP API", () => {
     expect(home).not.toMatch(/<script/i);
     expect(home).not.toContain('class="clock"');
     expect(home).toContain('<form class="probe"');
-    expect(home).not.toContain("/assets/");
+    expect(home).not.toMatch(/(src|href)="\/assets\//); // no image or asset link (an endpoint URL may contain /assets/)
     expect(home).not.toMatch(/<img/i);
     for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp", "/assets/ticket.webp"]) expect((await get(a)).status).toBe(404);
   });

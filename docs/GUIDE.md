@@ -10,13 +10,16 @@ These are live x402 endpoints from the public Bazaar catalog, all paid in USDC o
 
 | endpoint | answer | why |
 |---|---|---|
-| [x402.tbs-digital.com/weather/current](/check?url=https%3A%2F%2Fx402.tbs-digital.com%2Fweather%2Fcurrent) | ALLOW | A weather API whose listing name matches its own web address. 101 different wallets have paid it, and no rule fires. |
-| [api.nansen.ai/…/current-balance](/check?url=https%3A%2F%2Fapi.nansen.ai%2Fapi%2Fv1%2Fprofiler%2Faddress%2Fcurrent-balance) | ALLOW | An established data provider with many paying customers. One of the highest scores in the census. |
-| [x402.glassnode.com/v1/metrics/market/mvrv](/check?url=https%3A%2F%2Fx402.glassnode.com%2Fv1%2Fmetrics%2Fmarket%2Fmvrv) | ALLOW | Same pattern: an old wallet, many payers, no shared funder. |
+| [api.bitrefill.com/x402/gift-cards/search](/check?url=https%3A%2F%2Fapi.bitrefill.com%2Fx402%2Fgift-cards%2Fsearch) | ALLOW | A gift-card seller whose listing name matches its own web address and its Surf label. 3,722 different wallets paid it in 90 days, and no rule fires. One of the highest scores in the census. |
+| [api.exa.ai/search](/check?url=https%3A%2F%2Fapi.exa.ai%2Fsearch) | ALLOW | A search API with 455 paying wallets, an old wallet and no shared funder. |
+| [pro-api.coingecko.com/…/search/pools](/check?url=https%3A%2F%2Fpro-api.coingecko.com%2Fapi%2Fv3%2Fx402%2Fonchain%2Fsearch%2Fpools) | ALLOW | Same pattern: 244 payers, and its name is confirmed by its own web address. |
 | [api.cleave.fi/x402/gas](/check?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas) | BLOCK | It asks to be paid to the zero address, where money is lost for good. Rule I (null payee) stops it before anything else runs, at no cost. |
-| [kronossignals.com/api/v1/funding-extremes](/check?url=https%3A%2F%2Fkronossignals.com%2Fapi%2Fv1%2Ffunding-extremes) | BLOCK | Its score alone would pass. But the wallet that first funded it also funded a small group of other sellers, so rule III (kinship) treats them as one operator and blocks. |
-| [api.hyperextend.xyz/v1/candles/BTC/1m/latest](/check?url=https%3A%2F%2Fapi.hyperextend.xyz%2Fv1%2Fcandles%2FBTC%2F1m%2Flatest) | REVIEW | Its first funder also funded 21 or more other sellers and has no public name. That looks more like an exchange than a ring, so kinship gives REVIEW, flagged `kinship_suspected_exchange`, instead of BLOCK. |
-| [api.bitrefill.com/x402/gift-cards/search](/check?url=https%3A%2F%2Fapi.bitrefill.com%2Fx402%2Fgift-cards%2Fsearch) | no record (free) | A real seller outside the 800-payee census. The free page does not fetch new data. The paid check does (the cold check, $0.15): two on-chain queries, then a full verdict. |
+| [api.hivemindos.app/…/leads.enrich](/check?url=https%3A%2F%2Fapi.hivemindos.app%2Fv1%2Fx402%2Fleadgen-data%2Fleads.enrich) | BLOCK | Its score alone would pass. But the wallet that first funded it also funded a small group of other sellers and has no public name, so rule III (kinship) treats them as one operator and blocks. |
+| [kronossignals.com/api/v1/funding-extremes](/check?url=https%3A%2F%2Fkronossignals.com%2Fapi%2Fv1%2Ffunding-extremes) | REVIEW | Its first funder also funded 21 or more other sellers and has no public name. That looks more like an exchange or a payment relayer than a ring, so kinship gives REVIEW, flagged `kinship_suspected_exchange`, instead of BLOCK. |
+
+Every Base payee in the catalog has a census record (1,923 of 1,923, refreshed 13 Nov). An endpoint outside the catalog answers `no record` on the free check: the free page never fetches new data. The paid check does (the cold check, $0.15): two on-chain queries, then a full verdict.
+
+Answers can change when the census is refreshed. A wallet older than the 90-day window has its first in-window sender counted as its funder, and as the window moves that sender can change: on 13 Nov this moved several well-known sellers from ALLOW to REVIEW or BLOCK through rule III.
 
 ### What happens on one check, step by step
 
@@ -26,7 +29,7 @@ Take `api.cleave.fi/x402/gas`:
 2. **Gate.** Rule I sees the zero address and stops. No on-chain data, no model call, no cost.
 3. **Receipt.** The verdict, the reason and the payment terms are sealed into a receipt: a sha256 hash of its contents, chained to the receipt before it. Change one byte and verification fails.
 
-Now `x402.tbs-digital.com/weather/current`, a paid check:
+Now `x402.tbs-digital.com/weather/current`, a paid check as recorded on 9 Nov (the fixture-mode replay that `npm run localhost-check` runs with no keys):
 
 1. **Probe.** The 402 asks $0.001, payable to `0xd6fc…fb0a`.
 2. **Gate.** The address is a normal wallet, so the check continues.
@@ -35,6 +38,8 @@ Now `x402.tbs-digital.com/weather/current`, a paid check:
 5. **Model.** SERV reads the terms and signals and advises ALLOW. Each quote it cites must be an exact piece of the stored evidence, or its answer is thrown out.
 6. **Rules.** None of the six rules fires, so nothing lowers the band.
 7. **Receipt.** ALLOW, sealed and chained.
+
+On the 13 Nov census the same wallet answers REVIEW: its first sender inside the moved 90-day window is a wallet that also first paid 46 other catalog sellers and has no public name, so rule III (kinship) lowers it. The receipt from 9 Nov still verifies with its original band.
 
 ## The agent flow
 

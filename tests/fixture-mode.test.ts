@@ -15,6 +15,7 @@ import { demoXPayment, verifyXPayment } from "../src/adapters/x402.js";
 import { ROOT } from "../src/config.js";
 import { fencedBlocks } from "../src/md.js";
 import { startServer } from "../src/api/server.js";
+import { FIXTURE_TIME } from "../src/reference-time.js";
 import { tmp } from "./helpers.js";
 
 const external: string[] = [];
@@ -78,6 +79,7 @@ beforeAll(async () => {
   );
   Object.assign(process.env, {
     FIANGSHI_REPLAY: "1",
+    FIANGSHI_NOW: FIXTURE_TIME, // the recorded moment the replays belong to
     FIANGSHI_OFFLINE: "1",
     MOCK_MODELS: "",
     SERV_REASONING_API_KEY: "",

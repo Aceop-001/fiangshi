@@ -68,10 +68,10 @@ describe("GET /v1/preview: one schema on every path", () => {
   });
   it("the census answer says how old it is, and that past 72 hours it is stale", () => {
     const c = loadCensus();
-    const fresh = censusAnswer(c.payees[0]!.url, TERMS, c, c.payees[0]!, { ok: false, why: "x" }, new Date(Date.parse(c.at) + 3_600_000));
+    const fresh = censusAnswer(c.payees[0]!.url, TERMS, c, c.payees[0]!, { ok: false, why: "x" }, new Date(Date.parse(c.payees[0]!.as_of) + 3_600_000));
     expect(fresh.data_age_hours).toBe(1);
     expect(fresh.stale).toBe(false);
-    const old = censusAnswer(c.payees[0]!.url, TERMS, c, c.payees[0]!, { ok: false, why: "x" }, new Date(Date.parse(c.at) + 96 * 3_600_000));
+    const old = censusAnswer(c.payees[0]!.url, TERMS, c, c.payees[0]!, { ok: false, why: "x" }, new Date(Date.parse(c.payees[0]!.as_of) + 96 * 3_600_000));
     expect(old.stale).toBe(true);
     expect(old.unknowns.join(" ")).toContain("past the 72-hour freshness window");
     expect(freshness(c.at, new Date(Date.parse(c.at) + 72 * 3_600_000)).stale).toBe(false);

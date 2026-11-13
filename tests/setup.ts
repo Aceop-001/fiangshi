@@ -2,10 +2,11 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { referenceTime } from "../src/reference-time.js";
 
-// Pin the clock one hour after the committed census, so its records are fresh and results never depend on today's date.
-// Tests about staleness set their own time explicitly.
-process.env.FIANGSHI_NOW = "2026-11-09T04:00:00.000Z";
+// Pin the clock to the committed reference time (fixtures/audit/numbers-as-of.json), shortly after the census, so its
+// records are fresh and results never depend on today's date. Tests about staleness set their own time explicitly.
+process.env.FIANGSHI_NOW = referenceTime();
 process.env.FIANGSHI_OFFLINE = "1";
 process.env.SNAPSHOT_SOURCE = "fixture";
 process.env.MOCK_MODELS = "good";

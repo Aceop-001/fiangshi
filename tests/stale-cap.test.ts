@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { request, type Server } from "node:http";
 import { ageHours, bandFromBasis, POLICY_V4, POLICY_VERSION, staleCap, v5Fields } from "../src/core/cap.js";
 import { BANDS, bandRank, type Band } from "../src/core/types.js";
-import { loadCensus } from "../src/census.js";
+import { legacyCensus, loadCensus } from "../src/census.js";
 import { censusAnswer, staleLine } from "../src/preview.js";
 import { sealReceipt, verifyReceipt } from "../src/core/receipt.js";
 import { startServer } from "../src/api/server.js";
@@ -13,6 +13,8 @@ const H = 3_600_000;
 const TERMS = { price_usd: 0.01, network: "base", asset: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", pay_to: "0xabc", terms_hash: "h" };
 const PINNED = process.env.FIANGSHI_NOW!;
 const at = (hoursAfterCensus: number) => new Date(Date.parse(loadCensus().at) + hoursAfterCensus * H);
+/** hours after one record's own collection time */
+const after = (asOf: string, hours: number) => new Date(Date.parse(asOf) + hours * H);
 afterEach(() => {
   process.env.FIANGSHI_NOW = PINNED;
 });
@@ -22,14 +24,14 @@ describe("stale cap (policy v5): a band cap, not a vow", () => {
     expect(staleCap("ALLOW", 10, LIMIT)).toEqual({ band: "ALLOW", band_cap: null, verdict_confidence: "normal" });
     const c = loadCensus();
     const p = c.payees.find((x) => x.issued_band === "ALLOW")!;
-    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, at(10));
+    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, after(p.as_of, 10));
     expect(a.verdict).toBe("ALLOW");
     expect(a.band_cap).toBeNull();
   });
   it("2. a stale ALLOW becomes REVIEW, with band_cap data_stale, and the score is unchanged", () => {
     const c = loadCensus();
     const p = c.payees.find((x) => x.issued_band === "ALLOW")!;
-    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, at(96));
+    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, after(p.as_of, 96));
     expect(a.verdict).toBe("REVIEW");
     expect(a.issued_band).toBe("ALLOW");
     expect(a.score).toBe(p.score);
@@ -64,10 +66,10 @@ describe("stale cap (policy v5): a band cap, not a vow", () => {
   it("9. when stale, unknowns contains the staleness line exactly once", () => {
     const c = loadCensus();
     const p = c.payees[0]!;
-    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, at(96));
+    const a = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, after(p.as_of, 96));
     expect(a.unknowns.filter((u) => u === staleLine(96))).toHaveLength(1);
     expect(a.unknowns.filter((u) => u.includes("freshness window"))).toHaveLength(1);
-    const fresh = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, at(1));
+    const fresh = censusAnswer(p.url, TERMS, c, p, { ok: false, why: "x" }, after(p.as_of, 1));
     expect(fresh.unknowns.some((u) => u.includes("freshness window"))).toBe(false);
   });
   it("v5 receipts record their basis, and the band is the lowest part", () => {
@@ -101,13 +103,14 @@ describe("verify and the published index under policy v5", () => {
   afterAll(() => new Promise<void>((r) => server.close(() => r())));
 
   it("6. a v4 receipt still verifies to its original band, and says it was issued under v4", async () => {
-    process.env.FIANGSHI_NOW = at(200).toISOString(); // every census record is now stale
-    const p = loadCensus().payees.find((x) => x.issued_band === "ALLOW")!;
-    expect(p.band).toBe("REVIEW"); // today's answer is capped...
+    const old = legacyCensus();
+    process.env.FIANGSHI_NOW = after(old.at, 200).toISOString(); // long past the limit for the 9 Nov data
+    const p = old.payees.find((x) => x.issued_band === "ALLOW")!;
+    expect(old.receipts.get(p.receipt_id)!.policy_version).toBeUndefined(); // a v4 receipt states no version...
     const v = await get(`/v1/verify?id=${p.receipt_id}`);
     expect(v.valid).toBe(true);
     expect(v.policy_version).toBe(POLICY_V4);
-    expect(v.band_rederived).toBe("ALLOW"); // ...but the receipt keeps its original band
+    expect(v.band_rederived).toBe("ALLOW"); // ...and keeps its original band, never re-judged under v5
     expect(v.band_matches).toBe(true);
     expect(v.policy_note).toContain("before band caps existed");
   });

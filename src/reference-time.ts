@@ -7,6 +7,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "./config.js";
 
+/**
+ * Fixture mode (FIANGSHI_REPLAY=1) replays SERV and Dolphin replies recorded against the 9 Nov census, so it serves that
+ * census at this moment, one hour after it was taken. It is a recording: it never moves.
+ */
+export const FIXTURE_TIME = "2026-11-09T04:00:00.000Z";
+
 export function referenceTime(): string {
   const j = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "numbers-as-of.json"), "utf8")) as { as_of: string };
   if (!Number.isFinite(Date.parse(j.as_of))) throw new Error("fixtures/audit/numbers-as-of.json: as_of is not an ISO-8601 time");

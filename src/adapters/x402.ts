@@ -46,6 +46,15 @@ export function paymentRequired(resourceUrl: string, usd: number, payTo: string,
   return { body, header: Buffer.from(JSON.stringify(body)).toString("base64") };
 }
 
+/**
+ * The `X-PAYMENT-RESPONSE` header (base64 JSON) sent with a paid answer. Settlement is dry-run: nothing was submitted
+ * on chain, so success is false and there is no transaction; the header says so instead of implying a settled payment.
+ */
+export function paymentResponse(network: string, payer: string | null): string {
+  const body = { success: false, transaction: null, network, payer, settlement: currentSettlement(), errorReason: "dry-run: the payment was checked for structure only and was not settled" };
+  return Buffer.from(JSON.stringify(body)).toString("base64");
+}
+
 export interface PaymentCheck {
   ok: boolean;
   errors: string[];

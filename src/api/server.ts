@@ -28,7 +28,7 @@ import { docByPath } from "../docs-index.js";
 import { lang, setLang, type Lang } from "../i18n.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
-import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
+import { paymentRequired, paymentResponse, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
 import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
 import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
@@ -318,7 +318,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const pay = requirePayment(req, res, `${self}${u.pathname}`, num("FIANGSHI_PRICE_PAYEE", 0.02), "Fiangshi payee record");
       if (!pay) return;
       const p = c.payees.find((x) => x.payee === m![1]!.toLowerCase());
-      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" });
+      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
@@ -397,7 +397,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         receipt_id: receipt.receipt_hash,
         receipt,
         ms: Math.round(performance.now() - t0),
-      });
+      }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
     return json(res, 404, { error: "not found" });
   } catch (e) {

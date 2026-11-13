@@ -88,6 +88,22 @@ describe("HTTP API", () => {
     expect(j.settlement).toBe("dry-run");
     expect(j.receipt.settlement).toBe("dry-run");
   });
+  it("the live 402 states real x402 terms (Base USDC, atomic amount, 60 s) and parses back to our own payTo", async () => {
+    const url = "https://api.weatherly.example/v1/forecast";
+    const r402 = await get(`/v1/check?url=${encodeURIComponent(url)}`);
+    const body = JSON.parse(r402.body);
+    expect(body.x402Version).toBe(2);
+    expect(body.accepts[0]).toMatchObject({ scheme: "exact", network: "eip155:8453", amount: "50000", asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", payTo: PAYTO, maxTimeoutSeconds: 60 });
+    // the header alone carries the same terms
+    expect(JSON.parse(Buffer.from(r402.headers["payment-required"]!, "base64").toString("utf8")).accepts).toEqual(body.accepts);
+    const headerOnly = parse402({ url, status: 402, headers: { "payment-required": r402.headers["payment-required"]! }, body: "" });
+    expect(headerOnly.ok && headerOnly.terms).toMatchObject({ price: 0.05, payee: PAYTO.toLowerCase() });
+    // paying answers 200 with an X-PAYMENT-RESPONSE that says plainly nothing was settled
+    const r = await get(`/v1/check?url=${encodeURIComponent(url)}`, { "x-payment": demoXPayment(body.accepts[0], FROM) });
+    expect(r.status).toBe(200);
+    const xr = JSON.parse(Buffer.from(r.headers["x-payment-response"]!, "base64").toString("utf8"));
+    expect(xr).toMatchObject({ success: false, transaction: null, network: "eip155:8453", payer: FROM, settlement: "dry-run" });
+  });
   it("/v1/verify: valid receipt true; one flipped byte false", async () => {
     const j = JSON.parse((await get("/v1/index.json")).body);
     const id = j.payees[5].receipt_id;

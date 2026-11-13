@@ -72,7 +72,7 @@ export function freshness(asOf: string, now = new Date(nowMs())): { data_as_of: 
 export type PaidStatus = { ok: true; url: string } | { ok: false; why: string };
 const paidFields = (p: PaidStatus) =>
   p.ok
-    ? { paid_check: p.url, paid_check_status: "available: x402 payment, $0.05 for a census payee, $0.15 for a cold lookup; settlement is dry-run" }
+    ? { paid_check: p.url, paid_check_status: "enabled: x402 payment in USDC on Base (eip155:8453), $0.05 for a census payee, $0.15 for a cold lookup; settlement is dry-run" }
     : { paid_check: null, paid_check_status: `disabled: ${p.why}` };
 
 /** The one staleness line. Built in one place so it can never appear twice or in two wordings. */

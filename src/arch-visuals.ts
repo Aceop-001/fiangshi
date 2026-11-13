@@ -37,6 +37,90 @@ function stamp(band: "ALLOW" | "REVIEW" | "BLOCK", x: number, y: number, label: 
   return `<rect x="${x}" y="${y - 13}" width="${f(w)}" height="26" fill="#000" stroke="${col}" stroke-width="1.5"/>${mark(band, x + 13, y)}<text x="${x + 24}" y="${y + 4.5}" fill="${col}" font-size="12" font-weight="700" letter-spacing="1.2" ${MONO}>${esc(label)}</text>`;
 }
 
+/* ---------------------------------------------------------------- 0. the map ----------------------------------- */
+
+function mapFigure(): string {
+  const dur = 16;
+  const steps: [string, string, string][] = [
+    ["Probe", "src/adapters/probe.ts", "one unpaid GET, read the 402 terms"],
+    ["Null-payee gate", "src/core/v6.ts", "dead-end payTo? BLOCK now, $0.00"],
+    ["Signals", "src/census.ts · src/cold.ts", "age, funder, payers, evidence quotes"],
+    ["Score", "src/core/score.ts", "25M + 20P + 20R + 15I + 10E + 10C"],
+    ["Model advice", "src/adapters/serv.ts · dolphin.ts", "strict JSON, every quote checked"],
+    ["Six rules", "src/core/vows.ts", "can only lower the band"],
+    ["Decide", "src/core/decide.ts", "lowest of score, model and rules"],
+    ["Receipt", "src/core/receipt.ts", "sha256, chained to the one before"],
+  ];
+  const X = 200, W = 320, H = 46, G = 14, Y0 = 212;
+  const ys = steps.map((_, k) => Y0 + k * (H + G));
+  const cx = X + W / 2;
+  const tk = (k: number) => 0.1 + k * 0.088;
+  const sy = (k: number) => ys[k]! + H / 2;
+  let out = "";
+  // clients
+  out += box(20, 18, 200, 54, "MCP clients", "Claude, Codex, Grok…");
+  out += box(280, 18, 200, 54, "HTTP clients", "curl, xAI, DeepSeek");
+  out += box(540, 18, 200, 54, "Browser", "this site, no script");
+  out += box(20, 102, 200, 50, "MCP server", "src/mcp/server.ts");
+  out += `<path d="M120 72 L120 102" stroke="${DIM}" stroke-width="1.5"/><path d="M120 152 L120 ${sy(0)} L${X} ${sy(0)}" stroke="${DIM}" stroke-width="1.5" fill="none"/>`;
+  out += `<path d="M380 72 L380 176" stroke="${DIM}" stroke-width="1.5"/><path d="M640 72 L640 140 Q640 160 620 160 L400 160 Q380 160 380 176" stroke="${DIM}" stroke-width="1.5" fill="none"/>`;
+  // the server frame
+  out += `<rect x="${X - 22}" y="176" width="${W + 44}" height="${ys[7]! + H + 18 - 176}" fill="none" stroke="${RED}" stroke-width="1.5"/><rect x="${X - 6}" y="168" width="226" height="16" fill="#000"/><text x="${X}" y="180" fill="${REDT}" font-size="11" letter-spacing="1.2" ${MONO}>FIANGSHI · src/api/server.ts</text>`;
+  // step boxes, lit as the request passes
+  steps.forEach(([name, file, what], k) => {
+    const y = ys[k]!;
+    const a = tk(k);
+    const b = a + 0.075;
+    const lit = k === 1 ? RED : FG;
+    out += `<rect x="${X}" y="${y}" width="${W}" height="${H}" fill="#000" stroke="${DIM}" stroke-width="1.5"><animate attributeName="stroke" values="${DIM};${DIM};${lit};${lit};${DIM};${DIM}" keyTimes="0;${f(a - 0.001)};${f(a)};${f(b)};${f(b + 0.001)};1" dur="${dur}s" repeatCount="indefinite"/></rect>`;
+    out += `<text x="${X + 12}" y="${y + 20}" fill="${REDT}" font-size="11" ${MONO}>${k + 1}</text><text x="${X + 28}" y="${y + 20}" fill="${FG}" font-size="15.5" ${SERIF}>${esc(name)}</text><text x="${X + W - 10}" y="${y + 19}" text-anchor="end" fill="${MUT}" font-size="9.5" ${MONO}>${esc(file)}</text><text x="${X + 28}" y="${y + 37}" fill="${MUT}" font-size="10.5" ${MONO}>${esc(what)}</text>`;
+    if (k < 7) out += `<path d="M${cx} ${y + H} L${cx} ${y + H + G}" stroke="${DIM}" stroke-width="1.5"/>`;
+  });
+  // services on the right, data and the free BLOCK on the left
+  out += box(590, ys[0]! - 4, 150, 54, "Seller", "x402 endpoint");
+  out += box(590, ys[2]! - 4, 150, 54, "Surf", "Base on-chain data");
+  out += box(590, ys[4]! - 32, 150, 46, "SERV", "advises");
+  out += box(590, ys[4]! + 22, 150, 46, "Dolphin", "reads names");
+  out += box(590, ys[7]! - 4, 150, 54, "Ledger", "data/ledger.jsonl");
+  out += box(20, ys[2]! - 4, 150, 54, "Census", "800 payees, free");
+  out += `<rect x="20" y="${ys[1]! - 4}" width="150" height="54" fill="#000" stroke="${RED}" stroke-width="1.2" stroke-dasharray="4 3"/><text x="95" y="${ys[1]! + 17}" text-anchor="middle" fill="${REDT}" font-size="12" font-weight="700" ${MONO}>BLOCK · $0.00</text><text x="95" y="${ys[1]! + 35}" text-anchor="middle" fill="${MUT}" font-size="10" ${MONO}>no data, no model</text>`;
+  const wire = (x1: number, y1: number, x2: number, y2: number, c = DIM, dash = "4 4") => `<path d="M${x1} ${y1} L${x2} ${y2}" stroke="${c}" stroke-width="1.5" stroke-dasharray="${dash}" fill="none"/>`;
+  out += wire(X + W, sy(0), 590, sy(0)) + wire(X + W, sy(2), 590, sy(2)) + wire(X + W, sy(4) - 8, 590, sy(4) - 9) + wire(X + W, sy(4) + 8, 590, sy(4) + 45) + wire(X + W, sy(7), 590, sy(7));
+  out += wire(170, sy(2), X, sy(2)) + wire(X, sy(1), 170, sy(1), RED, "3 3");
+  // output
+  const oy = ys[7]! + H + 46;
+  out += `<path d="M${cx} ${ys[7]! + H} L${cx} ${oy}" stroke="${DIM}" stroke-width="1.5"/>`;
+  out += `<rect x="${X - 40}" y="${oy}" width="${W + 80}" height="54" fill="#000" stroke="${FG}" stroke-width="1.2"><animate attributeName="stroke-width" values="1.2;1.2;3;3;1.2" keyTimes="0;0.86;0.87;0.98;1" dur="${dur}s" repeatCount="indefinite"/></rect>`;
+  out += `${mark("ALLOW", X - 22, oy + 21, 10)}${mark("REVIEW", X - 6, oy + 21, 10)}${mark("BLOCK", X + 10, oy + 21, 10)}<text x="${X + 24}" y="${oy + 25}" fill="${FG}" font-size="14" ${SERIF}>verdict + quoted evidence + receipt id</text><text x="${X - 28}" y="${oy + 43}" fill="${MUT}" font-size="10.5" ${MONO}>back to the agent; its own wallet pays, or not</text>`;
+  // the moving request
+  const pk = (d: string, a: number, b: number, c = FG) => packet(d, a, b, c, dur);
+  out += pk("M120 72 L120 102", 0.0, 0.04);
+  out += pk(`M120 152 L120 ${sy(0)} L${X} ${sy(0)}`, 0.045, 0.095);
+  out += pk(`M${X + W} ${sy(0)} L590 ${sy(0)}`, 0.11, 0.13) + pk(`M590 ${sy(0)} L${X + W} ${sy(0)}`, 0.135, 0.155);
+  out += pk(`M${X} ${sy(1)} L170 ${sy(1)}`, 0.2, 0.25, RED);
+  out += pk(`M170 ${sy(2)} L${X} ${sy(2)}`, 0.29, 0.31) + pk(`M${X + W} ${sy(2)} L590 ${sy(2)}`, 0.29, 0.31) + pk(`M590 ${sy(2)} L${X + W} ${sy(2)}`, 0.315, 0.335);
+  out += pk(`M${X + W} ${sy(4) - 8} L590 ${sy(4) - 9}`, 0.465, 0.485) + pk(`M${X + W} ${sy(4) + 8} L590 ${sy(4) + 45}`, 0.465, 0.485) + pk(`M590 ${sy(4) - 9} L${X + W} ${sy(4) - 8}`, 0.49, 0.51) + pk(`M590 ${sy(4) + 45} L${X + W} ${sy(4) + 8}`, 0.49, 0.51);
+  out += pk(`M${X + W} ${sy(7)} L590 ${sy(7)}`, 0.73, 0.76);
+  for (let k = 0; k < 7; k++) out += pk(`M${cx} ${ys[k]! + H - 2} L${cx} ${ys[k + 1]! + 2}`, tk(k) + 0.075, tk(k + 1));
+  out += pk(`M${cx} ${ys[7]! + H} L${cx} ${oy}`, 0.8, 0.86);
+  // narration
+  const lines: [number, number, string][] = [
+    [0.0, 0.1, "An AI agent asks before it pays: by MCP, by HTTP, or on this site."],
+    [0.1, 0.19, "1 · One unpaid request to the seller: the 402 gives the price and the wallet."],
+    [0.19, 0.28, "2 · A dead-end wallet is blocked here, for free (red branch)."],
+    [0.28, 0.37, "3 · Facts about the wallet: from the census, or live from Surf."],
+    [0.37, 0.46, "4 · A score from 0 to 100, from six weighted parts."],
+    [0.46, 0.55, "5 · SERV advises with quotes; Dolphin reads names. Neither decides."],
+    [0.55, 0.73, "6–7 · Six fixed rules, then the lowest band wins."],
+    [0.73, 0.8, "8 · A receipt is sealed and chained into the ledger."],
+    [0.8, 0.99, "The verdict goes back. Fiangshi never touches the money."],
+  ];
+  const ny = oy + 88;
+  out += lines.map(([a, b, t]) => `<text x="380" y="${ny}" text-anchor="middle" fill="${FG}" font-size="13" ${MONO} opacity="0" class="fx-tag">${show(a + 0.001, b, dur)}${esc(t)}</text>`).join("");
+  out += `<text x="380" y="${ny}" text-anchor="middle" fill="${FG}" font-size="13" ${MONO} class="fx-static">Clients → 8 steps inside Fiangshi → verdict. Services right, census left.</text>`;
+  return svg(760, ny + 18, "The Fiangshi map: clients, the eight steps inside the server, and the services each step uses", out);
+}
+
 /* ---------------------------------------------------------------- 1. three checks, side by side ------------------ */
 
 const STATIONS = ["Probe", "Gate", "Signals", "Score", "Model", "Vows", "Decide", "Receipt"];
@@ -216,6 +300,12 @@ function svg(w: number, h: number, label: string, inner: string): string {
 }
 
 export const FIGURES: Record<string, { title: string; svg: () => string; caption: string }> = {
+  "the map": {
+    title: "The map",
+    svg: mapFigure,
+    caption:
+      "Follow the dot. A question comes in from an AI tool or the site, passes through eight steps inside Fiangshi, and the verdict goes back. Each step names the file that does it. The boxes on the right are the outside services a step uses; the red branch is the free BLOCK for a dead-end wallet.",
+  },
   "one check, live": {
     title: "Three checks, live",
     svg: checksFigure,

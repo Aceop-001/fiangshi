@@ -2,6 +2,12 @@
 
 This page explains how Fiangshi is built, so an integrator or auditor can trust it. It covers every component, every outside service it talks to, where data is kept, and what happens when each part fails. Every threshold below is copied from the source file named next to it. If this page and the code disagree, the code is right, and that is a bug in this page.
 
+## The map
+
+Figure: the map (animated on the site at /architecture).
+
+In words: an AI tool (through MCP or HTTP) or a person (on the site) asks about a paid URL. Inside the Fiangshi server the request goes through eight steps: probe, null-payee gate, signals, score, model advice, six rules, decide and receipt. The seller, Surf, SERV, Dolphin and the ledger are each used by one step. The verdict, its evidence and a receipt id go back, and the agent's own wallet pays, or does not.
+
 ## See it working
 
 The pictures on this page are working models: they move through the same steps the code takes. On the site at `/architecture` they are animated; in the repository the text describes them.
@@ -9,48 +15,6 @@ The pictures on this page are working models: they move through the same steps t
 Figure: one check, live (animated on the site at /architecture).
 
 Figure: who talks to whom (animated on the site at /architecture).
-
-## The map
-
-```text
-                        an AI agent about to pay an x402 endpoint
-                                          |
-          +-------------------------------+-------------------------------+
-          |                               |                               |
-   MCP client (Claude, Codex,      HTTP client (curl, SDK,          browser (the site)
-   Grok CLI, Hermes, Cursor ...)   xAI / DeepSeek tool calls)       /, /check, /receipt
-          |  stdio JSON-RPC               |  HTTPS GET                    |  HTML, no JS
-          v                               |                               |
-   src/mcp/server.ts  ---- HTTP --------->+<------------------------------+
-                                          v
-  +--------------------------------- src/api/server.ts (node:http) ------------------------------+
-  |                                                                                               |
-  |  1. PROBE          src/adapters/probe.ts   one unpaid GET to the seller -> parse the 402       |
-  |                      terms = {url, price, asset, network, payee}, terms_hash = sha256          |
-  |                                          |                                                    |
-  |  2. NULL-PAYEE GATE  src/core/v6.ts       zero / burn / token-contract / bad EIP-55 payTo?     |
-  |                      yes -> BLOCK, $0.00, sealed receipt, STOP (no data call, no model call)   |
-  |                                          |                                                    |
-  |  3. SIGNALS        census (src/census.ts) built at startup from committed fixtures, 0 credits  |
-  |                    or cold check (src/cold.ts -> Surf SQL x2) for a Base payee not in it       |
-  |                                          |                                                    |
-  |  4. SCORE          src/core/score.ts      score = 25M + 20P + 20R + 15I + 10E + 10C            |
-  |                                          |                                                    |
-  |  5. MODEL ADVICE   src/adapters/serv.ts (SERV Reasoning)  ||  src/adapters/dolphin.ts          |
-  |                    strict JSON, every quote checked     ||  identity fields only (optional)  |
-  |                                          |                                                    |
-  |  6. VOWS           src/core/vows.ts       six deterministic rules, may only LOWER the band     |
-  |                                          |                                                    |
-  |  7. DECIDE         src/core/decide.ts     band = min(score band, model band, vow band)         |
-  |                                          |                                                    |
-  |  8. RECEIPT        src/core/receipt.ts    canonical JSON -> sha256 -> prev_hash chain          |
-  |                    src/ledger/store.ts    appended to data/ledger.jsonl                        |
-  +-----------------------------------------------------------------------------------------------+
-                                          |
-                                          v
-                   ALLOW / REVIEW / BLOCK + quoted evidence + receipt id
-                   (the agent's own wallet pays the seller, or does not; Fiangshi never pays)
-```
 
 ## What each step does
 

@@ -69,13 +69,13 @@ describe("first-visit tour", () => {
 });
 
 describe("architecture working models", () => {
-  it("four animated figures replace the markers, with no script and no image file", async () => {
+  it("five animated figures replace the markers, with no script and no image file", async () => {
     const html = (await get("/architecture")).body.toString("utf8");
-    expect((html.match(/<figure class="fxfig">/g) ?? []).length).toBe(4);
+    expect((html.match(/<figure class="fxfig">/g) ?? []).length).toBe(5);
     expect(html).not.toContain("animated on the site at /architecture).");
     expect(html).toContain("<animateMotion");
     expect(html).not.toMatch(/<script|<img|xlink:href|href="http/i);
-    for (const t of ["Three checks, live", "Who talks to whom, and where the money goes", "The lowest band wins", "The receipt chain catches an edit"]) expect(html).toContain(t);
+    for (const t of ["The map", "Three checks, live", "Who talks to whom, and where the money goes", "The lowest band wins", "The receipt chain catches an edit"]) expect(html).toContain(t);
   });
   it("the figures only show values the lab produced, and say when values are examples", async () => {
     const html = (await get("/architecture")).body.toString("utf8");

@@ -72,7 +72,7 @@ A fifth check runs once per release: a fresh copy of the repository with no keys
 | 13 Nov | policy v5 | per-record freshness and the stale cap (a band cap, not a vow) | `bb8acc9` |
 | 13 Nov | refresh | paid Surf refresh of all 1,923 Base payees (620 credits) | `55d860e` |
 | 13 Nov | paid route | real x402 terms in the 402, `X-PAYMENT-RESPONSE`, every figure regenerated, gate G16, the captured live 402 | `3ec5f7a` … `ffb54b4` |
-| 13 Nov | durable receipts | the paid answer carries its receipt and a verify URL, honest payload verification, ledger mirror, gate G17 | this release |
+| 13 Nov | durable receipts | the paid answer carries its receipt and a verify URL, honest payload verification, ledger mirror, gate G17 | `986fe44` |
 
 The full per-commit list, with the number of test files, test cases and gates at each commit, is in the table near the end of this page.
 

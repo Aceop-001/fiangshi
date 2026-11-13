@@ -27,7 +27,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # FIANGSHI_API_URL (repository variable, e.g. https://api.fiangshi.xyz): when set, the site's check box sends
+      # checks to that live API; when empty, the static site offers the CLI command instead.
       - run: npm run export -- --out site --domain fiangshi.xyz
+        env:
+          FIANGSHI_API_URL: ${{ vars.FIANGSHI_API_URL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

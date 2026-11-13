@@ -7,6 +7,7 @@ const SERVER_ONLY = /(?:href|action)="\/(?:check|tour\/done)\b/;
 
 afterEach(() => {
   delete process.env.FIANGSHI_STATIC;
+  delete process.env.FIANGSHI_API_URL;
 });
 
 describe("static edition (GitHub Pages)", () => {
@@ -49,5 +50,25 @@ describe("static edition (GitHub Pages)", () => {
     expect(html).toContain('<form class="probe" action="/check"');
     expect(html).toContain('class="tour"');
     expect(html).not.toContain("Static edition.");
+  });
+
+  it("with a live API, the static site sends checks there and allows only that origin in its CSP", () => {
+    Object.assign(process.env, { FIANGSHI_STATIC: "1", FIANGSHI_API_URL: "https://api.fiangshi.xyz/" });
+    setPagePath("/");
+    const home = renderIndex(loadCensus(), loadDemoStats(), {});
+    expect(home).toContain('<form class="probe" action="https://api.fiangshi.xyz/check" method="get">');
+    expect(home).toContain("form-action 'self' https://api.fiangshi.xyz;");
+    expect(home).toMatch(/href="https:\/\/api\.fiangshi\.xyz\/check\?url=/);
+    expect(home).not.toMatch(SERVER_ONLY);
+    const guide = renderDoc("guide", loadCensus(), loadDemoStats());
+    expect(guide).toMatch(/<a href="https:\/\/api\.fiangshi\.xyz\/check\?url=https%3A%2F%2Fx402\.tbs-digital\.com/);
+  });
+  it("an API address that is not a plain https origin is ignored (fail closed to the no-API static page)", () => {
+    for (const bad of ["http://api.fiangshi.xyz", "https://api.fiangshi.xyz/path", "javascript:alert(1)", "https://x\"onload=1"]) {
+      Object.assign(process.env, { FIANGSHI_STATIC: "1", FIANGSHI_API_URL: bad });
+      const home = renderIndex(loadCensus(), loadDemoStats(), {});
+      expect(home, bad).toContain("probe-static");
+      expect(home, bad).not.toContain('<form class="probe"');
+    }
   });
 });

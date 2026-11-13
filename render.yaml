@@ -1,0 +1,28 @@
+# Render Blueprint for the live Fiangshi API (https://render.com/docs/blueprint-spec).
+# In Render: New -> Blueprint -> pick this repository. It builds the compiled server and serves the full site and API,
+# including the live check page and /v1/preview, on api.fiangshi.xyz.
+#
+# Optional settings are entered in the Render dashboard, never committed:
+#   FIANGSHI_CONTACT          operator contact shown on /legal
+#   FIANGSHI_PAYTO            your Base wallet; enables the paid /v1/check and /v1/payee routes (settlement stays dry-run)
+#   SERV_REASONING_API_KEY    model advice on paid checks
+services:
+  - type: web
+    name: fiangshi-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    domains:
+      - api.fiangshi.xyz
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: FIANGSHI_CONTACT
+        sync: false
+      - key: FIANGSHI_PAYTO
+        sync: false
+      - key: SERV_REASONING_API_KEY
+        sync: false

@@ -7,7 +7,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, env, num, staticSite } from "./config.js";
+import { ROOT, checkHref, env, liveApi, num, staticSite } from "./config.js";
 import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
@@ -263,7 +263,7 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
   // live edition: probe these URLs; static edition: open their sealed receipts instead (no server to probe with)
   const tries = [z?.payee, f?.payee]
     .filter((p): p is CensusPayee => Boolean(p))
-    .map((p) => (staticSite() ? `<a href="/receipt/${p.receipt_id}">${esc(bareUrl(p.url))}</a>` : `<a href="/check?url=${encodeURIComponent(p.url)}">${esc(bareUrl(p.url))}</a>`));
+    .map((p) => `<a href="${esc(checkHref(p.url) ?? `/receipt/${p.receipt_id}`)}">${esc(bareUrl(p.url))}</a>`);
   const unnamed = c.funders.filter((r) => r.status === "shared unnamed funder").length;
   const funderRows = c.funders
     .slice(0, 14)
@@ -278,7 +278,7 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
 <h1>${T("Who is behind the 402?").replace(" 402", "&nbsp;402")}</h1>
 <p class="lede">${T("Fiangshi checks the wallet behind an x402 paid endpoint before your agent pays it. It answers ALLOW, REVIEW or BLOCK, quotes its evidence, and seals a receipt you can verify again later. Advisory only: it never holds funds.")}</p>
 ${probeForm()}
-<p class="try">${staticSite() ? (tries.length ? T("See the sealed receipts for {links}.", { links: tries.join(` ${T("or")} `) }) : "") : `${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}`}</p>
+<p class="try">${staticSite() && !liveApi() ? (tries.length ? T("See the sealed receipts for {links}.", { links: tries.join(` ${T("or")} `) }) : "") : `${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}`}</p>
 </div></div>
 </div></section>
 
@@ -471,7 +471,7 @@ ${hashBars(r.receipt_hash)}
 <p class="mut">The id is the sha256 of the canonical JSON of every field except the id itself. Change one byte anywhere and the hash no longer matches. Each receipt also carries the id of the one before it, so removing or reordering a receipt breaks the chain.</p>
 <ul class="next" style="margin-top:16px"><li>Recompute it yourself:<code class="cmd">curl "${esc(self)}/v1/verify?id=${esc(r.receipt_hash)}"</code></li><li>The receipt as JSON:<code class="cmd">curl "${esc(self)}/v1/receipt/${esc(r.receipt_hash)}"</code></li></ul>
 </div></div>
-<p class="try"><a href="/">${T("Back to the census")}</a>${staticSite() ? "" : ` · <a href="/check?url=${encodeURIComponent(r.url)}">${T("probe this endpoint again")}</a>`}</p>
+<p class="try"><a href="/">${T("Back to the census")}</a>${checkHref(r.url) ? ` · <a href="${esc(checkHref(r.url)!)}">${T("probe this endpoint again")}</a>` : ""}</p>
 </aside>
 </main>`;
   return page({
@@ -531,6 +531,8 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
     r.html = r.html.replace(/<a href="\/check\?url=([^"]+)">([\s\S]*?)<\/a>/g, (_m, enc: string, text: string) => {
       const url = decodeURIComponent(enc.replace(/&amp;/g, "&"));
       const p = c.payees.find((x) => x.url === url);
+      const live = checkHref(url);
+      if (live) return `<a href="${esc(live)}">${text}</a>`;
       return p ? `<a href="/receipt/${p.receipt_id}">${text}</a>` : `<span>${text}</span>`;
     });
   }
@@ -565,7 +567,7 @@ ${docsSidebar(null, [])}
 <h1>${T("Fiangshi docs")}</h1>
 <p class="dlede">${T("Everything you need to check a payee before an agent pays: how to use it, how it works, and the evidence that it does what it says.")}</p>
 <div class="dstart">
-${staticSite() ? `<a href="/#census"><span>01</span><b>${T("See the census")}</b><em>${T("800 sellers, each with a sealed receipt you can open.")}</em></a>` : `<a href="/"><span>01</span><b>${T("Try a check")}</b><em>${T("Paste a paid endpoint on the home page. Free.")}</em></a>`}
+${staticSite() && !liveApi() ? `<a href="/#census"><span>01</span><b>${T("See the census")}</b><em>${T("800 sellers, each with a sealed receipt you can open.")}</em></a>` : `<a href="/"><span>01</span><b>${T("Try a check")}</b><em>${T("Paste a paid endpoint on the home page. Free.")}</em></a>`}
 <a href="/connect"><span>02</span><b>${T("Connect an agent")}</b><em>${T("MCP setup for Claude, Codex, Grok, Hermes and more.")}</em></a>
 <a href="/cli"><span>03</span><b>${T("Use the CLI")}</b><em>${T("Verdicts as exit codes, plus an agent skill.")}</em></a>
 </div>

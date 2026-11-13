@@ -44,4 +44,19 @@ export const providerMode = (): "fixture" | "mock" | "live" =>
 export const policyTtlHours = () => num("FIANGSHI_POLICY_TTL_HOURS", 72);
 /** Static edition (GitHub Pages): pages are pre-built by scripts/export-static.ts, so nothing that needs a live server is offered. */
 export const staticSite = () => env("FIANGSHI_STATIC") === "1";
+/**
+ * The live API a static edition sends checks to (FIANGSHI_API_URL, an https origin such as https://api.fiangshi.xyz).
+ * Empty when unset or not a plain https origin: the static edition then offers no live check at all.
+ */
+export const liveApi = (): string => {
+  const u = env("FIANGSHI_API_URL").trim().replace(/\/+$/, "");
+  return staticSite() && /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(u) ? u : "";
+};
+/** Where a "check this endpoint" link goes: the local /check page, the live API's, or nowhere (static, no API). */
+export const checkHref = (url: string): string | null => {
+  const q = `/check?url=${encodeURIComponent(url)}`;
+  if (!staticSite()) return q;
+  const api = liveApi();
+  return api ? api + q : null;
+};
 export const PROBE_TIMEOUT_MS = 15_000;

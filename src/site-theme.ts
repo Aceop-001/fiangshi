@@ -3,7 +3,7 @@
  * Static by construction: no script, no framework, no external request (system fonts, inline SVG, inline CSS).
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
  */
-import { providerMode, staticSite } from "./config.js";
+import { liveApi, providerMode, staticSite } from "./config.js";
 import { DOC_PAGES } from "./docs-index.js";
 import { LANGS, lang, t as T } from "./i18n.js";
 
@@ -429,7 +429,7 @@ export function page(s: Shell): string {
   const switcher = `<nav class="langs" aria-label="${T("Language")}">${LANGS.map((l) => (l.code === lang() ? `<b aria-current="true">${l.label}</b>` : `<a href="${esc(l.code === "en" ? pagePath : `/${l.code}${pagePath === "/" ? "" : pagePath}`)}" hreflang="${l.html}" lang="${l.html}" data-nolang>${l.label}</a>`)).join("")}</nav>`;
   return `<!doctype html>
 <html lang="${LANGS.find((l) => l.code === lang())!.html}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<meta http-equiv="Content-Security-Policy" content="${liveApi() ? CSP.replace("form-action 'self'", `form-action 'self' ${liveApi()}`) : CSP}">
 <meta name="description" content="${esc(s.description)}">
 <meta name="theme-color" content="#000000">
 <title>${esc(s.title)}</title>
@@ -446,6 +446,9 @@ ${s.body}
 /** The free probe form (plain GET, no script). */
 export function probeForm(value = "", id = "u"): string {
   // the static edition has no server to probe with: say so, and show the one-line way to run a check
+  // static edition with a live API: the same form, sent to the API, which renders the answer page
+  if (liveApi())
+    return `<form class="probe" action="${esc(liveApi())}/check" method="get"><label for="${id}">${T("Paid endpoint URL")}</label><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><input id="${id}" name="url" type="url" required maxlength="2000" placeholder="https://api.example.com/paid" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}"><button type="submit">${T("Probe")}</button></div></form>`;
   if (staticSite())
     return `<div class="probe probe-static"><p class="probe-l">${T("Paid endpoint URL")}</p><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><code>fiangshi preview "https://api.example.com/paid"</code></div><p class="mut">${T("Live checks need the Fiangshi API, which this static page cannot run. Start it in one command, or connect your agent: {cli} · {connect}.", { cli: '<a href="/cli">CLI</a>', connect: '<a href="/connect">Connect</a>' })}</p></div>`;
   return `<form class="probe" action="/check" method="get"><label for="${id}">${T("Paid endpoint URL")}</label><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><input id="${id}" name="url" type="url" required maxlength="2000" placeholder="https://api.example.com/paid" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}"><button type="submit">${T("Probe")}</button></div></form>`;

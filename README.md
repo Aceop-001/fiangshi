@@ -1,10 +1,95 @@
+<div align="center">
+
 # Fiangshi
 
-Fiangshi checks the wallet behind an x402 paid endpoint *before* your agent pays. It returns **ALLOW / REVIEW / BLOCK** with quoted evidence and a hash-chained receipt you can re-verify. Advisory only, and it never holds funds.
+**Pre-payment counterparty checks for x402 agent payments.**
 
-> The model advises, the vows decide.
+[**fiangshi.xyz**](https://fiangshi.xyz) · [Docs](https://fiangshi.xyz/docs) · [Architecture](https://fiangshi.xyz/architecture) · [Test report](https://fiangshi.xyz/report) · [Connect your agent](https://fiangshi.xyz/connect)
 
-## Quickstart
+![tests](https://img.shields.io/badge/tests-322%20passing-2b2b2b) ![accept](https://img.shields.io/badge/accept%20gates-15%2F15-2b2b2b) ![chain](https://img.shields.io/badge/chain-Base-2b2b2b) ![license](https://img.shields.io/badge/license-MIT-2b2b2b)
+
+*The model advises, the vows decide.*
+
+</div>
+
+---
+
+AI agents now pay for API calls on their own, using the [x402](https://www.x402.org/) protocol: a server answers `402 Payment Required`, names a price and a wallet, and the agent pays in USDC. Nothing in that exchange tells the agent **who it is paying**.
+
+Fiangshi answers that question before the money moves. Given a paid endpoint, it probes the `402` without paying, identifies the wallet that would receive the funds, scores it against on-chain evidence, lets a reasoning model advise, and applies six deterministic rules that the model cannot override. The result is one of three verdicts, with quoted evidence and a tamper-evident receipt:
+
+| verdict | meaning |
+|---|---|
+| **ALLOW** | No rule fired and the evidence is strong. The agent may pay. |
+| **REVIEW** | Something is missing or unclear. A human decides, or the amount is capped. |
+| **BLOCK** | A rule fired. The agent should not pay. The rule and its evidence are quoted. |
+
+Fiangshi is advisory only. It never holds funds, signs transactions or moves money, and it fails closed: missing data, a timeout or a model failure produces REVIEW, never ALLOW.
+
+## Highlights
+
+- **Fail-closed by design.** Six fixed rules run after the model and can only lower a verdict. A model alone can never produce ALLOW or BLOCK.
+- **Free protection against dead-end wallets.** A `payTo` that is the zero address, a burn address, the token contract or an invalid checksum is blocked at probe time, for $0.00, before any data or model call.
+- **Evidence, not opinion.** Every model quote is checked word for word against stored evidence, and every verdict is sealed in a sha256 hash-chained receipt that anyone can re-verify.
+- **Measured on real sellers.** A census of 800 of 1,923 Base payees in the x402 Bazaar catalog (90-day window): 49 ALLOW · 539 REVIEW · 212 BLOCK. Every number in this repository is reproduced by a committed script.
+- **Built for agents.** An MCP server, a CLI whose exit code is the verdict, a zero-dependency Python client, and an agent skill for Claude Code, Codex, Grok CLI and Hermes.
+
+## Try it
+
+**On the website.** [fiangshi.xyz](https://fiangshi.xyz) shows the full census, every payee with its sealed receipt, the six rules, and the documentation. The public site is a static edition; live checks run on the Fiangshi API (self-hosted below).
+
+**From an agent or a terminal.**
+
+```bash
+git clone https://github.com/Aceop-001/fiangshi.git && cd fiangshi
+npm ci && npm run build
+npm run dev                                   # site + API on http://127.0.0.1:8787
+npm run --silent fiangshi -- preview "https://api.cleave.fi/x402/gas"
+# BLOCK  api.cleave.fi/x402/gas · rule null_payee · the zero address · exit code 20
+```
+
+| integration | how | guide |
+|---|---|---|
+| Claude Code, Claude Desktop, Codex, Grok CLI, Hermes, Cursor, VS Code, Gemini CLI | MCP server (`src/mcp/server.ts`), four tools | [Connect](https://fiangshi.xyz/connect) |
+| Shell scripts and agents that run commands | `fiangshi` CLI, verdict as exit code: 0 ALLOW · 10 REVIEW · 20 BLOCK | [CLI and skill](https://fiangshi.xyz/cli) |
+| Python agents (LangChain, CrewAI, AutoGen, OpenAI / xAI / DeepSeek SDKs) | `clients/python/fiangshi_client.py`, standard library only | [Python client](https://fiangshi.xyz/cli#python-client) |
+| Any HTTP client | `GET /v1/preview?url=` (free), `GET /v1/check?url=` (x402-paid) | [Guide](https://fiangshi.xyz/guide#routes) |
+
+## How it works
+
+```
+probe the 402  →  null-payee gate  →  wallet signals  →  score  →  model advice  →  six rules  →  lowest band wins  →  sealed receipt
+```
+
+1. **Probe.** One unpaid request; parse the `402` terms (price, asset, network, `payTo`).
+2. **Gate.** Dead-end payment addresses are blocked immediately, at no cost.
+3. **Signals.** Wallet age, first funder, payers, repeat payers and concentration, from the census or a live on-chain lookup via Surf.
+4. **Score.** `25·Maturity + 20·Provenance + 20·Revenue + 15·Identity + 10·Exposure + 10·Corroboration`, 0 to 100.
+5. **Advice.** SERV Reasoning returns strict JSON; every quote must match stored evidence or the answer is discarded.
+6. **Rules.** `null_payee`, `age`, `kinship`, `history`, `identity`, `silence`. They only lower the verdict.
+7. **Receipt.** Canonical JSON, sha256, chained to the previous receipt.
+
+The [architecture page](https://fiangshi.xyz/architecture) shows this as an animated map, with every outside service, the trust model and the failure modes.
+
+## Quality
+
+| check | result |
+|---|---|
+| unit and integration tests | 322 passing (`npm test`) |
+| offline acceptance gates, network blocked | 15 / 15 (`npm run accept`) |
+| end to end on a live local server | 10 / 10 (`npm run localhost-check`) |
+| adversarial lab, expectations committed before each run | 8 pass, 1 superseded by a documented rule change |
+| numbers in documents vs. the data | enforced by gate G12 (`npx tsx scripts/numbers.ts --check`) |
+
+The [test report](https://fiangshi.xyz/report) lists every failure found while building Fiangshi, with its cause, fix and proof, and what is still open.
+
+## Status
+
+Built for SERV Hackathon 02 (November 2026). Settlement on the paid routes is **dry-run**: payment headers are validated for structure and nothing is settled. Coverage is Base (`eip155:8453`) only. See [Limits](#limits).
+
+---
+
+## Developer quickstart
 
 ```bash
 cp .env.example .env
@@ -20,10 +105,13 @@ Everything above needs **no keys** and touches no network beyond 127.0.0.1:
 - `npm test` and `npm run accept` run on committed fixtures under a no-network preload.
 - `npm run localhost-check` defaults to **fixture mode**. Recorded 402s (`fixtures/402/real`) and recorded SERV and Dolphin replies (`fixtures/recorded`, made by `npx tsx scripts/record-replay.ts`) are replayed through the real parser, vows and receipt chain. The server runs under the no-network preload, and every response is marked `mode: "fixture"`. A missing recording fails closed; it never falls back to the network.
 - `npm run localhost-check -- --live` uses real providers and needs `SERV_REASONING_API_KEY` in `.env`.
+- `npm run build && npm start` serves the compiled app on `0.0.0.0:$PORT` for production. `npm run export` builds the static edition published at fiangshi.xyz.
 
 `localhost-check` starts its own server on 8787, so stop `npm run dev` first, or set `FIANGSHI_CHECK_PORT`.
 
-## The six vows (frozen)
+## Technical reference
+
+### The six vows (frozen)
 
 Vows are deterministic rules that run after the model and can only lower the verdict. Final band = `min(score band, model band, vow band)`.
 
@@ -48,7 +136,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 263 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
+| tests | 322 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 **Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
@@ -67,32 +155,27 @@ These are the only band counts the repo states; every page (README, `artifacts/a
 
 Cost basis (`npx tsx scripts/pricing.ts`, details in `artifacts/costs.md`): a cached check costs $0.0019 in model calls against a $0.05 price (96% margin). A cold check costs $0.0499 measured (2 SQL calls at 4 credits by balance, plus models) against $0.15 (67%), or $0.0619 if Surf's `meta.credits_used` (5 per call) is taken at face value (59%).
 
-## The site (127.0.0.1:8787)
+## Website and API
 
-Five static pages, served by the same process as the API. No JavaScript, no framework, no CDN, no external request: a Content-Security-Policy of `default-src 'none'` enforces it in the browser (`tests/api.test.ts`).
+The same process serves the website and the API. Pages contain no JavaScript and load nothing from other sites; a Content-Security-Policy of `default-src 'none'` enforces it (`tests/api.test.ts`). The site is available in English, Chinese, Japanese and Korean (`/zh`, `/ja`, `/ko`).
 
 | page | what it shows |
 |---|---|
-| `/` | The census (band counts and a score histogram split by final band), five case files, the six vows with how often each fired, shared funders, and all 800 payees with their receipts. |
-| `/check?url=` | A free probe from a plain form: one unpaid GET, the null-payee gate, and the cached census band. It never calls a model and shows only what `/v1/index.json` and `/v1/receipt/:id` already give away. |
+| `/` | The census (band counts, score histogram), case files, the six rules with how often each fired, shared funders, and all 800 payees with their receipts. |
+| `/check?url=` | A free probe: one unpaid GET, the null-payee gate and the census band. Never calls a model. (Live server only.) |
 | `/receipt/:id` | A receipt as a paper slip, with the result of recomputing its hash and chain link. |
-| `/guide` | [docs/GUIDE.md](docs/GUIDE.md): real paid endpoints to try (each answer checked by `tests/guide-examples.test.ts`), one check walked through step by step, the agent flow with real requests and responses, how a verdict is made, the routes, the receipt fields, limits. A test checks every example against the running server. |
-| `/legal` | [docs/LEGAL.md](docs/LEGAL.md): terms of use, what a verdict about a seller does and does not say, privacy, licence. It ends with the operator contact from `FIANGSHI_CONTACT`. |
-
-Code: `src/site.ts` (pages), `src/site-theme.ts` (logo, styles, shell) and `src/md.ts` (the small Markdown renderer for the two documents). Verdict colours are white (ALLOW), grey (REVIEW) and red (BLOCK), each with its own shape and a text label, so no verdict depends on telling red from green.
-
-## API (127.0.0.1:8787)
+| `/docs` | Documentation home: [Guide](docs/GUIDE.md), [Connect](docs/CONNECT.md), [CLI and skill](docs/CLI.md), [Architecture](docs/ARCHITECTURE.md), [Test report](docs/REPORT.md), [Legal](docs/LEGAL.md). |
 
 | route | price | notes |
 |---|---|---|
-| `GET /`, `GET /check?url=`, `GET /receipt/:id`, `GET /docs`, `GET /legal` | free | the site above |
-| `GET /health`, `GET /v1/index.json` | free | census payees with band, score and receipt id |
-| `GET /v1/check?url=` | $0.05 | V6 payees answer BLOCK free; otherwise a real x402 v2 402 until `X-PAYMENT` is sent |
-| `GET /v1/payee/:addr` | $0.02 | x402 v2 402, then the census record |
-| `GET /v1/receipt/:id`, `GET /v1/verify?id=` or `?receipt=` | free | `receipt` = base64url receipt JSON; one changed byte → `valid:false` |
-| `GET /v1/badge/:addr.svg` | free | badge coloured by band |
+| `GET /v1/preview?url=` | free | probe, null-payee gate and census answer as JSON; what the MCP tool `fiangshi_preview` calls |
+| `GET /v1/check?url=` | $0.05 cached, $0.15 cold | null payees answer BLOCK free; otherwise a real x402 v2 `402` until `X-PAYMENT` is sent |
+| `GET /v1/payee/:addr` | $0.02 | x402 v2 `402`, then the census record |
+| `GET /v1/index.json` | free | every census payee with band, score and receipt id |
+| `GET /v1/receipt/:id`, `GET /v1/verify?id=` or `?receipt=` | free | `receipt` = base64url receipt JSON; one changed byte gives `valid: false` |
+| `GET /v1/badge/:addr.svg`, `GET /health` | free | badge coloured by band; server status |
 
-Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signature is not verified and no tx hash is ever invented. Paid routes stay disabled until `FIANGSHI_PAYTO` (your wallet, which must pass V6) is set. `localhost-check` uses an EIP-55 spec vector when it isn't set.
+Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signature is not verified and no transaction hash is ever invented. Paid routes stay disabled until `FIANGSHI_PAYTO` (your wallet, which must pass the null-payee rule) is set.
 
 ## Limits
 
@@ -158,3 +241,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-13 Docs, CLI and skill.** The tour button is removed (the first-visit tour stays, `/?tour=1` reopens it). The top bar has one Docs link: `/docs` is a documentation home, and every document (`/guide`, `/connect`, `/cli`, `/architecture`, `/report`, `/legal`) shares a sidebar grouped Get started / How it works / Policies, a breadcrumb and previous / next links (`src/docs-index.ts`). Agent CLI (`src/cli/agent.ts`, `bin: fiangshi`): `preview`, `payee`, `receipt`, `quote`, `skill install`, `mcp`, with `--json` and the verdict as exit code (0 ALLOW, 10 REVIEW, 20 BLOCK). Agent skill `skills/fiangshi/SKILL.md`, installable into Claude Code, Codex, Grok CLI and Hermes. 311 tests.
 - **2026-11-13 Python client, production start.** `clients/python/fiangshi_client.py`: one file, standard library only, with `preview`, `payee`, `verify_receipt`, `quote`, OpenAI-style `tools()` / `call_tool()`, and a command line with the same exit codes; its tests run inside `npm test` when Python is present. `npm start` (after `npm run build`) serves the compiled app on `--host 0.0.0.0` and `PORT`. Fixed: ten scripts located the project folder from their own path, so the compiled server could not find the census; all now use the shared root, and a test guards it. Behind an HTTPS proxy, handed-out links use https and the tour cookie is Secure. 315 tests.
 - **2026-11-13 Static edition on GitHub Pages.** `npm run export` runs the real server in static mode (`FIANGSHI_STATIC=1`), crawls every page in all four languages (home, docs, the 800 census receipts, `/v1/index.json`) and writes them to `site/` with `CNAME` and `404.html`; it fails if any page links to a missing page or a server-only route. In the static edition the check box shows the one-line CLI command instead of a form, try-it links open sealed receipts, and the tour is off. `.github/workflows/pages.yml` tests, exports and publishes on every push to `main`, at fiangshi.xyz. 319 tests.
+- **2026-11-13 Public launch.** https://fiangshi.xyz is live on GitHub Pages with HTTPS. The README is rewritten for readers outside the hackathon (what Fiangshi does, how to try it, integrations, quality, status), and the repository has a homepage, description and topics. `render.yaml` describes the live API service for Render (`api.fiangshi.xyz`); when the repository variable `FIANGSHI_API_URL` is set, the static site's check box and try-it links send checks to that API, and its CSP allows that one origin for forms. 322 tests.

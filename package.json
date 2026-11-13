@@ -22,7 +22,8 @@
     "dev": "tsx src/api/server.ts",
     "start": "node dist/src/api/server.js --host 0.0.0.0",
     "localhost-check": "tsx scripts/localhost-check.ts",
-    "mcp": "tsx src/mcp/server.ts"
+    "mcp": "tsx src/mcp/server.ts",
+    "export": "tsx scripts/export-static.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"

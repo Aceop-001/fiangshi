@@ -10,3 +10,4 @@ coverage/
 .claude/
 __pycache__/
 *.pyc
+site/

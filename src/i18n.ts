@@ -75,6 +75,11 @@ const ROWS: [string, string, string, string][] = [
   ["A live map of the eight steps, every outside service, the trust model and failure modes.", "八个步骤的动态地图、所有外部服务、信任模型和故障模式。", "8 つのステップの動く地図、すべての外部サービス、信頼モデル、障害時の動き。", "8단계의 움직이는 지도, 모든 외부 서비스, 신뢰 모델, 장애 시 동작."],
   ["Every failure in the build with its cause, fix and proof, and what is still open.", "构建中的每一次失败：原因、修复和证据，以及仍未解决的问题。", "開発中のすべての失敗と、その原因・修正・証拠、そしてまだ残っている課題。", "개발 중의 모든 실패와 원인, 수정, 증거, 그리고 아직 남은 과제."],
   ["Terms of use, what a verdict about a seller means, privacy and the one cookie.", "使用条款、关于卖家的判定意味着什么、隐私以及唯一的 Cookie。", "利用規約、販売者についての判定の意味、プライバシー、そして唯一の Cookie。", "이용 약관, 판매자에 대한 판정의 의미, 개인정보 보호, 그리고 하나뿐인 쿠키."],
+  // static edition (GitHub Pages)
+  ["static edition", "静态版", "静的版", "정적 버전"],
+  ["<strong>Static edition.</strong> These pages are pre-built from the committed census. Live checks run on the Fiangshi API: see <a href=\"/cli\">CLI and skill</a> or <a href=\"/connect\">Connect</a>.", "<strong>静态版。</strong>这些页面由已提交的普查数据预先生成。实时检查在 Fiangshi API 上运行：参见<a href=\"/cli\">命令行与技能</a>或<a href=\"/connect\">接入</a>。", "<strong>静的版。</strong>これらのページはコミット済みの調査データから事前に生成されています。ライブチェックは Fiangshi API で動きます。<a href=\"/cli\">CLI とスキル</a>または<a href=\"/connect\">接続</a>をご覧ください。", "<strong>정적 버전.</strong> 이 페이지들은 커밋된 조사 데이터로 미리 만들어졌습니다. 실시간 확인은 Fiangshi API에서 실행됩니다. <a href=\"/cli\">CLI와 스킬</a> 또는 <a href=\"/connect\">연결</a>을 보세요."],
+  ["Live checks need the Fiangshi API, which this static page cannot run. Start it in one command, or connect your agent: {cli} · {connect}.", "实时检查需要 Fiangshi API，这个静态页面无法运行它。用一条命令启动它，或接入你的代理：{cli} · {connect}。", "ライブチェックには Fiangshi API が必要で、この静的ページでは動かせません。コマンド 1 つで起動するか、エージェントを接続してください：{cli} · {connect}。", "실시간 확인에는 Fiangshi API가 필요하며, 이 정적 페이지에서는 실행할 수 없습니다. 명령 하나로 시작하거나 에이전트를 연결하세요: {cli} · {connect}."],
+  ["See the sealed receipts for {links}.", "查看 {links} 的封存凭证。", "{links} の封印済みレシートを見る。", "{links}의 봉인된 영수증을 보세요."],
   ["Architecture", "架构", "アーキテクチャ", "아키텍처"],
   ["Connect", "接入", "接続", "연결"],
   ["Test report", "测试报告", "テストレポート", "테스트 보고서"],

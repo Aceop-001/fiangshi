@@ -3,7 +3,7 @@
  * Static by construction: no script, no framework, no external request (system fonts, inline SVG, inline CSS).
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
  */
-import { providerMode } from "./config.js";
+import { providerMode, staticSite } from "./config.js";
 import { DOC_PAGES } from "./docs-index.js";
 import { LANGS, lang, t as T } from "./i18n.js";
 
@@ -152,6 +152,9 @@ h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:10px 0 16px}
 .probe-row{display:flex;border:1px solid var(--hud)}
 .probe-row:focus-within{outline:2px solid var(--fg);outline-offset:2px}
 .probe-row>span{padding:11px 0 11px 12px;color:var(--red-text)}
+.probe-l{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.probe-static .probe-row code{padding:11px 12px;overflow-x:auto;white-space:nowrap;color:var(--fg)}
+.probe-static .mut{margin-top:10px;font-size:12.5px}
 .probe input{flex:1;min-width:0;background:none;border:0;color:var(--fg);font:14px var(--mono);padding:11px 12px;outline:none}
 .probe input::placeholder{color:#767676}
 .probe button{background:var(--fg);color:#000;border:0;font:600 12px var(--mono);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;cursor:pointer}
@@ -403,6 +406,7 @@ export const FOOT_LINKS: [href: string, label: string][] = DOC_PAGES.map((d) => 
 const MODE_NOTE: Record<string, string> = {
   fixture: "<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain.",
   mock: "<strong>Mock mode.</strong> Probes are live; model advice is mocked because no model keys are set.",
+  static: "<strong>Static edition.</strong> These pages are pre-built from the committed census. Live checks run on the Fiangshi API: see <a href=\"/cli\">CLI and skill</a> or <a href=\"/connect\">Connect</a>.",
 };
 
 export interface Shell {
@@ -419,7 +423,7 @@ export interface Shell {
 }
 
 export function page(s: Shell): string {
-  const mode = providerMode();
+  const mode = staticSite() ? "static" : providerMode();
   const links = s.nav ?? ([["/#census", "Census"], ...SITE_LINKS] as [string, string][]);
   const nav = `<nav aria-label="Site">${links.map(([h, l]) => `<a href="${esc(h)}">${esc(T(l))}</a>`).join("")}</nav>`;
   const switcher = `<nav class="langs" aria-label="${T("Language")}">${LANGS.map((l) => (l.code === lang() ? `<b aria-current="true">${l.label}</b>` : `<a href="${esc(l.code === "en" ? pagePath : `/${l.code}${pagePath === "/" ? "" : pagePath}`)}" hreflang="${l.html}" lang="${l.html}" data-nolang>${l.label}</a>`)).join("")}</nav>`;
@@ -431,7 +435,7 @@ export function page(s: Shell): string {
 <title>${esc(s.title)}</title>
 <link rel="icon" href="${FAVICON}">
 <style>${CSS}${s.css ?? ""}</style></head><body>
-<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}</span></div></header>
+<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${mode === "static" ? esc(T("static edition")) : `${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}`}</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
 <footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
@@ -441,5 +445,8 @@ ${s.body}
 
 /** The free probe form (plain GET, no script). */
 export function probeForm(value = "", id = "u"): string {
+  // the static edition has no server to probe with: say so, and show the one-line way to run a check
+  if (staticSite())
+    return `<div class="probe probe-static"><p class="probe-l">${T("Paid endpoint URL")}</p><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><code>fiangshi preview "https://api.example.com/paid"</code></div><p class="mut">${T("Live checks need the Fiangshi API, which this static page cannot run. Start it in one command, or connect your agent: {cli} · {connect}.", { cli: '<a href="/cli">CLI</a>', connect: '<a href="/connect">Connect</a>' })}</p></div>`;
   return `<form class="probe" action="/check" method="get"><label for="${id}">${T("Paid endpoint URL")}</label><div class="probe-row"><span aria-hidden="true">&gt;&gt;</span><input id="${id}" name="url" type="url" required maxlength="2000" placeholder="https://api.example.com/paid" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}"><button type="submit">${T("Probe")}</button></div></form>`;
 }

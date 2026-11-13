@@ -7,7 +7,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, env, num } from "./config.js";
+import { ROOT, env, num, staticSite } from "./config.js";
 import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
@@ -260,7 +260,10 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
   const share = (x: number) => `${((100 * x) / Math.max(1, n)).toFixed(1)}%`;
   const fired = (v: VowName) => c.payees.filter((p) => p.vows.includes(v)).length;
   const tileNote: Record<Band, string> = { ALLOW: T("passed every check"), REVIEW: T("a human or a tighter budget decides"), BLOCK: T("a vow fired, or the score is under 50") };
-  const tries = [z?.payee.url, f?.payee.url].filter((u): u is string => Boolean(u)).map((u) => `<a href="/check?url=${encodeURIComponent(u)}">${esc(bareUrl(u))}</a>`);
+  // live edition: probe these URLs; static edition: open their sealed receipts instead (no server to probe with)
+  const tries = [z?.payee, f?.payee]
+    .filter((p): p is CensusPayee => Boolean(p))
+    .map((p) => (staticSite() ? `<a href="/receipt/${p.receipt_id}">${esc(bareUrl(p.url))}</a>` : `<a href="/check?url=${encodeURIComponent(p.url)}">${esc(bareUrl(p.url))}</a>`));
   const unnamed = c.funders.filter((r) => r.status === "shared unnamed funder").length;
   const funderRows = c.funders
     .slice(0, 14)
@@ -269,13 +272,13 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
   const cached = num("FIANGSHI_PRICE_CHECK", 0.05);
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
 
-  const body = `${o.tour ? tourOverlay() : ""}<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
+  const body = `${o.tour && !staticSite() ? tourOverlay() : ""}<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
 <div class="hud"><div class="hud-h"><span>${T("Pre-payment check")}</span><span>x402 · Base</span></div><div class="hud-b">
 <p class="kicker">${T("Counterparty oracle for agent payments")}</p>
 <h1>${T("Who is behind the 402?").replace(" 402", "&nbsp;402")}</h1>
 <p class="lede">${T("Fiangshi checks the wallet behind an x402 paid endpoint before your agent pays it. It answers ALLOW, REVIEW or BLOCK, quotes its evidence, and seals a receipt you can verify again later. Advisory only: it never holds funds.")}</p>
 ${probeForm()}
-<p class="try">${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}</p>
+<p class="try">${staticSite() ? (tries.length ? T("See the sealed receipts for {links}.", { links: tries.join(` ${T("or")} `) }) : "") : `${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}`}</p>
 </div></div>
 </div></section>
 
@@ -468,7 +471,7 @@ ${hashBars(r.receipt_hash)}
 <p class="mut">The id is the sha256 of the canonical JSON of every field except the id itself. Change one byte anywhere and the hash no longer matches. Each receipt also carries the id of the one before it, so removing or reordering a receipt breaks the chain.</p>
 <ul class="next" style="margin-top:16px"><li>Recompute it yourself:<code class="cmd">curl "${esc(self)}/v1/verify?id=${esc(r.receipt_hash)}"</code></li><li>The receipt as JSON:<code class="cmd">curl "${esc(self)}/v1/receipt/${esc(r.receipt_hash)}"</code></li></ul>
 </div></div>
-<p class="try"><a href="/">${T("Back to the census")}</a> · <a href="/check?url=${encodeURIComponent(r.url)}">${T("probe this endpoint again")}</a></p>
+<p class="try"><a href="/">${T("Back to the census")}</a>${staticSite() ? "" : ` · <a href="/check?url=${encodeURIComponent(r.url)}">${T("probe this endpoint again")}</a>`}</p>
 </aside>
 </main>`;
   return page({
@@ -523,6 +526,14 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
     return to ? `](${to.path}${hash ?? ""})` : m;
   });
   const r = renderMarkdown(src);
+  if (staticSite()) {
+    // no server to probe with: a "try this endpoint" link opens the payee's sealed census receipt, or becomes plain text
+    r.html = r.html.replace(/<a href="\/check\?url=([^"]+)">([\s\S]*?)<\/a>/g, (_m, enc: string, text: string) => {
+      const url = decodeURIComponent(enc.replace(/&amp;/g, "&"));
+      const p = c.payees.find((x) => x.url === url);
+      return p ? `<a href="/receipt/${p.receipt_id}">${text}</a>` : `<span>${text}</span>`;
+    });
+  }
   if (kind === "architecture") {
     // "Figure: <name> (animated on the site at /architecture)." paragraphs become the animated working models
     let n = 0;

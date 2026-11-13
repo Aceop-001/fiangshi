@@ -18,6 +18,8 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 | census cost | 620 credits billed for the 13 Nov refresh of 1,923 payees (the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
+| paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies; settlement dry-run | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
+| freshness | every census record carries its own `as_of`; data older than 72 h caps ALLOW at REVIEW (policy `2026-11-13.5`) | `artifacts/refresh.md`, gate G16 |
 
 ## How we test
 
@@ -64,7 +66,11 @@ A fifth check runs once per release: a fresh copy of the repository with no keys
 | 10 Nov | 3i–3k | the site (no script), operator-only identity labels, guide and legal pages, evidence sources | `fbf90f5` … `224ae4c` |
 | 11 Nov | final A–F | kinship calibration, funder labels re-asked, cold check live, win-rate, single source of numbers (G12–G15) | `c9280f3` … `5696cd2` |
 | 11–12 Nov | site | guide with real endpoints, test report, crash fix, four languages | `7628f67` … `7cfe713` |
-| 13 Nov | connect | architecture page, connect guides, MCP server, free JSON preview, first-visit tour | this release |
+| 13 Nov | connect | architecture page, connect guides, MCP server, free JSON preview, first-visit tour | `b511c89` … `2369a2d` |
+| 13 Nov | launch | fiangshi.xyz on GitHub Pages, live API on Render, outside review fixes | `0951a07` … `4a779dd` |
+| 13 Nov | policy v5 | per-record freshness and the stale cap (a band cap, not a vow) | `bb8acc9` |
+| 13 Nov | refresh | paid Surf refresh of all 1,923 Base payees (620 credits) | `55d860e` |
+| 13 Nov | paid route | real x402 terms in the 402, `X-PAYMENT-RESPONSE`, every figure regenerated, gate G16, the captured live 402 | `3ec5f7a` … `ffb54b4` |
 
 The full per-commit list, with the number of test files, test cases and gates at each commit, is in the table near the end of this page.
 
@@ -198,6 +204,34 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Fix.** The MCP server uses `node:http` and `node:https` directly.
 - **Proof.** `tests/mcp.test.ts` spawns the MCP server as a real process against a test server and runs a full handshake, a tool list and a BLOCK.
 
+### F19. The refresh would not start, twice, and nothing was billed (13 Nov)
+
+- **Seen.** The first two starts of the paid refresh stopped before any Surf call: once on the offline switch in `.env`, once on the budget guard's 60-call ceiling (94 calls were already logged). Before that, Surf rejected the first API key the owner entered.
+- **Cause.** Guards working as designed: the offline switch refuses every live call, the call ceiling counts every Surf call ever made, and the key check is a free balance read.
+- **Fix.** Both switches were lifted for that run only, on the command line, with the credit floor (2,048 − 620 = 1,428) as the real cap. The owner entered a fresh key. A same-day resume now reuses any passing gate instead of paying for a new one.
+- **Proof.** Balance 2,048 before and after the three false starts. The run then stopped exactly at the floor: 620 credits, 0 refusals (`fixtures/audit/balances.json`).
+
+### F20. A moving window turned well-known sellers away from ALLOW (13 Nov)
+
+- **Seen.** After the refresh, Nansen, Glassnode and TBS no longer answered ALLOW; kinship fired on 743 of 1,923 payees, against 243 of 800 on 9 Nov.
+- **Cause.** For a wallet older than the 90-day window, the first sender inside the window stands in for its funder. The window moved four days, and that sender changed for 164 of the 800 original payees, often to a relayer-like wallet that many sellers share and Surf cannot name. Half of the 92 new kinship cases come from that, half from the full catalog putting more payees on the same funder.
+- **Fix.** None to the rules: changing how the funder is read is a rubric change, which was ruled out for this pass. The effect is measured and published instead, with an upper bound.
+- **Proof.** `artifacts/refresh.md` (movement table and cause split), `artifacts/sensitivity.md` (policy C), README limits. Old receipts keep their bands: the 9 Nov TBS receipt still verifies as ALLOW under v4.
+
+### F21. Tests assumed one census and one clock (13 Nov)
+
+- **Seen.** 12 tests failed after the refresh: hard-coded counts (800), guide examples whose bands moved, and recorded model replies that no longer matched their inputs.
+- **Cause.** Facts about the 9 Nov census were written into tests, and fixture mode replays SERV answers recorded against that census.
+- **Fix.** Tests read the census they test. Fixture mode serves the recorded 9 Nov census at its recorded moment (`FIXTURE_TIME`); the live path serves the refresh. The guide's examples were re-chosen from the refreshed census, and a test checks every fact they state.
+- **Proof.** 346 tests, accept 16/16, localhost-check 10/10, and the same on a fresh clone with no keys.
+
+### F22. The live paid check answered REVIEW for a clean seller (13 Nov)
+
+- **Seen.** With the wallet set, a test payment for Bitrefill (score 88.33, no rule fired) came back REVIEW, `degraded: true`.
+- **Cause.** The server had no SERV key at first, then no `SERV_MODEL`; the adapter needs both. A model that cannot answer fails closed at REVIEW, by design.
+- **Fix.** The owner set `SERV_REASONING_API_KEY`, `SERV_MODEL`, and the Dolphin settings on Render.
+- **Proof.** The same test payment then answered ALLOW: SERV said ALLOW, Dolphin enrichment complete, 3.6 s, receipt `2a0c6b75…7bf0` verifies with `band_matches: true`.
+
 ## Rule changes, each one measured
 
 Every rule change was simulated on the census before it was applied, and its effect was recorded.
@@ -211,6 +245,7 @@ Every rule change was simulated on the census before it was applied, and its eff
 | 9 Nov | identity neutrality | examined sellers are no longer penalised | `src/core/score.ts` |
 | 10 Nov | operator-only labels | one false BLOCK becomes REVIEW | `src/core/identity.ts` |
 | 11 Nov | kinship v2 (REVIEW at 21+ unlabelled) | 120 BLOCK become REVIEW | `artifacts/sensitivity.md` |
+| 13 Nov | policy v5: stale cap at REVIEW (a band cap, not a vow) | 0 ALLOW moved at the reference time; all 127 cap to REVIEW once their data passes 72 h | `artifacts/refresh.md` |
 
 The rule count has been frozen at six since 9 Nov.
 
@@ -225,12 +260,16 @@ The rule count has been frozen at six since 9 Nov.
 | label batch size | fails above about 20 addresses | at most 20 per call |
 | async jobs | need an API key | free tier uses two single-branch sync queries |
 | window | 365 days at most; census uses 90 | wallet age is a lower bound |
+| refresh cost (13 Nov) | 0.16 credits per payee for SQL at 50 per call, 0 refusals at a 25 s limit | a full refresh of 1,923 payees fits in about 320 credits before labels |
+| label coverage | 81 of 1,907 addresses returned a label row (4.2%), 42 with a name or type | most funders stay unnamed; kinship can only exempt what Surf names |
 
 ## Still failing or not done
 
 These are open, and they are not hidden anywhere else either.
 
-- **The four biggest shared funders have no name.** Surf was asked twice and has no label for them. If they turn out to be exchanges, up to two thirds of BLOCKs could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
+- **Most shared funders have no name.** 47 of the 49 funders behind a kinship vow have no Surf label. If they turn out to be exchanges or relayers, up to 436 of the 552 BLOCKs (79%) could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
+- **The first funder of an old wallet drifts with the window** (F20). Not fixed in this pass, because it needs a rubric change.
+- **The census goes stale on 16 Nov around 10:54 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
 - **No real payment yet.** Settlement is a dry run until the owner pays from their own wallet. Fiangshi will not do it for them.
 - **3 real control sellers in the lab, not 10.** The census only had a few sellers that pass every rule with complete data.
 - **The age, history and identity rules have no live case.** They are tested on fixtures and tables only.

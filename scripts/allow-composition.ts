@@ -35,7 +35,7 @@ const labAllow = (lab?.results ?? []).filter((r) => r.actual.band === "ALLOW").m
 
 if (process.argv.includes("--json")) console.log(JSON.stringify({ bands: c.bands, table, lab: { file: lab?.file, allow: labAllow } }, null, 2));
 else {
-  console.log(`census bands: ${JSON.stringify(c.bands)} (all 800 census receipts: enrichment "skipped", no model calls)\n`);
+  console.log(`census bands: ${JSON.stringify(c.bands)} (all ${c.payees.length} census receipts: enrichment "skipped", no model calls)\n`);
   console.log("| identity examination | payees | ALLOW | REVIEW | BLOCK | I among ALLOWs |\n|---|---|---|---|---|---|");
   for (const s of STATES) {
     const t = table[s]!;

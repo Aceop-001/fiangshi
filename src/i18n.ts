@@ -63,7 +63,7 @@ const ROWS: [string, string, string, string][] = [
   ["Fiangshi docs", "Fiangshi 文档", "Fiangshi ドキュメント", "Fiangshi 문서"],
   ["Everything you need to check a payee before an agent pays: how to use it, how it works, and the evidence that it does what it says.", "在代理付款之前检查收款方所需的一切：怎么用、如何运作，以及它确实做到所述之事的证据。", "エージェントが支払う前に支払先を確認するために必要なことのすべて。使い方、しくみ、そして言ったとおりに動く証拠。", "에이전트가 결제하기 전에 수취인을 확인하는 데 필요한 모든 것: 사용법, 작동 방식, 그리고 말한 대로 작동한다는 증거."],
   ["See the census", "查看普查", "調査を見る", "조사 보기"],
-  ["800 sellers, each with a sealed receipt you can open.", "800 个卖家，每个都有可打开的封存凭证。", "800 の販売者。それぞれに開ける封印済みレシートがあります。", "판매자 800곳, 각각 열어 볼 수 있는 봉인된 영수증이 있습니다."],
+  ["{n} sellers, each with a sealed receipt you can open.", "{n} 个卖家，每个都有可打开的封存凭证。", "{n} の販売者。それぞれに開ける封印済みレシートがあります。", "판매자 {n}곳, 각각 열어 볼 수 있는 봉인된 영수증이 있습니다."],
   ["Try a check", "试一次检查", "チェックを試す", "확인해 보기"],
   ["Paste a paid endpoint on the home page. Free.", "在首页粘贴一个付费端点。免费。", "トップページに有料エンドポイントを貼り付けます。無料です。", "홈 페이지에 유료 엔드포인트를 붙여넣으세요. 무료입니다."],
   ["Connect an agent", "接入代理", "エージェントを接続", "에이전트 연결"],
@@ -85,6 +85,9 @@ const ROWS: [string, string, string, string][] = [
   // data age (review fix, 13 Nov)
   ["Data as of {date}, {hours} hours old.", "数据截至 {date}，已有 {hours} 小时。", "データは {date} 時点、{hours} 時間前のものです。", "{date} 기준 데이터, {hours}시간 전입니다."],
   ["Past the {ttl}-hour freshness window: these verdicts describe that date. Re-check before paying.", "已超过 {ttl} 小时的有效期：这些判定描述的是当时的情况。付款前请重新检查。", "{ttl} 時間の鮮度期間を過ぎています。これらの判定はその時点のものです。支払う前に再確認してください。", "{ttl}시간의 유효 기간이 지났습니다. 이 판정은 그 시점의 것입니다. 결제 전에 다시 확인하세요."],
+  ["Data {h} hours old, past the {ttl}-hour window: capped at REVIEW (issued {issued}). Re-check before paying.", "数据已有 {h} 小时，超过 {ttl} 小时有效期：上限为 REVIEW（签发时为 {issued}）。付款前请重新检查。", "データは {h} 時間前のもので、{ttl} 時間の期間を過ぎています：上限は REVIEW（発行時は {issued}）。支払う前に再確認してください。", "데이터가 {h}시간 지나 {ttl}시간 기간을 넘었습니다: 상한은 REVIEW(발급 시 {issued}). 결제 전에 다시 확인하세요."],
+  ["Data {h} hours old, inside the {ttl}-hour window.", "数据已有 {h} 小时，在 {ttl} 小时有效期内。", "データは {h} 時間前のもので、{ttl} 時間の期間内です。", "데이터가 {h}시간 지났으며 {ttl}시간 기간 안입니다."],
+  ["Data collected", "数据采集时间", "データ収集時刻", "데이터 수집 시각"],
   ["Within the {ttl}-hour freshness window.", "在 {ttl} 小时的有效期内。", "{ttl} 時間の鮮度期間内です。", "{ttl}시간의 유효 기간 안입니다."],
   ["What we could not check", "我们无法核实的内容", "確認できなかったこと", "확인하지 못한 것"],
   ["The paid check is not enabled on this server: its operator has not set a receiving wallet.", "此服务器未启用付费检查：运营者尚未设置收款钱包。", "このサーバーでは有料チェックが有効になっていません。運営者が受取用ウォレットを設定していないためです。", "이 서버에서는 유료 확인이 켜져 있지 않습니다. 운영자가 수취 지갑을 설정하지 않았습니다."],

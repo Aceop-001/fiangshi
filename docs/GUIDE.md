@@ -192,6 +192,12 @@ The verdict (evidence list shortened here):
 }
 ```
 
+The answer also carries an `X-PAYMENT-RESPONSE` header (base64 JSON) that says plainly nothing was settled:
+
+```json
+{ "success": false, "transaction": null, "network": "eip155:8453", "payer": "0xfB69…d359", "settlement": "dry-run", "errorReason": "dry-run: the payment was checked for structure only and was not settled" }
+```
+
 | field | meaning |
 |---|---|
 | `mode` | Which providers produced the answer: `live`, `fixture` (recorded replies replayed) or `mock`. |

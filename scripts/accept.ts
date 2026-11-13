@@ -240,6 +240,29 @@ await gate("G15 sensitivity table matches numbers", async () => {
   return `policy B ${B.ALLOW}/${B.REVIEW}/${B.BLOCK} = numbers.json, 0 new BLOCKs`;
 });
 
+await gate("G16 no stale ALLOW in the published index (policy v5)", async () => {
+  const { loadCensus } = await import("../src/census.js");
+  const pinned = process.env.FIANGSHI_NOW;
+  const out: string[] = [];
+  try {
+    const c0 = loadCensus();
+    // at the reference time, just past the newest record's limit, and long after: never an ALLOW past the limit
+    const times = [pinned ?? c0.served_at, new Date(Date.parse(c0.newest_as_of) + (c0.stale_limit_hours + 0.1) * 3_600_000).toISOString(), new Date(Date.parse(c0.newest_as_of) + 500 * 3_600_000).toISOString()];
+    for (const t of times) {
+      process.env.FIANGSHI_NOW = t;
+      const c = loadCensus();
+      const bad = c.payees.filter((p) => p.band === "ALLOW" && p.data_age_hours > c.stale_limit_hours);
+      assert(bad.length === 0, `${bad.length} stale ALLOW at ${t}`);
+      assert(c.payees.every((p) => typeof p.as_of === "string" && p.band_cap === null || p.band_cap?.reason === "data_stale"), "a cap other than data_stale");
+      out.push(`${c.bands.ALLOW} ALLOW/${c.payees_stale} stale`);
+    }
+  } finally {
+    if (pinned === undefined) delete process.env.FIANGSHI_NOW;
+    else process.env.FIANGSHI_NOW = pinned;
+  }
+  return `0 stale ALLOW at reference, +limit, +500 h (${out.join(" · ")})`;
+});
+
 const total = Math.round(performance.now() - t0);
 const attempts = (globalThis as { __fiangshiNetAttempts?: number }).__fiangshiNetAttempts ?? 0;
 const failed = rows.filter((r) => !r.ok).length;

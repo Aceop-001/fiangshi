@@ -158,6 +158,9 @@ describe("HTTP API", () => {
     const before = modelCalls.length;
     const tbs = await get(`/check?url=${encodeURIComponent("https://api.bitrefill.com/x402/gift-cards/search")}`);
     expect(tbs.body).toMatch(/Census band ALLOW, score \d/);
+    // policy v5: every census answer shows its own data age and collection time
+    expect(tbs.body).toMatch(/class="agebadge"><i class="st ALLOW"><\/i>Data \d+ hours old, inside the 72-hour window\./);
+    expect(tbs.body).toContain("Data collected");
     const other = await get(`/check?url=${encodeURIComponent("https://api.weatherly.example/v1/forecast")}`); // synthetic fixture, not in the census
     expect(other.body).toContain("This payee is not in the census.");
     expect(other.body).toContain("never ALLOW by default");

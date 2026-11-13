@@ -2,7 +2,7 @@
  * Win-rate instrumentation (0 credits): one table of how often Fiangshi is right, from committed data only.
  * Usage: npx tsx scripts/winrate.ts [--write]   (--write: artifacts/winrate.md)
  */
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../src/config.js";
 import { loadCensus } from "../src/census.js";
@@ -44,7 +44,9 @@ const surfCount = (row.inbound_count ?? 0) + (row.outbound_count ?? 0);
 const countDelta = (100 * (surfCount - bs.observed.erc20_transfer_count)) / bs.observed.erc20_transfer_count;
 
 // label coverage, before and after this pass's re-ask (checkpoint)
-const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-w90.json"), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
+// the served census's checkpoint: the 13 Nov refresh when committed, else 9 Nov
+const cpFile = existsSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-r2-w90.json")) ? "checkpoint-sample-census-r2-w90.json" : "checkpoint-sample-census-w90.json";
+const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", cpFile), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
 const queried = new Set(cp.labels_done.map((a) => a.toLowerCase()));
 const named = new Set(cp.labels.filter((l) => l.entity_name || l.entity_type).map((l) => l.address.toLowerCase()));
 const anyRow = new Set(cp.labels.map((l) => l.address.toLowerCase()));
@@ -67,7 +69,7 @@ const rows: [string, string, string][] = [
   ["BaseScan: first-seen time", `${firstSeenDeltaS} s apart`, `one payee (${bs.endpoint}), fixtures/validation/basescan-2026-11-08.json`],
   ["BaseScan: first funder", funderMatch ? "match" : "MISMATCH", "same payee"],
   ["BaseScan: transfer count", `${surfCount} vs ${bs.observed.erc20_transfer_count} (${countDelta >= 0 ? "+" : ""}${countDelta.toFixed(1)}%)`, "same payee; BaseScan hides spam tokens by default"],
-  ["Label coverage", `any row returned: ${anyRow.size} of ${queried.size} (${((100 * anyRow.size) / queried.size).toFixed(1)}%); with a name or type: ${named.size} (${((100 * named.size) / queried.size).toFixed(1)}%). Before this pass: ${named.size - namedByReask} with a name or type`, `the ${reasked.size} kinship funders asked again on 2026-11-11 gained ${namedByReask} labels`],
+  ["Label coverage", `any row returned: ${anyRow.size} of ${queried.size} (${((100 * anyRow.size) / queried.size).toFixed(1)}%); with a name or type: ${named.size} (${((100 * named.size) / queried.size).toFixed(1)}%)`, `fixtures/audit/${cpFile}; ${namedByReask} of the ${reasked.size} funders that fire kinship have a name or type`],
   ["Verdictable coverage", `${verdictable} of ${c.payees.length} (${((100 * verdictable) / c.payees.length).toFixed(1)}%)`, "census payees with every required signal (silence does not fire)"],
 ];
 

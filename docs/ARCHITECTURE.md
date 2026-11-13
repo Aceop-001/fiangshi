@@ -37,7 +37,7 @@ A blocked endpoint costs $0.00. No data call or model call is made, and a receip
 
 | source | when | cost | file |
 |---|---|---|---|
-| census | the payee is one of the 800 Base payees measured on 9 Nov (90-day window) | 0 credits at request time | `src/census.ts`, `fixtures/audit/` |
+| census | the payee is one of the 1,923 Base payees in the catalog, refreshed 13 Nov (90-day window, each record with its own `as_of`) | 0 credits at request time | `src/census.ts`, `fixtures/audit/` |
 | cold check | a Base payee not in the census, on the paid route | 2 Surf SQL calls (8 credits), then cached 72 h | `src/cold.ts`, `src/cold-surf.ts` |
 | funder labels | exchange, relayer, mixer, or unknown | measured once, committed | `fixtures/funders.json`, census checkpoints |
 

@@ -1,4 +1,4 @@
 {
-  "as_of": "2026-11-09T04:00:00.000Z",
-  "why": "Published figures describe the census as served at this moment (policy v5: each record capped by its own age). It is moved forward only when the census is refreshed and every document is regenerated (scripts/numbers.ts)."
+  "as_of": "2026-11-13T12:00:00.000Z",
+  "why": "Published figures describe the census as served at this moment (policy v5: each record capped by its own age). Moved forward from 2026-11-09T04:00Z after the 13 Nov refresh (records collected 10:45-10:55 UTC); it moves only when the census is refreshed and every document is regenerated (scripts/numbers.ts)."
 }

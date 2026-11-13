@@ -674,8 +674,13 @@ export function auditReport(inp: ReportInputs): string {
   const sqlCalls = cp.calls.filter((c) => c.label.startsWith("onchain-sql") && !/job-(get|results)/.test(c.label));
   const labelCalls = cp.calls.filter((c) => c.label.startsWith("wallet-labels"));
   // metered (meta.credits_used) total for the census itself; the final-pass re-ask (2026-11-11) is not part of the census
-  const credits = cp.calls.filter((c) => !(c as { at?: string }).at || String((c as { at?: string }).at) < "2026-11-11").reduce((a, c) => a + (c.credits ?? 0), 0);
-  const bal = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8")).census as { census_start: number; labels_stopped: number };
+  // metered total for the run itself; on the 9 Nov census, the final-pass re-ask (2026-11-11) is not part of it
+  const reask = (c: { at?: string }) => !(cp as { labels_reused_from?: unknown }).labels_reused_from && Boolean(c.at) && String(c.at) >= "2026-11-11";
+  const credits = cp.calls.filter((c) => !reask(c as { at?: string })).reduce((a, c) => a + (c.credits ?? 0), 0);
+  // the 13 Nov refresh (its checkpoint reused 9 Nov labels) has its own balance readings; the 9 Nov census keeps its own
+  const balances = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
+  const refresh = (cp as { labels_reused_from?: unknown }).labels_reused_from && balances.refresh;
+  const bal = (refresh ? { census_start: balances.refresh.start, labels_stopped: balances.refresh.after_labels } : balances.census) as { census_start: number; labels_stopped: number };
   const billed = bal.census_start - bal.labels_stopped;
   const sqlCredits = [...new Set(sqlCalls.map((c) => c.credits))];
   const slowest = sqlCalls.length ? Math.max(...sqlCalls.map((c) => c.ms)) : 0;
@@ -707,7 +712,8 @@ export function auditReport(inp: ReportInputs): string {
   L.push(`| distinct Base payees | ${total.toLocaleString("en-US")} |`);
   L.push(`| **endpoints → payees** | **${sample.catalog.endpoints_per_payee} resources per payee** |`);
   if (top) L.push(`| largest payee | ${short(top.payee)}: ${top.resources.toLocaleString("en-US")} resources (${pct(top.resources, sample.catalog.base_resources)} of Base) |`);
-  L.push(`| **coverage** | **${n} of ${total.toLocaleString("en-US")} Base payees (${pct(n, total)}), ${DAYS}-day window** |`);
+  const v6n = ((cp as { v6_blocked?: string[] }).v6_blocked ?? []).length;
+  L.push(`| **coverage** | **${(n + v6n).toLocaleString("en-US")} of ${total.toLocaleString("en-US")} Base payees (${pct(n + v6n, total)}), ${DAYS}-day window**${v6n ? `: ${n.toLocaleString("en-US")} queried, ${v6n} blocked by V6 before any call` : ""} |`);
   if (excluded.size) L.push(`| excluded as scan-heavy | ${excluded.size} (listed below) |`);
   L.push(``);
   L.push(`*For a buyer:* the catalog looks like ${sample.catalog.base_resources.toLocaleString("en-US")} sellers but is ${total.toLocaleString("en-US")} wallets. Diversifying across endpoints is not diversifying across counterparties.`, ``);

@@ -82,7 +82,7 @@ function mapFigure(): string {
   out += box(590, ys[4]! - 32, 150, 46, "SERV", "advises");
   out += box(590, ys[4]! + 22, 150, 46, "Dolphin", "reads names");
   out += box(590, ys[7]! - 4, 150, 54, "Ledger", "data/ledger.jsonl");
-  out += box(20, ys[2]! - 4, 150, 54, "Census", "800 payees, free");
+  out += box(20, ys[2]! - 4, 150, 54, "Census", "1,923 payees, free");
   out += `<rect x="20" y="${ys[1]! - 4}" width="150" height="54" fill="#000" stroke="${RED}" stroke-width="1.2" stroke-dasharray="4 3"/><text x="95" y="${ys[1]! + 17}" text-anchor="middle" fill="${REDT}" font-size="12" font-weight="700" ${MONO}>BLOCK · $0.00</text><text x="95" y="${ys[1]! + 35}" text-anchor="middle" fill="${MUT}" font-size="10" ${MONO}>no data, no model</text>`;
   const wire = (x1: number, y1: number, x2: number, y2: number, c = DIM, dash = "4 4") => `<path d="M${x1} ${y1} L${x2} ${y2}" stroke="${c}" stroke-width="1.5" stroke-dasharray="${dash}" fill="none"/>`;
   out += wire(X + W, sy(0), 590, sy(0)) + wire(X + W, sy(2), 590, sy(2)) + wire(X + W, sy(4) - 8, 590, sy(4) - 9) + wire(X + W, sy(4) + 8, 590, sy(4) + 45) + wire(X + W, sy(7), 590, sy(7));

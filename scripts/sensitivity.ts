@@ -1,12 +1,12 @@
 /**
- * Kinship sensitivity (0 credits): the 800-payee census under three kinship policies, from committed fixtures only.
+ * Kinship sensitivity (0 credits): the served census under three kinship policies, from committed fixtures only.
  *   A (pre-calibration) kinship BLOCK when the first funder also first-funded >= 3 other catalog payees (exchange/relayer exempt)
  *   B (current, threshold v2) same trigger; >= KINSHIP_REVIEW_AT (21) other payees on one unlabelled funder -> REVIEW, flag kinship_suspected_exchange
  *   C (worst case) every unlabelled shared funder is an exchange: kinship exempt and provenance scored as an exchange
  * "fanout" below is the number of OTHER catalog payees sharing the first funder (the vow's own measure).
  * Usage: npx tsx scripts/sensitivity.ts [--json]  ->  prints the table; --write also writes artifacts/sensitivity.md
  */
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../src/config.js";
 import { loadCensus } from "../src/census.js";
@@ -75,6 +75,20 @@ if (process.argv[1]?.endsWith("sensitivity.ts")) {
   console.log(`\nPolicy B: largest band move ${r.maxMovePctB.toFixed(1)}%, new BLOCKs ${r.newBlocks}`);
 }
 
+/** Computed from the served census and its checkpoint: which kinship funders Surf was asked about, and what it said. */
+function funderNote(): string {
+  const c = loadCensus();
+  const cpFile = existsSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-r2-w90.json")) ? "checkpoint-sample-census-r2-w90.json" : "checkpoint-sample-census-w90.json";
+  const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", cpFile), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
+  const asked = new Set(cp.labels_done.map((a) => a.toLowerCase()));
+  const named = new Set(cp.labels.filter((l) => l.entity_name || l.entity_type).map((l) => l.address.toLowerCase()));
+  const sizes = new Map<string, number>();
+  for (const p of c.payees) if (p.vows.includes("kinship") && p.first_funder) sizes.set(p.first_funder, (sizes.get(p.first_funder) ?? 0) + 1);
+  const fs = [...sizes.entries()].sort((a, b) => b[1] - a[1]);
+  const big = fs.filter(([, n]) => n - 1 >= KINSHIP_SUSPECTED_EXCHANGE_FANOUT);
+  return `${fs.length} funders sit behind a kinship vow in the census (fixtures/audit/${cpFile}). ${fs.filter(([f]) => asked.has(f)).length} of them were sent to Surf \`wallet-labels-batch\`; ${fs.filter(([f]) => named.has(f)).length} came back with an entity name or type, and none of those is an exchange or a relayer, so kinship still fires. ${big.length} of them each funded ${KINSHIP_SUSPECTED_EXCHANGE_FANOUT + 1} or more census payees (largest: ${big.slice(0, 5).map(([, n]) => n).join(", ")}), covering ${big.reduce((a, [, n]) => a + n, 0)} payees: these are the REVIEW clusters flagged \`kinship_suspected_exchange\`.`;
+}
+
 if (process.argv[1]?.endsWith("sensitivity.ts") && process.argv.includes("--write")) {
   const r = sensitivity();
   const row = (pol: Policy) => `| ${pol} | ${r.policies[pol].ALLOW} | ${r.policies[pol].REVIEW} | ${r.policies[pol].BLOCK} | ${BANDS.map((b) => `${b} ${r.pct(pol, b) >= 0 ? "+" : ""}${r.pct(pol, b).toFixed(1)}%`).join(" · ")} | ${r.moved[pol]} |`;
@@ -94,7 +108,7 @@ ${row("C")}
 
 ## Why the funders are still unlabelled
 
-All 19 funders behind a kinship BLOCK were sent to Surf \`wallet-labels-batch\` on 2026-11-09 (artifacts/audit.md, cluster table). Surf returned no entity name or type for any of them. Four of them each funded 21 or more census payees (48, 39, 33 and 21), covering 141 payees.
+${funderNote()}
 `;
   writeFileSync(join(ROOT, "artifacts", "sensitivity.md"), md);
   console.log("wrote artifacts/sensitivity.md");

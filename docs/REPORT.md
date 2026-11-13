@@ -8,14 +8,14 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 
 | measure | value | source |
 |---|---|---|
-| census | 800 of 1,923 Base payees, 90-day window, taken 9 Nov | `scripts/audit.ts`, `data/numbers.json` |
-| verdicts | 49 ALLOW / 539 REVIEW / 212 BLOCK | `scripts/numbers.ts` |
-| verdictable payees | 765 (95.6%) | `scripts/winrate.ts` |
+| census | 1,923 of 1,923 Base payees, 90-day window, refreshed 13 Nov (each record with its own `as_of`) | `scripts/audit.ts`, `data/numbers.json` |
+| verdicts | 127 ALLOW / 1,244 REVIEW / 552 BLOCK, policy `2026-11-13.5` | `scripts/numbers.ts` |
+| verdictable payees | 1,870 (97.2%) | `scripts/winrate.ts` |
 | lab | 9 cases: 8 pass, 1 superseded by a documented rule change | `scripts/matrix.ts` |
 | real sellers in the lab (controls) | 3 of 3 reach ALLOW | `artifacts/matrix.md` |
-| accept gates | 15 of 15, offline, network unplugged | `npm run accept` |
+| accept gates | 16 of 16, offline, network unplugged | `npm run accept` |
 | end to end | 10 of 10 on a local server, with no keys (fixture mode) and with keys (live) | `npm run localhost-check` |
-| census cost | 252 credits billed for 800 payees | `fixtures/audit/balances.json` |
+| census cost | 620 credits billed for the 13 Nov refresh of 1,923 payees (the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
 
@@ -24,7 +24,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 There are four layers, and each one must be green before a commit.
 
 1. **Unit and table tests** (`npm test`, vitest). Pure functions (score, rules, receipts, drift, the probe parser, the markdown renderer, translations) are tested at their edges: 0, the middle, 1, and missing. Each rule has its own table of cases, and a precedence test proves a rule beats a model ALLOW.
-2. **Accept gates** (`npm run accept`). Fifteen checks run with the network blocked by a preload that refuses every connection except the local machine. They are listed in the table below.
+2. **Accept gates** (`npm run accept`). Sixteen checks run with the network blocked by a preload that refuses every connection except the local machine. They are listed in the table below.
 3. **End to end** (`npm run localhost-check`). A real server on a free local port, then ten checks over HTTP: the site, the free check, a BLOCK with a receipt, the paid 402, a paid call with a test payment header, verify, tamper, the index, the badge and the timing.
 4. **The adversarial lab** (`npx tsx scripts/matrix.ts`). Six attack cases and three real sellers run through the live pipeline. The expected answer for each case is committed **before** the run, and is never edited afterwards.
 
@@ -45,6 +45,7 @@ There are four layers, and each one must be green before a commit.
 | G13 | a repeated cold check makes zero Surf calls |
 | G14 | the kinship thresholds hold |
 | G15 | the sensitivity table matches the numbers |
+| G16 | no ALLOW in the published index is past the freshness window (policy v5), at the reference time, just past the limit and long after |
 
 A fifth check runs once per release: a fresh copy of the repository with no keys, then `npm ci`, `npm test`, `npm run accept` and `npm run localhost-check`. It has passed every time since 9 Nov.
 
@@ -167,7 +168,7 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Seen.** Turning unlabelled big funders from BLOCK to REVIEW at 20 shared sellers moved BLOCK by 33.2%, and would have let the lab's sybil case (B2, which sits at exactly 20) through.
 - **Cause.** The cutoff was one too low.
 - **Fix.** The pass stopped and asked the owner. The cutoff was raised to 21, the smallest that keeps every lab detection. This still moved BLOCK by 25.9%, above the 15% limit first set; the owner accepted it, and it is documented.
-- **Proof.** B2 still blocks. 120 sellers on likely exchange funders are now REVIEW with the flag `kinship_suspected_exchange`, and there are 123 kinship BLOCKs. `artifacts/sensitivity.md` compares the three policies (G15).
+- **Proof.** B2 still blocks. 120 sellers on likely exchange funders are now REVIEW with the flag `kinship_suspected_exchange`, and the 9 Nov census had 123 kinship BLOCKs. `artifacts/sensitivity.md` compares the three policies (G15).
 
 ### F15. A headline number was the reported one, not the billed one (11 Nov)
 

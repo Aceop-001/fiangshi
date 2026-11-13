@@ -154,6 +154,8 @@ h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:10px 0 16px}
 .probe-row>span{padding:11px 0 11px 12px;color:var(--red-text)}
 .age{display:flex;align-items:baseline;gap:2px;font-size:12.5px;color:var(--mut);margin:-6px 0 18px}
 .age.stale{color:var(--fg)}
+.agebadge{display:inline-flex;align-items:baseline;gap:4px;font-size:12.5px;color:var(--mut);margin-top:8px}
+.agebadge.stale{color:var(--fg);font-weight:600}
 .unknowns{margin-top:28px}
 .caps{margin-top:26px;border:1px solid var(--line2);padding:16px 18px;max-width:84ch}
 .caps h3{font:600 12.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--red-text);margin:0 0 8px}

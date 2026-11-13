@@ -31,7 +31,7 @@ Fiangshi is advisory only. It never holds funds, signs transactions or moves mon
 - **Fail-closed by design.** Six fixed rules run after the model and can only lower a verdict. A model alone can never produce ALLOW or BLOCK.
 - **Free protection against dead-end wallets.** A `payTo` that is the zero address, a burn address, the token contract or an invalid checksum is blocked at probe time, for $0.00, before any data or model call.
 - **Evidence, not opinion.** Every model quote is checked word for word against stored evidence, and every verdict is sealed in a sha256 hash-chained receipt that anyone can re-verify.
-- **Measured on real sellers.** A census of 800 of 1,923 Base payees in the x402 Bazaar catalog (90-day window): 49 ALLOW · 539 REVIEW · 212 BLOCK. Every number in this repository is reproduced by a committed script.
+- **Measured on real sellers.** A census of every Base payee in the x402 Bazaar catalog, 1,923 of 1,923 Base payees (90-day window, refreshed 13 Nov, each record with its own collection time): 127 ALLOW · 1,244 REVIEW · 552 BLOCK. Every number in this repository is reproduced by a committed script.
 - **Built for agents.** An MCP server, a CLI whose exit code is the verdict, a zero-dependency Python client, and an agent skill for Claude Code, Codex, Grok CLI and Hermes.
 
 ## Try it
@@ -138,13 +138,13 @@ Vows are deterministic rules that run after the model and can only lower the ver
 
 | | value | source |
 |---|---|---|
-| census coverage | **800 of 1,923 Base payees, 90-day window** (41.6%) | `npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census.json --days 90` → `artifacts/audit.md` |
-| bands | **49 ALLOW · 539 REVIEW · 212 BLOCK** | `data/numbers.json` (`npx tsx scripts/numbers.ts`); also `GET /v1/index.json` |
-| ALLOW composition | 12 no claim · 5 claim with 0 sources · 26 with 1 source · 6 with 2+ | `npx tsx scripts/allow-composition.ts` |
-| kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
+| census coverage | **1,923 of 1,923 Base payees, 90-day window** (100%; refreshed 13 Nov for 620 credits, each record with its own `as_of`) | `npx tsx scripts/audit.ts report --sample fixtures/audit/sample-census-r2.json --days 90` → `artifacts/audit.md` |
+| bands | **127 ALLOW · 1,244 REVIEW · 552 BLOCK** (policy `2026-11-13.5`; the 9 Nov census of 800 was 49 / 539 / 212 under v4) | `data/numbers.json` (`npx tsx scripts/numbers.ts`); also `GET /v1/index.json` |
+| ALLOW composition | 31 no claim · 10 claim with 0 sources · 76 with 1 source · 10 with 2+ | `npx tsx scripts/allow-composition.ts` |
+| kinship | 743 payees share a first funder with 3+ others. 281 BLOCK; 462 REVIEW as suspected exchanges (8 clusters of 22 or more payees, the largest 102). 47 of the 49 funders have no Surf label; 2 have one that is not an exchange or relayer | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 333 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
+| tests | 345 passing; accept 16 / 16 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity, G16 no stale ALLOW) | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 **Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
@@ -169,7 +169,7 @@ The same process serves the website and the API. Pages contain no JavaScript and
 
 | page | what it shows |
 |---|---|
-| `/` | The census (band counts, score histogram), case files, the six rules with how often each fired, shared funders, and all 800 payees with their receipts. |
+| `/` | The census (band counts, score histogram), case files, the six rules with how often each fired, shared funders, and all 1,923 payees with their receipts. |
 | `/check?url=` | A free probe: one unpaid GET, the null-payee gate and the census band. Never calls a model. (Live server only.) |
 | `/receipt/:id` | A receipt as a paper slip, with the result of recomputing its hash and chain link. |
 | `/docs` | Documentation home: [Guide](docs/GUIDE.md), [Connect](docs/CONNECT.md), [CLI and skill](docs/CLI.md), [Architecture](docs/ARCHITECTURE.md), [Test report](docs/REPORT.md), [Legal](docs/LEGAL.md). |
@@ -189,11 +189,12 @@ Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signat
 
 - **90-day window.** Wallet age is a lower bound: first seen within 90 days.
 - **Unnamed funders.** Surf names few funders. Kinship threshold v2 sends clusters of 21+ payees on one unnamed funder to REVIEW (`kinship_suspected_exchange`) instead of BLOCK; smaller clusters still BLOCK. `artifacts/sensitivity.md` shows the effect of each policy.
-- **No live payee under 48 h.** 0 of 800 census payees are that young, so the age vow is tested on fixtures but has not fired live.
-- **Label coverage is thin.** 16 of 463 addresses got a Surf label (3.5%). Missing or uncorroborated identity is scored as neutral (weight excluded), not as trust and not as a penalty.
+- **No live payee under 48 h.** 0 of 1,923 census payees are that young, so the age vow is tested on fixtures but has not fired live.
+- **Label coverage is thin.** 81 of 1,907 addresses got a Surf label row (4.2%); 42 name an entity or type. Missing or uncorroborated identity is scored as neutral (weight excluded), not as trust and not as a penalty.
 - Dolphin identity extraction is **optional enrichment**. A timeout is stamped `enrichment: incomplete` on the receipt and never caps the verdict.
 - Receipts are hash-chained (`sha256` + `prev_hash`), **not signed**. The live ledger's chain is continuous only within one epoch (`chain_id` on every live receipt); on the public API, whose disk does not survive a redeploy, each deploy starts a new epoch. Older receipts still verify on their own. Census receipts never reset.
-- **Census data ages.** The census was taken on 9 Nov 2026. Every free answer states `data_as_of`, `data_age_hours` and `stale` (past 72 hours), and lists in `unknowns` what it could not check, such as an unlabelled funder.
+- **First funder inside the window.** For a wallet older than the 90-day window, the first sender inside the window stands in for its funder. As the window moves, that sender can change: between 9 and 13 Nov it changed for 164 of the 800 original payees, and kinship began to fire on several well-known sellers (Nansen, Glassnode, TBS) through shared relayer-like senders Surf cannot name. `scripts/winrate.ts` bounds the effect: at most 436 of the 552 BLOCKs (79%) would clear if every unnamed shared funder were an exchange (policy C in `artifacts/sensitivity.md`).
+- **Census data ages.** The census was refreshed on 13 Nov 2026 (one record, the zero address, is from 9 Nov). Every free answer states `data_as_of`, `data_age_hours` and `stale` (past 72 hours), and lists in `unknowns` what it could not check, such as an unlabelled funder.
 
 ## NOT doing
 
@@ -254,3 +255,6 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-13 Live checks.** The API runs on Render (`render.yaml`) at https://api.fiangshi.xyz (also https://fiangshi-api.onrender.com). The repository variable `FIANGSHI_API_URL` points the website's check box and try-it links at it, so a visitor can paste a paid endpoint on fiangshi.xyz and get a live verdict and receipt.
 - **2026-11-13 External review fixes.** Acting on an outside review of the live service: (1) live receipts carry a `chain_id` epoch and `/v1/verify` states that continuity resets on redeploy instead of implying an unbroken history; (2) every free answer has one schema on every path (`vow_fired`, `vows_fired[]`, numeric `cost_usd`), guarded by a contract test, and `/v1/check` gained `vows_fired[]`; (4) a disabled paid route is no longer advertised as a link; (5) answers state `data_as_of`, `data_age_hours` and `stale`, and the home page shows the census age; (6) live p50/p95 and a timeout contract (`scripts/latency-live.ts`, `artifacts/latency-live.md`); and every answer lists `unknowns`, what Fiangshi could not check. The review's point 3 was checked against the data: no census payee fires age, history or identity, so those stay unit-tested only and are documented as such. 333 tests.
 - **2026-11-13 Policy v5 (`2026-11-13.5`): per-record freshness and a stale cap.** Every census record carries its own `as_of`; age is measured from it, never from the run's timestamp. A band cap (not a vow, `src/core/cap.ts`) runs after the vows and the model: data older than `FIANGSHI_STALE_HOURS` (72) caps ALLOW at REVIEW, never raises a band, never touches the score, and is reported as `band_cap` with `verdict_confidence: "degraded"`. New receipts record `policy_version`, `as_of`, `band_cap` and `band_basis`; `/v1/verify` re-derives every band under the version the receipt was issued with, so the 800 census receipts (v4) keep their original bands. Published figures are evaluated at a committed reference time (`fixtures/audit/numbers-as-of.json`) so they stay reproducible. 344 tests.
+- **2026-11-13 Census refresh.** All 1,923 Base payees re-collected from Surf (90-day window), each record with its own `as_of`, into new files (`sample-census-r2.json` and its checkpoint); the 9 Nov census and its 800 receipts are unchanged and still verify under v4. Spend 620 credits by balance (2,048 → 1,428, the cap): gate 4, payee SQL 312 in 68 calls with 0 refusals, labels 304 in 76 calls of 19. Bands 127 ALLOW · 1,244 REVIEW · 552 BLOCK. As the window moved, the first in-window sender changed for 164 of the 800 original payees and kinship began to fire on several known sellers; no rule changed (`artifacts/refresh.md`).
+- **2026-11-13 Paid 402 with real terms.** `/v1/check` answers 402 with x402 v2 terms: exact, eip155:8453, USDC, 50000 atomic cached or 150000 cold, 60 s, `payTo` from `FIANGSHI_PAYTO` (V6-checked), plus the `payment-required` header. A paid answer carries `X-PAYMENT-RESPONSE` stating success false, no transaction, settlement dry-run. The preview reports `paid_check_status: "enabled: …"`.
+- **2026-11-13 Figures under policy v5.** Reference time moved to 2026-11-13T12:00Z; numbers, sensitivity, win rate, audit report and the new `artifacts/refresh.md` are regenerated by script. Check pages show each payee's data age and collection time. New gate G16: no stale ALLOW in the published index at the reference time, just past the limit and long after. 345 tests, accept 16/16, localhost-check 10/10 (fixture mode replays the recorded 9 Nov moment).

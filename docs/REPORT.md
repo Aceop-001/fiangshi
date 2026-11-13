@@ -52,17 +52,17 @@ A fifth check runs once per release: a fresh copy of the repository with no keys
 
 | date | phase | what was built | commit |
 |---|---|---|---|
-| 8 Nov | 0 | skeleton, frozen data contracts (zod), canonical hashing | `c1e9a5c` |
-| 8 Nov | 1–7 offline | probe, snapshot, score, rules, model check, receipts, ledger, drift | `f4e431e` |
-| 8 Nov | local verification | 10 offline accept gates, the no-network preload | `4256023` |
-| 8 Nov | 3b–3f | Surf installed and measured, 12 real 402s recorded, billing model, E v2, models wired live | `c02b184` … `2fb92e4` |
-| 9 Nov | 3g–3k | paid audit gate, fixture guard (G11), staged census runner, the 800-payee census | `7bbf99d` … `dfba1ca` |
-| 9 Nov | 3l | rule I (null payee), keccak-256 and EIP-55 in the repo, rule set frozen at six | `1706909` |
-| 9 Nov | 3m–3n | identity v3, adversarial lab with expectations committed first | `6122b32` … `824ae46` |
-| 9 Nov | 3b-fix–3h | optional identity enrichment, API and real 402, end to end check, README, identity neutrality, fixture mode | `0a39c7e` … `0d299d9` |
-| 10 Nov | 3i–3k | the site (no script), operator-only identity labels, guide and legal pages, evidence sources | `65e03a5` … `b068d25` |
-| 11 Nov | final A–F | kinship calibration, funder labels re-asked, cold check live, win-rate, single source of numbers (G12–G15) | `2fc1608` … `c4a954d` |
-| 11–12 Nov | site | guide with real endpoints, test report, crash fix, four languages | `dfce46f` … `07a4e1c` |
+| 8 Nov | 0 | skeleton, frozen data contracts (zod), canonical hashing | `4f15a55` |
+| 8 Nov | 1–7 offline | probe, snapshot, score, rules, model check, receipts, ledger, drift | `2814c52` |
+| 8 Nov | local verification | 10 offline accept gates, the no-network preload | `fbbef4b` |
+| 8 Nov | 3b–3f | Surf installed and measured, 12 real 402s recorded, billing model, E v2, models wired live | `41f235c` … `c6bdf17` |
+| 9 Nov | 3g–3k | paid audit gate, fixture guard (G11), staged census runner, the 800-payee census | `79cd224` … `120f116` |
+| 9 Nov | 3l | rule I (null payee), keccak-256 and EIP-55 in the repo, rule set frozen at six | `b1a6ffd` |
+| 9 Nov | 3m–3n | identity v3, adversarial lab with expectations committed first | `3de3cbe` … `8290a69` |
+| 9 Nov | 3b-fix–3h | optional identity enrichment, API and real 402, end to end check, README, identity neutrality, fixture mode | `218e5fc` … `f693300` |
+| 10 Nov | 3i–3k | the site (no script), operator-only identity labels, guide and legal pages, evidence sources | `fbf90f5` … `224ae4c` |
+| 11 Nov | final A–F | kinship calibration, funder labels re-asked, cold check live, win-rate, single source of numbers (G12–G15) | `c9280f3` … `5696cd2` |
+| 11–12 Nov | site | guide with real endpoints, test report, crash fix, four languages | `7628f67` … `7cfe713` |
 | 13 Nov | connect | architecture page, connect guides, MCP server, free JSON preview, first-visit tour | this release |
 
 The full per-commit list, with the number of test files, test cases and gates at each commit, is in the table near the end of this page.
@@ -129,10 +129,10 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 
 ### F9. A commit went in while a gate was red (9 Nov)
 
-- **Seen.** Commit `290f824` was made while G2 was failing.
+- **Seen.** Commit `2346072` was made while G2 was failing.
 - **Cause.** The no-network preload blocked the tests' own local server, and the commit step did not check the exit code.
 - **Fix.** The preload allows only the local machine (127.0.0.1, ::1). Every commit is now gated on the exit code of every gate.
-- **Proof.** Fixed in the next commit, `29887da`. No red commit since.
+- **Proof.** Fixed in the next commit, `7721601`. No red commit since.
 
 ### F10. The end-to-end check failed for reasons outside the code (9 Nov)
 
@@ -205,7 +205,7 @@ Every rule change was simulated on the census before it was applied, and its eff
 |---|---|---|---|
 | 8 Nov | E v1 (token share) → E v2 (payer concentration) | E stops rewarding a seller for using one token | `artifacts/capability.md` |
 | 9 Nov | rule I added (null payee) | the top-scored dead end is blocked | `src/core/v6.ts` |
-| 9 Nov | identity v3 (corroboration by host, path, catalog or label) | simulated first, in `d640df5` | `src/core/identity.ts` |
+| 9 Nov | identity v3 (corroboration by host, path, catalog or label) | simulated first, in `46c0e86` | `src/core/identity.ts` |
 | 9 Nov | identity optional (timeout never caps) | lab controls reach ALLOW | `src/adapters/dolphin.ts` |
 | 9 Nov | identity neutrality | examined sellers are no longer penalised | `src/core/score.ts` |
 | 10 Nov | operator-only labels | one false BLOCK becomes REVIEW | `src/core/identity.ts` |

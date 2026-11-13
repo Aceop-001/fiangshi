@@ -5,49 +5,53 @@ Test cases are `it(` calls in `tests/` (a table-driven case counts once, so vite
 
 | commit | date | test files | test cases | gates | subject |
 |---|---|---|---|---|---|
-| `c1e9a5c` | 2026-11-08 | 1 | 3 | 0 | Phase 0: skeleton, frozen zod contracts, canonical hashing |
-| `f4e431e` | 2026-11-08 | 12 | 77 | 0 | Phases 1-7 (offline): probe, snapshot, score, vows, SERV validation, Dolphin cache, receipts + ledger + drift |
-| `4256023` | 2026-11-08 | 12 | 77 | 10 | Local verification: npm run accept (10 offline gates), no-network preload, README |
-| `58c5bda` | 2026-11-08 | 12 | 77 | 10 | Docs: receipts are hash-chained, not signed (decision) |
-| `c02b184` | 2026-11-08 | 12 | 77 | 10 | phase3b (part 1): surf CLI installed, auth source recorded, schema discovered |
-| `bfa73f3` | 2026-11-08 | 14 | 84 | 10 | phase3c (part 1): 12 real x402 v2 402s recorded + parsed, payee-array Surf job runner |
-| `4f6c322` | 2026-11-08 | 15 | 87 | 10 | phase3d: payee facts + billing model |
-| `d15a7f5` | 2026-11-08 | 16 | 94 | 10 | audit prep: Bazaar enumerated, 200-payee sample, probes, audit runner + report |
-| `2fb92e4` | 2026-11-08 | 17 | 109 | 10 | phase3f (part 1): E signal v2, multi-chain 402 parser fix, SERV+Dolphin live wiring with fail-closed tests |
-| `be35985` | 2026-11-08 | 17 | 109 | 10 | audit: one funder-outbound call per 300 funders (free-tier 200-payee run = 29 credits) |
-| `7bbf99d` | 2026-11-09 | 18 | 117 | 11 | phase3g: audit gate + fixture guard |
-| `5f443d4` | 2026-11-09 | 18 | 117 | 11 | phase3h: real SERV + Dolphin smoke on two live payees |
-| `71f2ea6` | 2026-11-09 | 19 | 118 | 11 | phase3i (part 1): staged census runner; gate PASS; stage 1 stopped on async scan-budget rejection |
-| `fc9e1c6` | 2026-11-09 | 20 | 123 | 11 | phase3j (part 1): 100-payee sync census, parallel SERV+Dolphin, pricing v2, provider quirks |
-| `dfba1ca` | 2026-11-09 | 20 | 127 | 11 | phase3k: uniform 90d audit (800 payees) + audit.md |
-| `1706909` | 2026-11-09 | 22 | 154 | 11 | phase3l: V6 + cluster resolution + latency |
-| `d640df5` | 2026-11-09 | 22 | 154 | 11 | phase3m (pre): simulate identity v3 on the census before changing the rubric |
-| `6122b32` | 2026-11-09 | 23 | 164 | 11 | phase3m: scoring v3 (identity corroboration) |
-| `235c9f3` | 2026-11-09 | 23 | 164 | 11 | lab: expected verdicts written before running (9 cases) |
-| `a86778d` | 2026-11-09 | 23 | 164 | 11 | phase3n: adversarial lab (9 cases, expectations committed first) |
-| `824ae46` | 2026-11-09 | 23 | 164 | 11 | lab v2: re-classified expectations written before the re-run (B1/B3 alternate paths, reasons recorded) |
-| `0a39c7e` | 2026-11-09 | 23 | 165 | 11 | phase3b-fix: optional enrichment + V5 age |
-| `4482cc5` | 2026-11-09 | 23 | 167 | 11 | phase3c: live index (census state from committed fixtures) + Dolphin negative cache |
-| `290f824` | 2026-11-09 | 24 | 175 | 11 | phase3d: API surface + real x402 v2 402 (dry-run settlement) |
-| `29887da` | 2026-11-09 | 24 | 175 | 11 | phase3d-fix: accept G2 green, loopback allowed under no-network |
-| `0b81326` | 2026-11-09 | 24 | 175 | 11 | phase3e: localhost end-to-end check (10/10 PASS) |
-| `b1990fb` | 2026-11-09 | 24 | 175 | 11 | phase3f: README with current numbers, LICENSE (MIT), .nvmrc, complete .env.example |
-| `2cb7453` | 2026-11-09 | 24 | 175 | 11 | phase3g: wrap — localhost-check forces live mode; fresh-clone verified |
-| `0d299d9` | 2026-11-09 | 25 | 180 | 11 | phase3h: identity neutrality + fixture mode |
-| `65e03a5` | 2026-11-10 | 25 | 185 | 11 | phase3i: frontend (index, check and receipt pages; static, no JS) |
-| `b93fb5b` | 2026-11-10 | 26 | 204 | 11 | phase3j: operator-only identity labels; guide and legal pages |
-| `b068d25` | 2026-11-10 | 26 | 206 | 11 | phase3k: identity evidence names its real source |
-| `2fc1608` | 2026-11-11 | 26 | 206 | 11 | final-a (halted at A5): kinship sensitivity measured, calibration not applied |
-| `46cc9ea` | 2026-11-11 | 26 | 208 | 11 | final-a: sensitivity + calibrated kinship (threshold v2) |
-| `a5e310d` | 2026-11-11 | 26 | 208 | 11 | final-b: cluster labels resolved (all 19 funders unnamed) |
-| `3e8418b` | 2026-11-11 | 27 | 215 | 11 | final-c: cold check live |
-| `cabe334` | 2026-11-11 | 27 | 215 | 11 | final-d: win-rate |
-| `1e58a57` | 2026-11-11 | 27 | 215 | 15 | final-e: single source of numbers |
-| `130ccd4` | 2026-11-11 | 27 | 215 | 15 | final-f (1/2): live localhost-check refreshed demo-stats (warm p50 251 ms) |
-| `c4a954d` | 2026-11-11 | 27 | 215 | 15 | final-f: report + proof |
-| `dfce46f` | 2026-11-11 | 27 | 216 | 15 | guardian: dragon and poster hero (CSS only) |
-| `e808af3` | 2026-11-11 | 27 | 216 | 15 | guardian: keep the poster, remove the dragon |
-| `1c1f446` | 2026-11-12 | 28 | 224 | 15 | site: clock mark back, English wordmark, guide with live examples, test report |
-| `677d2bb` | 2026-11-12 | 28 | 225 | 15 | server: a failing request can no longer crash the server |
-| `a4b45f2` | 2026-11-12 | 29 | 235 | 15 | site: Chinese name in the clock mark, four-language switcher |
-| `07a4e1c` | 2026-11-12 | 29 | 235 | 15 | site: remove the clock mark |
+| `4f15a55` | 2026-11-08 | 1 | 3 | 0 | Phase 0: skeleton, frozen zod contracts, canonical hashing |
+| `2814c52` | 2026-11-08 | 12 | 77 | 0 | Phases 1-7 (offline): probe, snapshot, score, vows, SERV validation, Dolphin cache, receipts + ledger + drift |
+| `fbbef4b` | 2026-11-08 | 12 | 77 | 10 | Local verification: npm run accept (10 offline gates), no-network preload, README |
+| `ae58d68` | 2026-11-08 | 12 | 77 | 10 | Docs: receipts are hash-chained, not signed (decision) |
+| `41f235c` | 2026-11-08 | 12 | 77 | 10 | phase3b (part 1): surf CLI installed, auth source recorded, schema discovered |
+| `8a47d1f` | 2026-11-08 | 14 | 84 | 10 | phase3c (part 1): 12 real x402 v2 402s recorded + parsed, payee-array Surf job runner |
+| `e57bc06` | 2026-11-08 | 15 | 87 | 10 | phase3d: payee facts + billing model |
+| `ff2c711` | 2026-11-08 | 16 | 94 | 10 | audit prep: Bazaar enumerated, 200-payee sample, probes, audit runner + report |
+| `c6bdf17` | 2026-11-08 | 17 | 109 | 10 | phase3f (part 1): E signal v2, multi-chain 402 parser fix, SERV+Dolphin live wiring with fail-closed tests |
+| `9cb2b4e` | 2026-11-08 | 17 | 109 | 10 | audit: one funder-outbound call per 300 funders (free-tier 200-payee run = 29 credits) |
+| `79cd224` | 2026-11-09 | 18 | 117 | 11 | phase3g: audit gate + fixture guard |
+| `63f3a2b` | 2026-11-09 | 18 | 117 | 11 | phase3h: real SERV + Dolphin smoke on two live payees |
+| `30cf0c6` | 2026-11-09 | 19 | 118 | 11 | phase3i (part 1): staged census runner; gate PASS; stage 1 stopped on async scan-budget rejection |
+| `71b17cd` | 2026-11-09 | 20 | 123 | 11 | phase3j (part 1): 100-payee sync census, parallel SERV+Dolphin, pricing v2, provider quirks |
+| `120f116` | 2026-11-09 | 20 | 127 | 11 | phase3k: uniform 90d audit (800 payees) + audit.md |
+| `b1a6ffd` | 2026-11-09 | 22 | 154 | 11 | phase3l: V6 + cluster resolution + latency |
+| `46c0e86` | 2026-11-09 | 22 | 154 | 11 | phase3m (pre): simulate identity v3 on the census before changing the rubric |
+| `3de3cbe` | 2026-11-09 | 23 | 164 | 11 | phase3m: scoring v3 (identity corroboration) |
+| `0587fe1` | 2026-11-09 | 23 | 164 | 11 | lab: expected verdicts written before running (9 cases) |
+| `dc8f7ad` | 2026-11-09 | 23 | 164 | 11 | phase3n: adversarial lab (9 cases, expectations committed first) |
+| `8290a69` | 2026-11-09 | 23 | 164 | 11 | lab v2: re-classified expectations written before the re-run (B1/B3 alternate paths, reasons recorded) |
+| `218e5fc` | 2026-11-09 | 23 | 165 | 11 | phase3b-fix: optional enrichment + V5 age |
+| `0172628` | 2026-11-09 | 23 | 167 | 11 | phase3c: live index (census state from committed fixtures) + Dolphin negative cache |
+| `2346072` | 2026-11-09 | 24 | 175 | 11 | phase3d: API surface + real x402 v2 402 (dry-run settlement) |
+| `7721601` | 2026-11-09 | 24 | 175 | 11 | phase3d-fix: accept G2 green, loopback allowed under no-network |
+| `4ad3624` | 2026-11-09 | 24 | 175 | 11 | phase3e: localhost end-to-end check (10/10 PASS) |
+| `e3a9889` | 2026-11-09 | 24 | 175 | 11 | phase3f: README with current numbers, LICENSE (MIT), .nvmrc, complete .env.example |
+| `206c2ec` | 2026-11-09 | 24 | 175 | 11 | phase3g: wrap — localhost-check forces live mode; fresh-clone verified |
+| `f693300` | 2026-11-09 | 25 | 180 | 11 | phase3h: identity neutrality + fixture mode |
+| `fbf90f5` | 2026-11-10 | 25 | 185 | 11 | phase3i: frontend (index, check and receipt pages; static, no JS) |
+| `21060ab` | 2026-11-10 | 26 | 204 | 11 | phase3j: operator-only identity labels; guide and legal pages |
+| `224ae4c` | 2026-11-10 | 26 | 206 | 11 | phase3k: identity evidence names its real source |
+| `c9280f3` | 2026-11-11 | 26 | 206 | 11 | final-a (halted at A5): kinship sensitivity measured, calibration not applied |
+| `bac98bc` | 2026-11-11 | 26 | 208 | 11 | final-a: sensitivity + calibrated kinship (threshold v2) |
+| `0a2296c` | 2026-11-11 | 26 | 208 | 11 | final-b: cluster labels resolved (all 19 funders unnamed) |
+| `7007d50` | 2026-11-11 | 27 | 215 | 11 | final-c: cold check live |
+| `ba3cbe8` | 2026-11-11 | 27 | 215 | 11 | final-d: win-rate |
+| `b309cce` | 2026-11-11 | 27 | 215 | 15 | final-e: single source of numbers |
+| `74a799e` | 2026-11-11 | 27 | 215 | 15 | final-f (1/2): live localhost-check refreshed demo-stats (warm p50 251 ms) |
+| `5696cd2` | 2026-11-11 | 27 | 215 | 15 | final-f: report + proof |
+| `7628f67` | 2026-11-11 | 27 | 216 | 15 | guardian: dragon and poster hero (CSS only) |
+| `f55e212` | 2026-11-11 | 27 | 216 | 15 | guardian: keep the poster, remove the dragon |
+| `00b722b` | 2026-11-12 | 28 | 224 | 15 | site: clock mark back, English wordmark, guide with live examples, test report |
+| `941d26c` | 2026-11-12 | 28 | 225 | 15 | server: a failing request can no longer crash the server |
+| `4cc40bf` | 2026-11-12 | 29 | 235 | 15 | site: Chinese name in the clock mark, four-language switcher |
+| `7cfe713` | 2026-11-12 | 29 | 235 | 15 | site: remove the clock mark |
+| `b511c89` | 2026-11-13 | 31 | 253 | 15 | connect: MCP server, /v1/preview, architecture and connect pages, deep report, first-visit tour |
+| `51da9b2` | 2026-11-13 | 31 | 254 | 15 | site: plain tour button, animated working models on /architecture |
+| `34076bd` | 2026-11-13 | 31 | 254 | 15 | architecture: animated live map replaces the text-art map |
+| `b19fe5c` | 2026-11-13 | 32 | 263 | 15 | docs hub, agent CLI and skill; tour button removed |

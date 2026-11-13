@@ -62,6 +62,8 @@ const ROWS: [string, string, string, string][] = [
   ["CLI and skill", "命令行与技能", "CLI とスキル", "CLI와 스킬"],
   ["Fiangshi docs", "Fiangshi 文档", "Fiangshi ドキュメント", "Fiangshi 문서"],
   ["Everything you need to check a payee before an agent pays: how to use it, how it works, and the evidence that it does what it says.", "在代理付款之前检查收款方所需的一切：怎么用、如何运作，以及它确实做到所述之事的证据。", "エージェントが支払う前に支払先を確認するために必要なことのすべて。使い方、しくみ、そして言ったとおりに動く証拠。", "에이전트가 결제하기 전에 수취인을 확인하는 데 필요한 모든 것: 사용법, 작동 방식, 그리고 말한 대로 작동한다는 증거."],
+  ["See the census", "查看普查", "調査を見る", "조사 보기"],
+  ["800 sellers, each with a sealed receipt you can open.", "800 个卖家，每个都有可打开的封存凭证。", "800 の販売者。それぞれに開ける封印済みレシートがあります。", "판매자 800곳, 각각 열어 볼 수 있는 봉인된 영수증이 있습니다."],
   ["Try a check", "试一次检查", "チェックを試す", "확인해 보기"],
   ["Paste a paid endpoint on the home page. Free.", "在首页粘贴一个付费端点。免费。", "トップページに有料エンドポイントを貼り付けます。無料です。", "홈 페이지에 유료 엔드포인트를 붙여넣으세요. 무료입니다."],
   ["Connect an agent", "接入代理", "エージェントを接続", "에이전트 연결"],

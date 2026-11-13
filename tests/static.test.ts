@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { loadCensus, loadDemoStats } from "../src/census.js";
-import { renderDoc, renderIndex, renderReceipt } from "../src/site.js";
+import { renderDoc, renderDocsHome, renderIndex, renderReceipt } from "../src/site.js";
 import { setPagePath } from "../src/site-theme.js";
 
 const SERVER_ONLY = /(?:href|action)="\/(?:check|tour\/done)\b/;
@@ -25,6 +25,12 @@ describe("static edition (GitHub Pages)", () => {
     const html = renderDoc("guide", loadCensus(), loadDemoStats());
     expect(html).not.toMatch(SERVER_ONLY);
     expect(html).toMatch(/<a href="\/receipt\/[0-9a-f]{64}">x402\.tbs-digital\.com/);
+  });
+  it("the docs home does not offer a live check on the static edition", () => {
+    process.env.FIANGSHI_STATIC = "1";
+    const html = renderDocsHome(loadCensus(), loadDemoStats());
+    expect(html).not.toContain("Paste a paid endpoint on the home page");
+    expect(html).toContain("See the census");
   });
   it("a receipt page drops the probe-again link", () => {
     process.env.FIANGSHI_STATIC = "1";

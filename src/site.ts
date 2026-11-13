@@ -565,7 +565,7 @@ ${docsSidebar(null, [])}
 <h1>${T("Fiangshi docs")}</h1>
 <p class="dlede">${T("Everything you need to check a payee before an agent pays: how to use it, how it works, and the evidence that it does what it says.")}</p>
 <div class="dstart">
-<a href="/"><span>01</span><b>${T("Try a check")}</b><em>${T("Paste a paid endpoint on the home page. Free.")}</em></a>
+${staticSite() ? `<a href="/#census"><span>01</span><b>${T("See the census")}</b><em>${T("800 sellers, each with a sealed receipt you can open.")}</em></a>` : `<a href="/"><span>01</span><b>${T("Try a check")}</b><em>${T("Paste a paid endpoint on the home page. Free.")}</em></a>`}
 <a href="/connect"><span>02</span><b>${T("Connect an agent")}</b><em>${T("MCP setup for Claude, Codex, Grok, Hermes and more.")}</em></a>
 <a href="/cli"><span>03</span><b>${T("Use the CLI")}</b><em>${T("Verdicts as exit codes, plus an agent skill.")}</em></a>
 </div>

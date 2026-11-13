@@ -10,6 +10,8 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../src/config.js";
 import { loadCensus } from "../src/census.js";
+import { pinReferenceTime } from "../src/reference-time.js";
+pinReferenceTime();
 import { components, score } from "../src/core/score.js";
 import { evaluateVows } from "../src/core/vows.js";
 import { bandForScore, kinshipExempt, minBand, type Band, type FunderLabel, type PayeeSignals } from "../src/core/types.js";

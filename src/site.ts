@@ -9,6 +9,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, checkHref, env, liveApi, num, policyTtlHours, staticSite } from "./config.js";
 import { censusUnknowns, freshness } from "./preview.js";
+import { POLICY_VERSION } from "./core/cap.js";
 import { sellerPayTo } from "./adapters/x402.js";
 import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
@@ -288,8 +289,8 @@ ${probeForm()}
 <p class="eyebrow">${T("Census")}</p>
 <h2>${T("{n} of {total} Base payees, {days}-day window", { n, total: c.catalog_payees.toLocaleString("en-US"), days: c.window_days })}</h2>
 ${(() => {
-  const f = freshness(c.at);
-  return `<p class="age${f.stale ? " stale" : ""}"><i class="st ${f.stale ? "REVIEW" : "ALLOW"}"></i>${T("Data as of {date}, {hours} hours old.", { date: c.at.slice(0, 16).replace("T", " ") + " UTC", hours: Math.round(f.data_age_hours) })} ${f.stale ? T("Past the {ttl}-hour freshness window: these verdicts describe that date. Re-check before paying.", { ttl: policyTtlHours() }) : T("Within the {ttl}-hour freshness window.", { ttl: policyTtlHours() })}</p>`;
+  const stale = c.payees_stale;
+  return `<p class="age${stale ? " stale" : ""}"><i class="st ${stale ? "REVIEW" : "ALLOW"}"></i>${T("{n} of {m} verdicts are past the {ttl}-hour freshness window.", { n: stale, m: c.payees.length, ttl: c.stale_limit_hours })} ${T("Each record carries its own collection time ({oldest} to {newest}). A stale ALLOW is capped at REVIEW; a stale BLOCK stays BLOCK.", { oldest: c.oldest_as_of.slice(0, 16).replace("T", " ") + " UTC", newest: c.newest_as_of.slice(0, 16).replace("T", " ") + " UTC" })}</p>`;
 })()}
 <p class="lede">${T("{pct}% of the x402 Bazaar catalog on Base. The catalog lists {res} paid endpoints, but they resolve to {wallets} wallets: {per} endpoints per payee. Spreading payments across endpoints is not spreading them across counterparties. These counts are defined in <code>data/numbers.json</code>.", { pct: ((100 * n) / Math.max(1, c.catalog_payees)).toFixed(1), res: c.base_resources.toLocaleString("en-US"), wallets: c.catalog_payees.toLocaleString("en-US"), per: c.endpoints_per_payee })}</p>
 <div class="tiles">${BANDS.map((b) => `<div class="tile ${b}"><p class="tile-l"><i class="st ${b}"></i>${b}</p><p class="tile-v">${c.bands[b]}</p><p class="tile-s">${share(c.bands[b])} · ${tileNote[b]}</p></div>`).join("")}</div>
@@ -312,6 +313,7 @@ ${caseFiles(c)}
 <li><i>06</i><b>${T("Receipt")}</b><span>${T("sha256, chained to the one before.")}</span></li>
 </ol>
 <ol class="vows">${VOW_NAMES.map((v, i) => `<li><span class="num">${ROMAN[i]}</span><div><h3>${esc(v)} ${chip(VOWS[v].band)}</h3><p>${esc(T(VOWS[v].rule))}</p><p class="fired">${T("Fired on {k} of {n} census payees.", { k: fired(v), n })}</p></div></li>`).join("")}</ol>
+<div class="caps"><h3>${T("Band caps (not vows)")}</h3><p>${T("A band cap lowers a verdict because of Fiangshi's own evidence, not because of anything the counterparty did, so it never asserts that a counterparty is unsafe and never produces BLOCK. It runs after the six vows and the model, keeps the score unchanged, and is reported in band_cap. Policy {v} has one cap: data older than {ttl} hours is capped at REVIEW.", { v: POLICY_VERSION, ttl: c.stale_limit_hours })}</p></div>
 </div></section>
 
 <section class="sec" id="funders"><div class="wrap">
@@ -396,7 +398,7 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
   } else if (v.kind === "census") {
     const p = v.payee;
     const r = c.receipts.get(p.receipt_id);
-    const f = freshness(c.at);
+    const f = freshness(p.as_of);
     const firedList = p.vows.length ? T("Vows fired: {list}.", { list: p.vows.map((x) => `${vowNo(x)} ${x}`).join(", ") }) : T("No vow fired.");
     const drift = p.price_usd !== null && v.terms.price !== null && p.price_usd !== v.terms.price ? kv("Catalog price", `${esc(usd(p.price_usd))} when the census ran`) : "";
     const funder = p.vows.includes("kinship") && p.first_funder ? c.funders.find((x) => x.funder === p.first_funder) : undefined;

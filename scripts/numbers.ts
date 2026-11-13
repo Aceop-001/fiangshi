@@ -11,10 +11,13 @@ import { join } from "node:path";
 import { ROOT, dataDir } from "../src/config.js";
 import { loadCensus, loadDemoStats } from "../src/census.js";
 import { evaluateVows, KINSHIP_REVIEW_AT } from "../src/core/vows.js";
+import { pinReferenceTime } from "../src/reference-time.js";
+import { POLICY_VERSION } from "../src/core/cap.js";
 
 const CREDIT_USD = 0.006;
 
 export function computeNumbers() {
+  const reference = pinReferenceTime();
   const c = loadCensus();
   const bal = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
   const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-w90.json"), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
@@ -35,7 +38,11 @@ export function computeNumbers() {
   return {
     chain: "eip155:8453",
     census: { payees: c.payees.length, catalog_payees: c.catalog_payees, window_days: c.window_days, census_at: c.at },
+    policy_version: POLICY_VERSION,
+    reference_time: reference,
     bands: c.bands,
+    issued_bands: c.issued_bands,
+    freshness: { stale_limit_hours: c.stale_limit_hours, payees_stale: c.payees_stale, oldest_as_of: c.oldest_as_of, newest_as_of: c.newest_as_of, allow_capped: c.issued_bands.ALLOW - c.bands.ALLOW },
     kinship: { block: kBlock, review: kReview, review_at_fanout: KINSHIP_REVIEW_AT, firing_funders: c.funders.filter((f) => f.kinship_fires).length },
     verdictable: { payees: verdictable, pct: +((100 * verdictable) / c.payees.length).toFixed(1) },
     credits: {

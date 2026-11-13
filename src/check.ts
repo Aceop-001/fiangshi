@@ -3,7 +3,7 @@ import { probe, type ProbeResult } from "./adapters/probe.js";
 import { adjudicate } from "./adapters/serv.js";
 import { extractIdentity, liveTransport, type ExtractResult } from "./adapters/dolphin.js";
 import { join } from "node:path";
-import { replayDir, replayMode } from "./config.js";
+import { replayDir, replayMode, staleHours } from "./config.js";
 
 /** Fixture mode: a listing with no recorded Dolphin reply is a provider failure (enrichment incomplete), never a network call. */
 const replayTransport = async (): Promise<unknown> => {
@@ -18,6 +18,7 @@ import type { ReceiptBody } from "./core/receipt.js";
 import { PayeeSignals, minBand, type Receipt, type Snapshot, type Terms } from "./core/types.js";
 import { appendReceipt, ledgerPath } from "./ledger/store.js";
 import { sealReceipt } from "./core/receipt.js";
+import { v5Fields } from "./core/cap.js";
 import { getSnapshot } from "./snapshot.js";
 import { v6 } from "./core/v6.js";
 import { contradicts, corroborate, operatorName } from "./core/identity.js";
@@ -176,6 +177,7 @@ export async function check(url: string, opts: CheckOpts = {}): Promise<CheckRes
         snapshot_id: hashOf({ gate: "v6", rule: g.rule }),
         checked_at: (opts.now ?? new Date()).toISOString(),
         settlement: currentSettlement(),
+        ...v5Fields(decision, null, (opts.now ?? new Date()).getTime(), staleHours()).fields,
       };
       const receipt = opts.ledger === false ? sealReceipt(body, "genesis") : appendReceipt(body, opts.ledger ?? ledgerPath());
       return { url, terms, probe_error: null, signals: emptySignals(payee), decision, receipt, snapshot_id: body.snapshot_id, ms: performance.now() - t0 };
@@ -200,6 +202,7 @@ export async function check(url: string, opts: CheckOpts = {}): Promise<CheckRes
     snapshot_id: snap.snapshot_id,
     checked_at: (opts.now ?? new Date()).toISOString(),
     settlement: currentSettlement(),
+    ...v5Fields(decision, null, (opts.now ?? new Date()).getTime(), staleHours()).fields,
   };
   const receipt = opts.ledger === false ? sealReceipt(body, "genesis") : appendReceipt(body, opts.ledger ?? ledgerPath());
   return {

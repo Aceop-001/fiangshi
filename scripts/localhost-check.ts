@@ -11,6 +11,7 @@
  * (src/adapters/x402.ts demoXPayment), never a real signature.
  */
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { referenceTime } from "../src/reference-time.js";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -82,6 +83,7 @@ async function startServer(): Promise<ChildProcess> {
         ...common,
         FIANGSHI_REPLAY: "1",
         FIANGSHI_OFFLINE: "1",
+        FIANGSHI_NOW: process.env.FIANGSHI_NOW ?? referenceTime(), // fixture mode replays a recorded moment
         MOCK_MODELS: "",
         SERV_REASONING_API_KEY: "",
         DOLPHIN_API_KEY: "",
@@ -151,14 +153,15 @@ try {
     return `accepts[0] ${requirement.amount} atomic USDC to ${requirement.payTo.slice(0, 10)}…`;
   });
 
-  await step("5 same with X-PAYMENT -> 200 ALLOW + receipt", async () => {
+  await step("5 same with X-PAYMENT -> 200 ALLOW (or stale-capped REVIEW) + receipt", async () => {
     assert(requirement, "no requirement from step 4");
     const t0 = performance.now();
     const r = await get(`/v1/check?url=${encodeURIComponent(ALLOW_URL)}`, { "x-payment": demoXPayment(requirement!, DEMO_FROM) });
     coldMs = Math.round(performance.now() - t0);
     assert(r.status === 200, `status ${r.status}: ${r.body.slice(0, 120)}`);
     const j = body(r);
-    assert(j.band === "ALLOW", `band ${j.band} (vow ${j.vow_fired}, model ${j.model?.serv}, degraded ${j.model?.degraded})`);
+    // policy v5: in live mode a census record older than the limit is honestly capped at REVIEW (band_cap data_stale)
+    assert(j.band === "ALLOW" || (j.band === "REVIEW" && j.band_cap?.reason === "data_stale"), `band ${j.band} (vow ${j.vow_fired}, model ${j.model?.serv}, degraded ${j.model?.degraded}, cap ${j.band_cap?.reason})`);
     assert(/^[0-9a-f]{64}$/.test(j.receipt_id), "no receipt id");
     receiptId = j.receipt_id;
     return `score ${j.score}, SERV ${j.model.serv}, enrichment ${j.enrichment?.status}, settlement ${j.settlement}`;

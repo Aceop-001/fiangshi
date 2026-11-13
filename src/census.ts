@@ -5,7 +5,8 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT } from "./config.js";
+import { ROOT, nowMs, staleHours } from "./config.js";
+import { ageHours, staleCap, type BandCap } from "./core/cap.js";
 import { hashOf } from "./core/canonical.js";
 import { sealReceipt } from "./core/receipt.js";
 import { kinshipExempt, type Band, type FunderLabel, type PayeeSignals, type Receipt } from "./core/types.js";
@@ -20,7 +21,16 @@ export interface CensusPayee {
   url: string;
   service: string | null;
   price_usd: number | null;
+  /** the band served now: the issued band after band caps (policy v5). Can only be lower than issued_band. */
   band: Band;
+  /** the band the census receipt was issued with (policy v4, no caps) */
+  issued_band: Band;
+  /** when this payee's data was collected (ISO-8601): per record, never one stamp for the whole run */
+  as_of: string;
+  data_age_hours: number;
+  stale: boolean;
+  band_cap: BandCap | null;
+  verdict_confidence: "normal" | "degraded";
   score: number;
   vows: string[];
   identity: PayeeSignals["identity"];
@@ -42,7 +52,16 @@ export interface Census {
   base_resources: number;
   endpoints_per_payee: number;
   payees: CensusPayee[];
+  /** bands served now (after caps) */
   bands: Record<Band, number>;
+  /** bands as issued on the census receipts (policy v4) */
+  issued_bands: Record<Band, number>;
+  /** when this view was computed, and the freshness of its records */
+  served_at: string;
+  payees_stale: number;
+  oldest_as_of: string;
+  newest_as_of: string;
+  stale_limit_hours: number;
   receipts: Map<string, Receipt>;
   ledger: Receipt[];
   funders: FunderRow[];
@@ -52,10 +71,33 @@ export interface Census {
   tokenContracts: string[];
 }
 
-let cached: Census | null = null;
+let base: Census | null = null;
+let served: { minute: number; limit: number; census: Census } | null = null;
 
+/**
+ * The census as served now: each record's band capped by its own age (policy v5). Recomputed at most once a minute,
+ * so a long-running server never serves an ALLOW whose data has crossed the limit.
+ */
 export function loadCensus(): Census {
-  if (cached) return cached;
+  const b = loadBaseCensus();
+  const now = nowMs();
+  const minute = Math.floor(now / 60_000);
+  const limit = staleHours();
+  if (served && served.minute === minute && served.limit === limit) return served.census;
+  const payees = b.payees.map((p) => {
+    const age = ageHours(p.as_of, now);
+    const cap = staleCap(p.issued_band, age, limit);
+    return { ...p, band: cap.band, data_age_hours: age, stale: age > limit, band_cap: cap.band_cap, verdict_confidence: cap.verdict_confidence };
+  });
+  const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
+  for (const p of payees) bands[p.band]++;
+  const census: Census = { ...b, payees, bands, served_at: new Date(now).toISOString(), payees_stale: payees.filter((p) => p.stale).length, stale_limit_hours: limit };
+  served = { minute, limit, census };
+  return census;
+}
+
+function loadBaseCensus(): Census {
+  if (base) return base;
   setWindowDays(CENSUS_DAYS);
   const samplePath = join(ROOT, "fixtures", "audit", "sample-census.json");
   const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
@@ -91,7 +133,7 @@ export function loadCensus(): Census {
     prev = r.receipt_hash;
     ledger.push(r);
     receipts.set(r.receipt_hash, r);
-    payees.push({ chain: "eip155:8453", payee: e.s.payee, url: m.example_url, service: m.service, price_usd: m.price_usd, band: e.r.band, score: e.r.score, vows: e.r.fired, identity: e.s.identity, first_funder: e.s.first_funder, receipt_id: r.receipt_hash });
+    payees.push({ chain: "eip155:8453", payee: e.s.payee, url: m.example_url, service: m.service, price_usd: m.price_usd, band: e.r.band, issued_band: e.r.band, as_of: at, data_age_hours: 0, stale: false, band_cap: null, verdict_confidence: "normal", score: e.r.score, vows: e.r.fired, identity: e.s.identity, first_funder: e.s.first_funder, receipt_id: r.receipt_hash });
   }
   const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
   for (const p of payees) bands[p.band]++;
@@ -111,7 +153,8 @@ export function loadCensus(): Census {
         kinship_fires: !kinshipExempt(lab),
       };
     });
-  cached = {
+  const asOfs = payees.map((p) => p.as_of).sort();
+  base = {
     at,
     window_days: CENSUS_DAYS,
     catalog_payees: sample.catalog.distinct_base_payees,
@@ -120,6 +163,12 @@ export function loadCensus(): Census {
     endpoints_per_payee: sample.catalog.endpoints_per_payee,
     payees,
     bands,
+    issued_bands: { ...bands },
+    served_at: at,
+    payees_stale: 0,
+    oldest_as_of: asOfs[0] ?? at,
+    newest_as_of: asOfs[asOfs.length - 1] ?? at,
+    stale_limit_hours: staleHours(),
     receipts,
     ledger,
     funders,
@@ -127,7 +176,7 @@ export function loadCensus(): Census {
     funderLabels: set.funderLabels,
     tokenContracts: set.tokenContracts,
   };
-  return cached;
+  return base;
 }
 
 /** Demo stats measured by `npm run localhost-check` (artifacts/demo-stats.json, committed). */

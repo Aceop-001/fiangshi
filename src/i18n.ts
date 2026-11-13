@@ -89,6 +89,11 @@ const ROWS: [string, string, string, string][] = [
   ["What we could not check", "我们无法核实的内容", "確認できなかったこと", "확인하지 못한 것"],
   ["The paid check is not enabled on this server: its operator has not set a receiving wallet.", "此服务器未启用付费检查：运营者尚未设置收款钱包。", "このサーバーでは有料チェックが有効になっていません。運営者が受取用ウォレットを設定していないためです。", "이 서버에서는 유료 확인이 켜져 있지 않습니다. 운영자가 수취 지갑을 설정하지 않았습니다."],
   ["The same answer as JSON, free:", "同样的答案，JSON 格式，免费：", "同じ答えを JSON で、無料で：", "같은 답을 JSON으로, 무료로:"],
+  // policy v5: per-record freshness and band caps
+  ["{n} of {m} verdicts are past the {ttl}-hour freshness window.", "{m} 个判定中有 {n} 个已超过 {ttl} 小时的有效期。", "{m} 件の判定のうち {n} 件が {ttl} 時間の鮮度期間を過ぎています。", "판정 {m}개 중 {n}개가 {ttl}시간 유효 기간을 지났습니다."],
+  ["Each record carries its own collection time ({oldest} to {newest}). A stale ALLOW is capped at REVIEW; a stale BLOCK stays BLOCK.", "每条记录都带有自己的采集时间（{oldest} 至 {newest}）。过期的 ALLOW 会被限制为 REVIEW；过期的 BLOCK 仍为 BLOCK。", "各レコードは自分の収集時刻を持ちます（{oldest} から {newest}）。古くなった ALLOW は REVIEW に制限され、古くなった BLOCK は BLOCK のままです。", "각 기록은 자신의 수집 시각을 가집니다({oldest} ~ {newest}). 오래된 ALLOW는 REVIEW로 제한되고, 오래된 BLOCK은 BLOCK으로 남습니다."],
+  ["Band caps (not vows)", "等级上限（不是誓约）", "バンド上限（誓約ではない）", "등급 상한(서약이 아님)"],
+  ["A band cap lowers a verdict because of Fiangshi's own evidence, not because of anything the counterparty did, so it never asserts that a counterparty is unsafe and never produces BLOCK. It runs after the six vows and the model, keeps the score unchanged, and is reported in band_cap. Policy {v} has one cap: data older than {ttl} hours is capped at REVIEW.", "等级上限是因为 Fiangshi 自身证据的状况而降低判定，并非因为交易对手做了什么，所以它从不断言交易对手不安全，也从不产生 BLOCK。它在六条誓约和模型之后运行，分数保持不变，并在 band_cap 中报告。策略 {v} 只有一个上限：超过 {ttl} 小时的数据最高为 REVIEW。", "バンド上限は、相手方の行為ではなく Fiangshi 自身の証拠の状態を理由に判定を下げるものです。そのため相手方が危険だと主張することはなく、BLOCK を出すこともありません。6 つの誓約とモデルの後に動き、スコアは変えず、band_cap に記録されます。ポリシー {v} の上限は 1 つだけです：{ttl} 時間より古いデータは REVIEW が上限です。", "등급 상한은 상대방이 한 일이 아니라 Fiangshi 자신의 증거 상태 때문에 판정을 낮춥니다. 그래서 상대방이 위험하다고 주장하지 않으며 BLOCK을 만들지도 않습니다. 여섯 서약과 모델 뒤에 실행되고, 점수는 그대로 두며, band_cap에 기록됩니다. 정책 {v}의 상한은 하나뿐입니다: {ttl}시간보다 오래된 데이터는 REVIEW가 최대입니다."],
   ["Architecture", "架构", "アーキテクチャ", "아키텍처"],
   ["Connect", "接入", "接続", "연결"],
   ["Test report", "测试报告", "テストレポート", "테스트 보고서"],

@@ -81,6 +81,18 @@ Model replies are cached by a hash of the exact evidence they saw, so the same e
 | V | `identity` | a claimed name is contradicted by a label naming the wallet's operator | BLOCK |
 | VI | `silence` | any required signal is missing | REVIEW |
 
+### Band caps (not vows)
+
+`src/core/cap.ts`. A band cap lowers a verdict because of Fiangshi's own evidence, not because of anything the counterparty did. That is why it is not a vow: it never asserts that a counterparty is unsafe, and it never produces BLOCK. It runs after the vows and the model, keeps the score unchanged, and is reported as `band_cap` with `verdict_confidence: "degraded"`.
+
+| cap | applies when | effect |
+|---|---|---|
+| `data_stale` | the record's own data is older than `FIANGSHI_STALE_HOURS` (72) | ALLOW becomes REVIEW; REVIEW and BLOCK are unchanged |
+
+Freshness belongs to each record: every payee carries `as_of`, the moment its data was collected, and its age is measured from that, never from the time the census run finished.
+
+Policy versions: `2026-11-09.4` (rules v4, no caps; every receipt without a `policy_version`, including all census receipts) and `2026-11-13.5` (v5, with the stale cap). New receipts record `policy_version`, `as_of`, any `band_cap`, and `band_basis` (the score, model, vow and cap bands). `GET /v1/verify` re-derives the band under the version the receipt was issued with: a v4 receipt keeps its original band even when today's answer for the same payee is capped.
+
 ### 7. Decide
 
 `src/core/decide.ts`: final band = the lowest of the score band, the model band and the deciding rule's band. ALLOW needs all three to agree. The model can only lower the band, never raise it.

@@ -141,6 +141,12 @@ The verdict (evidence list shortened here):
 {
   "mode": "live",
   "band": "ALLOW",
+  "band_cap": null,
+  "verdict_confidence": "normal",
+  "policy_version": "2026-11-13.5",
+  "data_as_of": "2026-11-09T02:57:19.701Z",
+  "data_age_hours": 1,
+  "stale": false,
   "score": 86.43,
   "vow_fired": null,
   "vows_fired": [],
@@ -221,11 +227,15 @@ curl "http://127.0.0.1:8787/v1/verify?id=b4175805765067e81538ed8367d6edbc23ae3c2
   "chain": "ledger #1",
   "chain_id": "5f1c0d8e2a9b47c3e6d0f4a1b8c7e2d9f3a6b5c4d1e0f9a8b7c6d5e4f3a2b1c0",
   "chain_started_at": "2026-11-13T08:00:00.000Z",
-  "continuity": "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id."
+  "continuity": "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id.",
+  "policy_version": "2026-11-13.5",
+  "band_rederived": "BLOCK",
+  "band_matches": true,
+  "policy_note": "Issued under policy 2026-11-13.5; the band is the lowest of the score, model, vow and cap bands recorded on the receipt."
 }
 ```
 
-`chain_id` names the ledger epoch the receipt belongs to. On hosting whose disk does not survive a redeploy, each deploy starts a new epoch: older receipts still verify on their own (their hash is intact), but their link to their neighbours can only be checked against the epoch that issued them. Census receipts are rebuilt identically from committed data, so their chain never resets.
+`band_rederived` is the band recomputed under the policy version the receipt was issued with, never under today's rules: a census receipt issued under policy 2026-11-09.4 keeps its original band even if today's answer for that payee is capped. If the recorded band does not follow from its own policy, `valid` is false. `chain_id` names the ledger epoch the receipt belongs to. On hosting whose disk does not survive a redeploy, each deploy starts a new epoch: older receipts still verify on their own (their hash is intact), but their link to their neighbours can only be checked against the epoch that issued them. Census receipts are rebuilt identically from committed data, so their chain never resets.
 
 You can also send a receipt you hold: `/v1/verify?receipt=` followed by the base64url encoding of the receipt JSON. Change one byte of it and `valid` becomes `false`.
 
@@ -272,6 +282,10 @@ Identity is the one optional part: leaving it out rescales the other weights, an
 - The model cannot raise a band. If it advises BLOCK, Fiangshi applies REVIEW, because a BLOCK must rest on a vow or on a score under 50.
 - Bad data (negative ages, future timestamps, a wallet funding itself) is treated as missing. Data errors never BLOCK.
 - A payee outside the census is fetched live (the cold check, $0.15): two on-chain queries for that one address, cached for 72 hours. If the data cannot be fetched (budget floor, a provider error, a network other than Base, or a server not running live providers), the answer is REVIEW with the reason. It is never a guess.
+
+### Band caps (not vows)
+
+After the six vows and the model, one band cap runs. If the payee's own data is older than 72 hours (`FIANGSHI_STALE_HOURS`), an ALLOW becomes REVIEW. A stale REVIEW or BLOCK is unchanged, the score is unchanged, and the answer carries `band_cap: { "reason": "data_stale", ... }`, `verdict_confidence: "degraded"` and a line in `unknowns`. A cap is not a vow: it lowers a band because Fiangshi's evidence is old, without claiming the seller is unsafe.
 
 ## Routes
 

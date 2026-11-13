@@ -42,6 +42,14 @@ export const replayDir = () => resolve(fixturesDir(), "recorded");
 export const providerMode = (): "fixture" | "mock" | "live" =>
   replayMode() ? "fixture" : env("FIANGSHI_OFFLINE") === "1" || env("MOCK_MODELS") !== "" ? "mock" : "live";
 export const policyTtlHours = () => num("FIANGSHI_POLICY_TTL_HOURS", 72);
+/** Records older than this are capped at REVIEW (band cap, not a vow). */
+export const staleHours = () => num("FIANGSHI_STALE_HOURS", 72);
+/** The clock. FIANGSHI_NOW (ISO-8601) pins it, for tests and for reproducible published figures. */
+export const nowMs = (): number => {
+  const pinned = env("FIANGSHI_NOW");
+  const t = pinned ? Date.parse(pinned) : NaN;
+  return Number.isFinite(t) ? t : Date.now();
+};
 /** Static edition (GitHub Pages): pages are pre-built by scripts/export-static.ts, so nothing that needs a live server is offered. */
 export const staticSite = () => env("FIANGSHI_STATIC") === "1";
 /**

@@ -94,6 +94,14 @@ export const Receipt = z.object({
   chain: z.literal("eip155:8453").optional(),
   /** Ledger epoch (2026-11-13): set on live-ledger receipts; continuity is only checkable within one epoch. */
   chain_id: hex.optional(),
+  /** Policy v5 (2026-11-13). Absent = issued under v4 ("2026-11-09.4"), as all census receipts are. */
+  policy_version: z.string().optional(),
+  /** when the data behind this verdict was collected */
+  as_of: z.string().optional(),
+  /** set when a band cap lowered the band (not a vow) */
+  band_cap: z.object({ reason: z.literal("data_stale"), age_hours: z.number(), limit_hours: z.number() }).optional(),
+  /** the parts the band was formed from; band = the lowest of them. Lets /v1/verify re-derive the band. */
+  band_basis: z.object({ score_band: Band, model_band: Band, vow_band: Band, cap_band: Band }).optional(),
 });
 export type Receipt = z.infer<typeof Receipt>;
 

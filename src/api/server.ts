@@ -20,7 +20,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, loadDotEnv, num, providerMode } from "../config.js";
+import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderNotFound, renderReceipt } from "../site.js";
 import { CSP, setPagePath } from "../site-theme.js";
@@ -30,6 +30,7 @@ import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
+import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
 import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
 import { coldCacheHit, coldSignals, type ColdFetcher } from "../cold.js";
 import { surfColdFetcher } from "../cold-surf.js";
@@ -103,8 +104,49 @@ function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list
  * Live-ledger receipts also report their epoch (chain_id): continuity can be checked only within the epoch this server
  * holds, and the answer says so instead of implying an unbroken history across redeploys.
  */
-type VerifyOut = { valid: boolean; errors: string[]; chain: string; chain_id?: string | null; chain_started_at?: string; continuity?: string };
+type VerifyOut = {
+  valid: boolean;
+  errors: string[];
+  chain: string;
+  chain_id?: string | null;
+  chain_started_at?: string;
+  continuity?: string;
+  policy_version?: string;
+  band_rederived?: string | null;
+  band_matches?: boolean | null;
+  policy_note?: string;
+};
+
+/**
+ * Re-derive a receipt's band under the policy version it was issued with, never under today's rules.
+ * v5 receipts carry their basis; census receipts (v4) are re-derived from the committed census data under v4 rules.
+ */
+function rederive(r: Receipt): Pick<VerifyOut, "policy_version" | "band_rederived" | "band_matches" | "policy_note"> {
+  const version = r.policy_version ?? POLICY_V4;
+  if (r.band_basis) {
+    const band = bandFromBasis(r.band_basis);
+    return { policy_version: version, band_rederived: band, band_matches: band === r.band, policy_note: `Issued under policy ${version}; the band is the lowest of the score, model, vow and cap bands recorded on the receipt.` };
+  }
+  const cp = loadCensus().payees.find((p) => p.receipt_id === r.receipt_hash);
+  if (cp)
+    return {
+      policy_version: version,
+      band_rederived: cp.issued_band,
+      band_matches: cp.issued_band === r.band,
+      policy_note: `Issued under policy ${version}, before band caps existed; re-derived from the committed census data under that version. Today's answer for this payee may differ (see /v1/preview), but this receipt keeps its original band.`,
+    };
+  return { policy_version: version, band_rederived: null, band_matches: null, policy_note: `Issued under policy ${version}; the signals behind it are not retained, so the band cannot be re-derived. The hash still proves the receipt is unchanged.` };
+}
+
 function verifyOne(obj: unknown): VerifyOut {
+  const out = verifyOneHash(obj);
+  if (!out.valid) return out;
+  const d = rederive(obj as Receipt);
+  if (d.band_matches === false) return { ...out, ...d, valid: false, errors: [`band ${(obj as Receipt).band} does not follow from its own policy (${d.band_rederived} expected)`] };
+  return { ...out, ...d };
+}
+
+function verifyOneHash(obj: unknown): VerifyOut {
   const v = verifyReceipt(obj);
   if (!v.ok) return { valid: false, errors: v.errors, chain: "n/a" };
   const r = obj as Receipt;
@@ -228,12 +270,18 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {
         census_at: c.at,
-        ...(({ data_age_hours, stale }) => ({ data_age_hours, stale }))(freshness(c.at)),
+        policy_version: POLICY_VERSION,
+        served_at: c.served_at,
+        stale_limit_hours: c.stale_limit_hours,
+        payees_total: c.payees.length,
+        payees_stale: c.payees_stale,
+        oldest_as_of: c.oldest_as_of,
+        newest_as_of: c.newest_as_of,
         window_days: c.window_days,
         coverage: `${c.payees.length} of ${c.catalog_payees} Base payees`,
         bands: c.bands,
         chain: "eip155:8453",
-        payees: c.payees.map((p) => ({ chain: p.chain, payee: p.payee, url: p.url, band: p.band, score: p.score, vows: p.vows, receipt_id: p.receipt_id })),
+        payees: c.payees.map((p) => ({ chain: p.chain, payee: p.payee, url: p.url, band: p.band, issued_band: p.issued_band, band_cap: p.band_cap, verdict_confidence: p.verdict_confidence, score: p.score, vows: p.vows, as_of: p.as_of, data_age_hours: p.data_age_hours, stale: p.stale, receipt_id: p.receipt_id })),
       });
     let m = /^\/v1\/badge\/(0x[0-9a-fA-F]{40})\.svg$/.exec(u.pathname);
     if (m) {
@@ -269,7 +317,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const pay = requirePayment(req, res, `${self}${u.pathname}`, num("FIANGSHI_PRICE_PAYEE", 0.02), "Fiangshi payee record");
       if (!pay) return;
       const p = c.payees.find((x) => x.payee === m![1]!.toLowerCase());
-      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(c.at), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" });
+      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" });
     }
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
@@ -305,13 +353,16 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       }
       const full = await evaluateFull(terms, s, c.funderLabels, cp?.service?.trim() || null, { url: target, catalogName: cp?.service ?? null, labelName: null });
       const d = full.decision;
+      // policy v5: the record's own collection time decides the stale cap (census record, or the cold fetch just made)
+      const asOf = cp ? cp.as_of : ((cold?.fetched_at as string | undefined) ?? new Date(nowMs()).toISOString());
+      const v5 = v5Fields(d, asOf, nowMs(), staleHours());
       const coldNote = cold && cold.ok === false ? [{ signal: "cold_check", quote: `${String(cold.reason)}: ${String(cold.detail)}` }] : [];
       const receipt = appendReceipt({
         payee,
         url: target,
         terms_hash: terms?.terms_hash ?? hashOf({ url: target, probe_error: pr.ok ? null : pr.error }),
         price: terms?.price ?? null,
-        band: d.verdict.band,
+        band: v5.band,
         score: d.verdict.score,
         vow_fired: d.verdict.vow_fired ?? null,
         evidence: [...d.verdict.citations, ...coldNote],
@@ -320,9 +371,14 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         checked_at: new Date().toISOString(),
         settlement: currentSettlement(),
         enrichment: full.enrichment,
+        ...v5.fields,
       });
       return json(res, 200, {
-        band: d.verdict.band,
+        band: v5.band,
+        band_cap: v5.cap.band_cap,
+        verdict_confidence: v5.cap.verdict_confidence,
+        policy_version: v5.fields.policy_version,
+        ...freshness(asOf),
         score: d.verdict.score,
         vow_fired: d.verdict.vow_fired ?? null,
         vows_fired: d.vows.filter((v) => v.fired).map((v) => v.vow),

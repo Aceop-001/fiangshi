@@ -22,7 +22,7 @@ const kin = (u: string) => {
 const rows = [...guide.matchAll(/^\| \[[^\]]+\]\(\/check\?url=([^)]+)\) \| ([^|]+) \|/gm)].map((m) => ({ url: decodeURIComponent(m[1]!), answer: m[2]!.trim() }));
 
 const BITREFILL = "https://api.bitrefill.com/x402/gift-cards/search";
-const HIVEMIND = "https://api.hivemindos.app/v1/x402/leadgen-data/leads.enrich";
+const QUAKES = "https://earthquakes.use.x402atlas.com/recent";
 const KRONOS = "https://kronossignals.com/api/v1/funding-extremes";
 const TBS = "https://x402.tbs-digital.com/weather/current";
 
@@ -33,13 +33,15 @@ describe("guide examples are true", () => {
   it("every census example shows the band the census gives it (issued band, before the freshness cap)", () => {
     for (const r of rows.filter((x) => !x.url.includes("cleave"))) expect(byUrl(r.url)?.issued_band, r.url).toBe(r.answer);
   });
-  it("ALLOW examples fire no rule; Bitrefill: 3,722 payers, name confirmed by host and label, a top score; Exa 455; CoinGecko 244", () => {
+  it("ALLOW examples fire no rule; Bitrefill: 3,722 payers, name confirmed by host and label, a top score; ApiToll 285 (host and path); CoinGecko 244", () => {
     for (const r of rows.filter((x) => x.answer === "ALLOW")) expect(byUrl(r.url)!.vows, r.url).toEqual([]);
     const b = byUrl(BITREFILL)!;
     expect(c.signals.get(b.payee)!.distinct_payers).toBe(3722);
     expect(b.identity.sources).toEqual(expect.arrayContaining(["host", "label"]));
     expect(c.payees.filter((p) => p.score > b.score).length).toBeLessThan(20);
-    expect(c.signals.get(byUrl("https://api.exa.ai/search")!.payee)!.distinct_payers).toBe(455);
+    const at = byUrl("https://crypto.apitoll.cloud/v1/crypto/price")!;
+    expect(c.signals.get(at.payee)!.distinct_payers).toBe(285);
+    expect(at.identity.sources).toEqual(expect.arrayContaining(["host", "path"]));
     const cg = byUrl("https://pro-api.coingecko.com/api/v3/x402/onchain/search/pools")!;
     expect(c.signals.get(cg.payee)!.distinct_payers).toBe(244);
     expect(cg.identity.sources).toEqual(expect.arrayContaining(["host"]));
@@ -47,8 +49,9 @@ describe("guide examples are true", () => {
   it("cleave.fi pays the zero address (rule I)", () => {
     expect(byUrl("https://api.cleave.fi/x402/gas")!.payee).toBe("0x0000000000000000000000000000000000000000");
   });
-  it("hivemindos: score alone would ALLOW, kinship BLOCKs on a small unnamed cluster", () => {
-    const k = kin(HIVEMIND);
+  it("earthquakes: score alone would ALLOW, kinship BLOCKs; its funder funded 20 others, one short of the REVIEW cutoff", () => {
+    const k = kin(QUAKES);
+    expect(k.s.funder_fanout).toBe(20);
     expect(k.p.score).toBeGreaterThanOrEqual(80);
     expect(k.row).toMatchObject({ fired: true, band: "BLOCK" });
     expect(k.s.funder_fanout!).toBeLessThan(KINSHIP_REVIEW_AT);

@@ -232,6 +232,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Fix.** The owner set `SERV_REASONING_API_KEY`, `SERV_MODEL`, and the Dolphin settings on Render.
 - **Proof.** The same test payment then answered ALLOW: SERV said ALLOW, Dolphin enrichment complete, 3.6 s, receipt `2a0c6b75…7bf0` verifies with `band_matches: true`.
 
+### F23. Two guide examples only answered POST (13 Nov)
+
+- **Seen.** After the refresh, the guide's new Exa and HivemindOS examples gave `no_verdict` on the live site: their endpoints answer 404 and 405 to a GET and 402 only to a POST.
+- **Cause.** They were chosen from the census by score and payers alone; nobody probed them. Fiangshi's probe is one unpaid GET.
+- **Fix.** Replaced by ApiToll Crypto Prices (ALLOW) and Earthquake Intelligence (kinship BLOCK, a funder shared with 20 others), both chosen only after a live GET returned 402.
+- **Proof.** All six guide endpoints answer through `api.fiangshi.xyz/v1/preview` with the band the guide states; `tests/guide-examples.test.ts` checks every stated fact against the census.
+
 ## Rule changes, each one measured
 
 Every rule change was simulated on the census before it was applied, and its effect was recorded.

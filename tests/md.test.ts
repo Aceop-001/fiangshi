@@ -56,7 +56,7 @@ describe("the documents themselves", () => {
   });
   it("architecture, connect and report have the sections the site and the README promise", () => {
     const h2 = (f: string) => renderMarkdown(read(f)).headings.filter((h) => h.level === 2).map((h) => h.text);
-    expect(h2("ARCHITECTURE.md")).toEqual(["The map", "See it working", "What each step does", "Outside services", "Storage", "Security and trust model", "Budgets and limits", "Configuration", "Failure modes", "What it does not do"]);
+    expect(h2("ARCHITECTURE.md")).toEqual(["The map", "See it working", "What each step does", "Outside services", "Storage", "Security and trust model", "Budgets and limits", "Configuration", "Latency and timeouts", "Failure modes", "What it does not do"]);
     expect(h2("CONNECT.md")).toEqual(["Before you start (all clients)", "The four tools", "Claude Code", "Claude Desktop", "Codex (OpenAI Codex CLI)", "Grok CLI", "Hermes", "Cursor", "VS Code (GitHub Copilot agent mode)", "Gemini CLI", "Any other MCP client", "xAI Grok API (function calling)", "DeepSeek API (function calling)", "Plain HTTP", "Troubleshooting"]);
     expect(h2("CLI.md")).toEqual(["Install the CLI", "Commands", "Exit codes", "Examples", "The agent skill", "Python client"]);
     expect(h2("REPORT.md")).toEqual(["Where things stand", "How we test", "Timeline", "Every failure, in order", "Rule changes, each one measured", "Surf: what we measured about the data source", "Still failing or not done"]);

@@ -91,6 +91,8 @@ Figure: lowest band wins (animated on the site at /architecture).
 
 `src/core/receipt.ts` writes a receipt with: payee, url, terms_hash, price, band, score, vow_fired, evidence quotes, model verdict and degraded flag, snapshot_id, checked_at, `chain: "eip155:8453"`, `prev_hash`, `receipt_hash` and settlement. `receipt_hash` is the sha256 of the canonical JSON of every other field, and `prev_hash` links it to the receipt before it in `data/ledger.jsonl`. Changing any field breaks `GET /v1/verify`.
 
+The live ledger's chain is continuous only within one **epoch**. An epoch starts whenever the ledger starts empty: the first run, or a redeploy on hosting whose disk does not survive (the public API runs on such hosting). Every live receipt carries its epoch's `chain_id`, covered by the hash. `GET /v1/verify` reports the epoch and its start time, and says when a receipt comes from an epoch this server no longer holds: the receipt is still intact, but its link to its neighbours can only be checked against the epoch that issued it. Census receipts are rebuilt identically from committed data on every start, so their chain never resets.
+
 Figure: the receipt chain (animated on the site at /architecture).
 
 Receipts are tamper-evident through the hash chain. They are **not** signed with a private key: Fiangshi holds no keys at all. Anyone can recompute a hash.
@@ -157,6 +159,12 @@ There is no database server. There are no accounts and no user records.
 | `FIANGSHI_DATA_DIR` | where the ledger and caches go (default `data`) |
 
 The full list, with defaults, is in `.env.example`.
+
+## Latency and timeouts
+
+Measured from outside against the public API by `npx tsx scripts/latency-live.ts --write` (details and the full timeout contract in `artifacts/latency-live.md`): a census payee answers in p50 469 ms, p95 508 ms; the null-payee gate in p50 279 ms, p95 360 ms; a URL that is not an x402 endpoint in p50 270 ms, p95 315 ms (20 samples each, 13 Nov 2026). A cold check has one live sample, 10.8 s. The first request after the free-tier server sleeps can take up to about a minute.
+
+Every stage has a limit, and every limit ends in REVIEW or no verdict, never ALLOW: the unpaid probe 15 s (`no_verdict`), SERV 15 s with one stricter retry (`degraded`, REVIEW), Dolphin 12 s with one retry (band unchanged), each Surf call 25 s with the shipped settings (`surf_error`, REVIEW).
 
 ## Failure modes
 

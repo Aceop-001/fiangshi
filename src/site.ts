@@ -7,7 +7,9 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, checkHref, env, liveApi, num, staticSite } from "./config.js";
+import { ROOT, checkHref, env, liveApi, num, policyTtlHours, staticSite } from "./config.js";
+import { censusUnknowns, freshness } from "./preview.js";
+import { sellerPayTo } from "./adapters/x402.js";
 import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
@@ -285,6 +287,10 @@ ${probeForm()}
 <section class="sec" id="census"><div class="wrap">
 <p class="eyebrow">${T("Census")}</p>
 <h2>${T("{n} of {total} Base payees, {days}-day window", { n, total: c.catalog_payees.toLocaleString("en-US"), days: c.window_days })}</h2>
+${(() => {
+  const f = freshness(c.at);
+  return `<p class="age${f.stale ? " stale" : ""}"><i class="st ${f.stale ? "REVIEW" : "ALLOW"}"></i>${T("Data as of {date}, {hours} hours old.", { date: c.at.slice(0, 16).replace("T", " ") + " UTC", hours: Math.round(f.data_age_hours) })} ${f.stale ? T("Past the {ttl}-hour freshness window: these verdicts describe that date. Re-check before paying.", { ttl: policyTtlHours() }) : T("Within the {ttl}-hour freshness window.", { ttl: policyTtlHours() })}</p>`;
+})()}
 <p class="lede">${T("{pct}% of the x402 Bazaar catalog on Base. The catalog lists {res} paid endpoints, but they resolve to {wallets} wallets: {per} endpoints per payee. Spreading payments across endpoints is not spreading them across counterparties. These counts are defined in <code>data/numbers.json</code>.", { pct: ((100 * n) / Math.max(1, c.catalog_payees)).toFixed(1), res: c.base_resources.toLocaleString("en-US"), wallets: c.catalog_payees.toLocaleString("en-US"), per: c.endpoints_per_payee })}</p>
 <div class="tiles">${BANDS.map((b) => `<div class="tile ${b}"><p class="tile-l"><i class="st ${b}"></i>${b}</p><p class="tile-v">${c.bands[b]}</p><p class="tile-s">${share(c.bands[b])} · ${tileNote[b]}</p></div>`).join("")}</div>
 <div class="seg" role="img" aria-label="${BANDS.map((b) => `${b} ${c.bands[b]} (${share(c.bands[b])})`).join(", ")}">${BANDS.map((b) => `<i class="${b}" style="flex-grow:${c.bands[b]}" title="${b} ${c.bands[b]} · ${share(c.bands[b])}"></i>`).join("")}</div>
@@ -372,6 +378,7 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
   const cached = num("FIANGSHI_PRICE_CHECK", 0.05);
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
   const url = v.kind === "invalid" ? v.input : v.url;
+  const paidOn = sellerPayTo().ok;
   const paidCmd = (u: string) => `<code class="cmd">curl -i "${esc(self)}/v1/check?url=${esc(encodeURIComponent(u))}"</code>`;
   let verdict = "";
   let detail = "";
@@ -389,17 +396,19 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
   } else if (v.kind === "census") {
     const p = v.payee;
     const r = c.receipts.get(p.receipt_id);
+    const f = freshness(c.at);
     const firedList = p.vows.length ? T("Vows fired: {list}.", { list: p.vows.map((x) => `${vowNo(x)} ${x}`).join(", ") }) : T("No vow fired.");
     const drift = p.price_usd !== null && v.terms.price !== null && p.price_usd !== v.terms.price ? kv("Catalog price", `${esc(usd(p.price_usd))} when the census ran`) : "";
     const funder = p.vows.includes("kinship") && p.first_funder ? c.funders.find((x) => x.funder === p.first_funder) : undefined;
     verdict = `<div class="verdict ${p.band}"><span class="stamp">${p.band}</span><div><h2>${T("Census band {band}, score {score}.", { band: p.band, score: p.score })}</h2><p>${esc(firedList)} ${T("This is the cached census verdict: score and vows over {days} days of on-chain data, with no model call.", { days: c.window_days })}</p></div></div>`;
     detail = `<div class="hud"><div class="hud-h"><span>${T("Probe")}</span><span>${T("unpaid GET")}</span></div><dl class="hud-b kvs">${termsRows(v.url, v.terms, v.payTo)}${drift}${p.service ? kv("Listed as", esc(p.service)) : ""}${kv("Census receipt", `<a href="/receipt/${p.receipt_id}"><code>${esc(short(p.receipt_id, 12, 8))}</code></a>`)}</dl></div>
 <div class="cols"><div><p class="eyebrow">${p.vows.length ? T("Why") : T("Evidence on the receipt")}</p><ul class="quotes">${p.vows.map((x) => `<li><b>Vow ${vowNo(x)} · ${esc(x)}</b>${esc(VOWS[x as VowName]?.rule ?? "")}${x === "kinship" && funder ? ` This payee's first funder also first funded ${funder.payees - 1} other census payees.` : ""}</li>`).join("")}${(r?.evidence ?? []).map((e) => `<li><b>${esc(e.signal)}</b>${esc(e.quote)}</li>`).join("")}</ul></div>
-<div><p class="eyebrow">${T("Go further")}</p><ul class="next"><li>A paid check adds SERV adjudication on the live terms and seals a fresh receipt. $${cached.toFixed(2)} over x402:${paidCmd(v.url)}</li><li>The full census record for this payee. $${payeePrice.toFixed(2)} over x402:<code class="cmd">curl -i "${esc(self)}/v1/payee/${esc(p.payee)}"</code></li></ul></div></div>`;
+<div><p class="eyebrow">${T("Go further")}</p><ul class="next">${paidOn ? `<li>A paid check adds SERV adjudication on the live terms and seals a fresh receipt. $${cached.toFixed(2)} over x402:${paidCmd(v.url)}</li><li>The full census record for this payee. $${payeePrice.toFixed(2)} over x402:<code class="cmd">curl -i "${esc(self)}/v1/payee/${esc(p.payee)}"</code></li>` : `<li>${T("The paid check is not enabled on this server: its operator has not set a receiving wallet.")}</li>`}<li>${T("The same answer as JSON, free:")}<code class="cmd">curl "${esc(self)}/v1/preview?url=${esc(encodeURIComponent(v.url))}"</code></li></ul></div></div>
+<div class="unknowns"><p class="eyebrow">${T("What we could not check")}</p><ul class="quotes">${censusUnknowns(c, p, f.stale, f.data_age_hours).map((u) => `<li>${esc(u)}</li>`).join("")}</ul></div>`;
   } else {
     verdict = `<div class="verdict NONE"><span class="stamp">NO RECORD</span><div><h2>${T("This payee is not in the census.")}</h2><p>Fiangshi has no cached on-chain signals for <code>${esc(short(v.terms.payee))}</code>. It passed the null-payee gate, and that is all a free probe can say. A paid check fails closed to REVIEW until the payee is in a snapshot. It is never ALLOW by default.</p></div></div>`;
     detail = `<div class="hud"><div class="hud-h"><span>${T("Probe")}</span><span>${T("unpaid GET")}</span></div><dl class="hud-b kvs">${termsRows(v.url, v.terms, v.payTo)}</dl></div>
-<div class="cols"><div><p class="eyebrow">${T("Go further")}</p><ul class="next"><li>A paid check, $${cached.toFixed(2)} over x402:${paidCmd(v.url)}</li></ul></div><div></div></div>`;
+<div class="cols"><div><p class="eyebrow">${T("Go further")}</p><ul class="next">${paidOn ? `<li>A paid check, $${cached.toFixed(2)} over x402:${paidCmd(v.url)}</li>` : `<li>${T("The paid check is not enabled on this server: its operator has not set a receiving wallet.")}</li>`}</ul></div><div></div></div>`;
   }
 
   const body = `<main class="wrap case">

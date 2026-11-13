@@ -152,6 +152,9 @@ h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:10px 0 16px}
 .probe-row{display:flex;border:1px solid var(--hud)}
 .probe-row:focus-within{outline:2px solid var(--fg);outline-offset:2px}
 .probe-row>span{padding:11px 0 11px 12px;color:var(--red-text)}
+.age{display:flex;align-items:baseline;gap:2px;font-size:12.5px;color:var(--mut);margin:-6px 0 18px}
+.age.stale{color:var(--fg)}
+.unknowns{margin-top:28px}
 .probe-l{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
 .probe-static .probe-row code{padding:11px 12px;overflow-x:auto;white-space:nowrap;color:var(--fg)}
 .probe-static .mut{margin-top:10px;font-size:12.5px}

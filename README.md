@@ -6,7 +6,7 @@
 
 [**fiangshi.xyz**](https://fiangshi.xyz) · [Docs](https://fiangshi.xyz/docs) · [Architecture](https://fiangshi.xyz/architecture) · [Test report](https://fiangshi.xyz/report) · [Connect your agent](https://fiangshi.xyz/connect)
 
-![tests](https://img.shields.io/badge/tests-322%20passing-2b2b2b) ![accept](https://img.shields.io/badge/accept%20gates-15%2F15-2b2b2b) ![chain](https://img.shields.io/badge/chain-Base-2b2b2b) ![license](https://img.shields.io/badge/license-MIT-2b2b2b)
+![tests](https://img.shields.io/badge/tests-333%20passing-2b2b2b) ![accept](https://img.shields.io/badge/accept%20gates-15%2F15-2b2b2b) ![chain](https://img.shields.io/badge/chain-Base-2b2b2b) ![license](https://img.shields.io/badge/license-MIT-2b2b2b)
 
 *The model advises, the vows decide.*
 
@@ -83,7 +83,7 @@ The [architecture page](https://fiangshi.xyz/architecture) shows this as an anim
 
 | check | result |
 |---|---|
-| unit and integration tests | 322 passing (`npm test`) |
+| unit and integration tests | 333 passing (`npm test`) |
 | offline acceptance gates, network blocked | 15 / 15 (`npm run accept`) |
 | end to end on a live local server | 10 / 10 (`npm run localhost-check`) |
 | adversarial lab, expectations committed before each run | 8 pass, 1 superseded by a documented rule change |
@@ -144,7 +144,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | kinship | 243 payees share a first funder with 3+ others. 123 BLOCK (clusters up to 21 payees); 120 REVIEW as suspected exchanges (3 clusters of 33, 39 and 48 payees). All on funders Surf could not name | `npx tsx scripts/sensitivity.ts` → `artifacts/sensitivity.md` |
 | probe check | 123 live 402s parsed, **0 payee mismatches** (live `payTo` = catalog) | `audit.ts probe` → `fixtures/audit/probes.jsonl` |
 | adversarial lab | **8 / 9 pass, 1 superseded.** 3 / 3 real controls ALLOW. B4 was written under rules v3; identity neutrality (rules v4) makes its outcome correct, documented in `fixtures/lab/supersessions.json` | `scripts/build-lab.ts` + `scripts/matrix.ts` → `artifacts/lab.md` |
-| tests | 322 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
+| tests | 333 passing; accept 15 / 15 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity) | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
 **Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
@@ -192,7 +192,8 @@ Settlement is **dry-run**. `X-PAYMENT` is checked for structure only; the signat
 - **No live payee under 48 h.** 0 of 800 census payees are that young, so the age vow is tested on fixtures but has not fired live.
 - **Label coverage is thin.** 16 of 463 addresses got a Surf label (3.5%). Missing or uncorroborated identity is scored as neutral (weight excluded), not as trust and not as a penalty.
 - Dolphin identity extraction is **optional enrichment**. A timeout is stamped `enrichment: incomplete` on the receipt and never caps the verdict.
-- Receipts are hash-chained (`sha256` + `prev_hash`), **not signed**.
+- Receipts are hash-chained (`sha256` + `prev_hash`), **not signed**. The live ledger's chain is continuous only within one epoch (`chain_id` on every live receipt); on the public API, whose disk does not survive a redeploy, each deploy starts a new epoch. Older receipts still verify on their own. Census receipts never reset.
+- **Census data ages.** The census was taken on 9 Nov 2026. Every free answer states `data_as_of`, `data_age_hours` and `stale` (past 72 hours), and lists in `unknowns` what it could not check, such as an unlabelled funder.
 
 ## NOT doing
 
@@ -251,3 +252,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-13 Static edition on GitHub Pages.** `npm run export` runs the real server in static mode (`FIANGSHI_STATIC=1`), crawls every page in all four languages (home, docs, the 800 census receipts, `/v1/index.json`) and writes them to `site/` with `CNAME` and `404.html`; it fails if any page links to a missing page or a server-only route. In the static edition the check box shows the one-line CLI command instead of a form, try-it links open sealed receipts, and the tour is off. `.github/workflows/pages.yml` tests, exports and publishes on every push to `main`, at fiangshi.xyz. 319 tests.
 - **2026-11-13 Public launch.** https://fiangshi.xyz is live on GitHub Pages with HTTPS. The README is rewritten for readers outside the hackathon (what Fiangshi does, how to try it, integrations, quality, status), and the repository has a homepage, description and topics. `render.yaml` describes the live API service for Render (`api.fiangshi.xyz`); when the repository variable `FIANGSHI_API_URL` is set, the static site's check box and try-it links send checks to that API, and its CSP allows that one origin for forms. 322 tests.
 - **2026-11-13 Live checks.** The API runs on Render (`render.yaml`) at https://api.fiangshi.xyz (also https://fiangshi-api.onrender.com). The repository variable `FIANGSHI_API_URL` points the website's check box and try-it links at it, so a visitor can paste a paid endpoint on fiangshi.xyz and get a live verdict and receipt.
+- **2026-11-13 External review fixes.** Acting on an outside review of the live service: (1) live receipts carry a `chain_id` epoch and `/v1/verify` states that continuity resets on redeploy instead of implying an unbroken history; (2) every free answer has one schema on every path (`vow_fired`, `vows_fired[]`, numeric `cost_usd`), guarded by a contract test, and `/v1/check` gained `vows_fired[]`; (4) a disabled paid route is no longer advertised as a link; (5) answers state `data_as_of`, `data_age_hours` and `stale`, and the home page shows the census age; (6) live p50/p95 and a timeout contract (`scripts/latency-live.ts`, `artifacts/latency-live.md`); and every answer lists `unknowns`, what Fiangshi could not check. The review's point 3 was checked against the data: no census payee fires age, history or identity, so those stay unit-tested only and are documented as such. 333 tests.

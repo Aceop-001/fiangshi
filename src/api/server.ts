@@ -18,7 +18,7 @@
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { pathToFileURL } from "node:url";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
@@ -30,6 +30,7 @@ import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { paymentRequired, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
+import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
 import { coldCacheHit, coldSignals, type ColdFetcher } from "../cold.js";
 import { surfColdFetcher } from "../cold-surf.js";
 
@@ -40,7 +41,7 @@ import { hashOf } from "../core/canonical.js";
 import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
-import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
+import { appendReceipt, currentEpoch, ledgerPath, readLedger } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
@@ -97,17 +98,43 @@ function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list
   return r ? { r, chain: "ledger", list } : null;
 }
 
-/** Hash recomputation + chain link: the receipt must hash to itself, and (if known) follow its predecessor. */
-function verifyOne(obj: unknown): { valid: boolean; errors: string[]; chain: string } {
+/**
+ * Hash recomputation + chain link: the receipt must hash to itself, and (if known) follow its predecessor.
+ * Live-ledger receipts also report their epoch (chain_id): continuity can be checked only within the epoch this server
+ * holds, and the answer says so instead of implying an unbroken history across redeploys.
+ */
+type VerifyOut = { valid: boolean; errors: string[]; chain: string; chain_id?: string | null; chain_started_at?: string; continuity?: string };
+function verifyOne(obj: unknown): VerifyOut {
   const v = verifyReceipt(obj);
   if (!v.ok) return { valid: false, errors: v.errors, chain: "n/a" };
   const r = obj as Receipt;
   const known = findReceipt(r.receipt_hash);
-  if (!known) return { valid: true, errors: [], chain: "not in a known ledger (hash self-consistent)" };
+  const epoch = existsSync(ledgerPath()) ? currentEpoch() : null;
+  if (!known) {
+    const other = r.chain_id && r.chain_id !== epoch?.chain_id;
+    return {
+      valid: true,
+      errors: [],
+      chain: other ? "an earlier ledger epoch (hash self-consistent)" : "not in a known ledger (hash self-consistent)",
+      chain_id: r.chain_id ?? null,
+      continuity: other ? "This receipt is intact, but it belongs to a ledger epoch this server no longer holds, so its link to the receipts around it cannot be checked here." : "The hash checks out; this server holds no ledger containing it.",
+    };
+  }
   const i = known.list.findIndex((x) => x.receipt_hash === r.receipt_hash);
   const prev = i <= 0 ? "genesis" : known.list[i - 1]!.receipt_hash;
   if (r.prev_hash !== prev) return { valid: false, errors: [`prev_hash ${r.prev_hash} does not link to ${prev}`], chain: known.chain };
-  return { valid: true, errors: [], chain: `${known.chain} #${i}` };
+  if (known.chain === "census") return { valid: true, errors: [], chain: `census #${i}`, chain_id: null, continuity: "The census chain is rebuilt identically from committed data on every start, so it never resets." };
+  return {
+    valid: true,
+    errors: [],
+    chain: `ledger #${i}`,
+    chain_id: r.chain_id ?? null,
+    chain_started_at: epoch?.started_at,
+    continuity:
+      epoch?.durability === "durable"
+        ? "Continuous since this epoch started."
+        : "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id.",
+  };
 }
 
 function requirePayment(req: IncomingMessage, res: ServerResponse, resource: string, usd: number, description: string): { ok: true; requirement: Requirement; from: string | null } | null {
@@ -186,21 +213,22 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const input = (u.searchParams.get("url") ?? "").trim();
       if (!/^https?:\/\/\S{1,2000}$/i.test(input)) return json(res, 400, { error: "pass ?url=<an http or https x402 endpoint>" });
       const pr = await probe(input);
-      if (!pr.ok) return json(res, 200, { url: input, verdict: "no_verdict", reason: `probe failed: ${pr.error}`, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
+      const seller = sellerPayTo();
+      const paid: PaidStatus = seller.ok ? { ok: true, url: `${self}/v1/check?url=${encodeURIComponent(input)}` } : { ok: false, why: "the operator has not set a receiving wallet (FIANGSHI_PAYTO), so the paid route answers 503" };
+      if (!pr.ok) return json(res, 200, noVerdictAnswer(input, pr.error, paid));
       const terms = { price_usd: pr.terms.price, network: pr.terms.network, asset: pr.terms.asset, pay_to: pr.payTo_raw, terms_hash: pr.terms.terms_hash };
       if (v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
         const r = await check(input, { probe: pr });
-        return json(res, 200, { url: input, verdict: "BLOCK", source: "null_payee rule at probe time", vow_fired: "null_payee", reason: r.decision.verdict.citations[0]?.quote ?? "null payee", terms, cost_usd: 0, receipt_id: r.receipt.receipt_hash });
+        return json(res, 200, nullPayeeAnswer(input, terms, r.decision.verdict.citations[0]?.quote ?? "null payee", r.receipt.receipt_hash));
       }
       const cp = c.payees.find((x) => x.payee === pr.terms.payee);
-      if (cp)
-        return json(res, 200, { url: input, verdict: cp.band, source: `census of ${c.payees.length} payees, ${c.window_days}-day window, taken ${c.at}`, score: cp.score, vows_fired: cp.vows, terms, receipt_id: cp.receipt_id, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
-      return json(res, 200, { url: input, verdict: "no_record", source: "payee not in the census", reason: "Fiangshi holds no on-chain signals for this payee yet. The paid check fetches them (cold check). Never treat no_record as ALLOW.", terms, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
+      return json(res, 200, cp ? censusAnswer(input, terms, c, cp, paid) : noRecordAnswer(input, terms, c, paid));
     }
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement() });
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {
         census_at: c.at,
+        ...(({ data_age_hours, stale }) => ({ data_age_hours, stale }))(freshness(c.at)),
         window_days: c.window_days,
         coverage: `${c.payees.length} of ${c.catalog_payees} Base payees`,
         bands: c.bands,
@@ -241,7 +269,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const pay = requirePayment(req, res, `${self}${u.pathname}`, num("FIANGSHI_PRICE_PAYEE", 0.02), "Fiangshi payee record");
       if (!pay) return;
       const p = c.payees.find((x) => x.payee === m![1]!.toLowerCase());
-      return json(res, p ? 200 : 404, p ? { ...p, settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" });
+      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(c.at), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" });
     }
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
@@ -252,7 +280,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       // V6 at probe time: a null/sink payTo is BLOCKed before any spend: no payment asked, no data or model call
       if (pr.ok && v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
         const r = await check(target, { probe: pr });
-        return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired, reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, settlement: "dry-run", ms: Math.round(performance.now() - t0) });
+        return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired ?? null, vows_fired: r.decision.vows.filter((v) => v.fired).map((v) => v.vow), reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, settlement: "dry-run", ms: Math.round(performance.now() - t0) });
       }
       // Cached SKU: a census payee or a cold payee fetched in the last 72 h. Cold SKU: anyone else, fetched live from Surf.
       const terms = pr.ok ? pr.terms : null;
@@ -297,6 +325,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         band: d.verdict.band,
         score: d.verdict.score,
         vow_fired: d.verdict.vow_fired ?? null,
+        vows_fired: d.vows.filter((v) => v.fired).map((v) => v.vow),
         vows: d.vows.filter((v) => v.fired).map((v) => ({ vow: v.vow, band: v.band, reason: v.reason, ...(v.flags ? { flags: v.flags } : {}) })),
         model: { serv: d.modelRawBand, degraded: d.verdict.degraded },
         enrichment: full.enrichment,

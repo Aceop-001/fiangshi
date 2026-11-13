@@ -82,6 +82,13 @@ const ROWS: [string, string, string, string][] = [
   ["<strong>Static edition.</strong> These pages are pre-built from the committed census. Live checks run on the Fiangshi API: see <a href=\"/cli\">CLI and skill</a> or <a href=\"/connect\">Connect</a>.", "<strong>静态版。</strong>这些页面由已提交的普查数据预先生成。实时检查在 Fiangshi API 上运行：参见<a href=\"/cli\">命令行与技能</a>或<a href=\"/connect\">接入</a>。", "<strong>静的版。</strong>これらのページはコミット済みの調査データから事前に生成されています。ライブチェックは Fiangshi API で動きます。<a href=\"/cli\">CLI とスキル</a>または<a href=\"/connect\">接続</a>をご覧ください。", "<strong>정적 버전.</strong> 이 페이지들은 커밋된 조사 데이터로 미리 만들어졌습니다. 실시간 확인은 Fiangshi API에서 실행됩니다. <a href=\"/cli\">CLI와 스킬</a> 또는 <a href=\"/connect\">연결</a>을 보세요."],
   ["Live checks need the Fiangshi API, which this static page cannot run. Start it in one command, or connect your agent: {cli} · {connect}.", "实时检查需要 Fiangshi API，这个静态页面无法运行它。用一条命令启动它，或接入你的代理：{cli} · {connect}。", "ライブチェックには Fiangshi API が必要で、この静的ページでは動かせません。コマンド 1 つで起動するか、エージェントを接続してください：{cli} · {connect}。", "실시간 확인에는 Fiangshi API가 필요하며, 이 정적 페이지에서는 실행할 수 없습니다. 명령 하나로 시작하거나 에이전트를 연결하세요: {cli} · {connect}."],
   ["See the sealed receipts for {links}.", "查看 {links} 的封存凭证。", "{links} の封印済みレシートを見る。", "{links}의 봉인된 영수증을 보세요."],
+  // data age (review fix, 13 Nov)
+  ["Data as of {date}, {hours} hours old.", "数据截至 {date}，已有 {hours} 小时。", "データは {date} 時点、{hours} 時間前のものです。", "{date} 기준 데이터, {hours}시간 전입니다."],
+  ["Past the {ttl}-hour freshness window: these verdicts describe that date. Re-check before paying.", "已超过 {ttl} 小时的有效期：这些判定描述的是当时的情况。付款前请重新检查。", "{ttl} 時間の鮮度期間を過ぎています。これらの判定はその時点のものです。支払う前に再確認してください。", "{ttl}시간의 유효 기간이 지났습니다. 이 판정은 그 시점의 것입니다. 결제 전에 다시 확인하세요."],
+  ["Within the {ttl}-hour freshness window.", "在 {ttl} 小时的有效期内。", "{ttl} 時間の鮮度期間内です。", "{ttl}시간의 유효 기간 안입니다."],
+  ["What we could not check", "我们无法核实的内容", "確認できなかったこと", "확인하지 못한 것"],
+  ["The paid check is not enabled on this server: its operator has not set a receiving wallet.", "此服务器未启用付费检查：运营者尚未设置收款钱包。", "このサーバーでは有料チェックが有効になっていません。運営者が受取用ウォレットを設定していないためです。", "이 서버에서는 유료 확인이 켜져 있지 않습니다. 운영자가 수취 지갑을 설정하지 않았습니다."],
+  ["The same answer as JSON, free:", "同样的答案，JSON 格式，免费：", "同じ答えを JSON で、無料で：", "같은 답을 JSON으로, 무료로:"],
   ["Architecture", "架构", "アーキテクチャ", "아키텍처"],
   ["Connect", "接入", "接続", "연결"],
   ["Test report", "测试报告", "テストレポート", "테스트 보고서"],

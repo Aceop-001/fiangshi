@@ -92,6 +92,8 @@ export const Receipt = z.object({
   enrichment: z.object({ status: z.enum(["complete", "incomplete", "skipped"]), reason: z.string().nullable() }).optional(),
   /** CAIP-2 chain of the payee (2026-11-11). Base only; stamped so a future chain can never collide with a Base address. */
   chain: z.literal("eip155:8453").optional(),
+  /** Ledger epoch (2026-11-13): set on live-ledger receipts; continuity is only checkable within one epoch. */
+  chain_id: hex.optional(),
 });
 export type Receipt = z.infer<typeof Receipt>;
 

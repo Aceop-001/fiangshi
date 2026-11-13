@@ -13,6 +13,7 @@ import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
 import { renderMarkdown } from "./md.js";
 import { FIGURE_CSS, figureHtml } from "./arch-visuals.js";
+import { DOC_GROUPS, DOC_PAGES, docByKind, type DocPage } from "./docs-index.js";
 import { lang, t as T } from "./i18n.js";
 import { HERO_CSS, SITE_LINKS, bareUrl, esc, page, probeForm, short, usd } from "./site-theme.js";
 
@@ -276,7 +277,6 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
 ${probeForm()}
 <p class="try">${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}</p>
 </div></div>
-<a class="tourbtn" href="/?tour=1"><b aria-hidden="true">?</b><span>${T("Take the tour")}</span></a>
 </div></section>
 
 <section class="sec" id="census"><div class="wrap">
@@ -482,14 +482,7 @@ ${hashBars(r.receipt_hash)}
 
 /* ---------------------------------------------------------------- documents ------------------------------------ */
 
-const DOCS = {
-  docs: { file: "GUIDE.md", fallback: "Fiangshi guide", description: "How an agent uses Fiangshi, how a verdict is made, and how to run it." },
-  architecture: { file: "ARCHITECTURE.md", fallback: "Fiangshi architecture", description: "How Fiangshi is built: the pipeline map, every outside service, storage, the trust model and failure modes." },
-  connect: { file: "CONNECT.md", fallback: "Connect Fiangshi to your AI", description: "Install guides for Claude Code, Claude Desktop, Codex, Grok, Hermes, Cursor, VS Code, Gemini, xAI and DeepSeek." },
-  report: { file: "REPORT.md", fallback: "Test report", description: "Every failure in building Fiangshi, what fixed it, and what the tests say now." },
-  legal: { file: "LEGAL.md", fallback: "Legal", description: "Fiangshi terms of use, what a verdict about a seller means, privacy, licence." },
-} as const;
-export type DocKind = keyof typeof DOCS;
+export type DocKind = DocPage["kind"];
 
 /** The operator of this copy, from FIANGSHI_CONTACT (an https URL, an email address, or plain text). Never invented. */
 function contactBlock(): string {
@@ -504,16 +497,31 @@ function contactBlock(): string {
   return `<aside class="contact"><h2 id="operator-contact">Operator contact</h2><p>${shown}</p></aside>`;
 }
 
+/** The docs sidebar: every page by group, the current one open with its sections. */
+function docsSidebar(current: DocKind | null, headings: { id: string; text: string }[]): string {
+  const groups = DOC_GROUPS.map((g) => {
+    const items = DOC_PAGES.filter((d) => d.group === g)
+      .map((d) => {
+        const on = d.kind === current;
+        const sub = on && headings.length ? `<ol class="dtoc">${headings.map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`).join("")}</ol>` : "";
+        return `<li><a href="${d.path}"${on ? ' aria-current="page"' : ""}>${esc(T(d.label))}</a>${sub}</li>`;
+      })
+      .join("");
+    return `<p class="dgrp">${T(g)}</p><ul>${items}</ul>`;
+  }).join("");
+  return `<aside class="dside"><a class="dhome${current === null ? " on" : ""}" href="/docs">${T("Docs home")}</a><nav class="dnav" aria-label="${T("Docs")}">${groups}</nav></aside>`;
+}
+
 /**
- * docs/GUIDE.md and docs/LEGAL.md rendered as pages: one source for the repository and the site.
- * Links between the two files (LEGAL.md, GUIDE.md) are pointed at their routes.
+ * docs/*.md rendered as pages, one source for the repository and the site, inside the docs shell: sidebar, breadcrumb,
+ * sections, and previous / next. Links between the Markdown files are pointed at their routes.
  */
 export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): string {
-  const d = DOCS[kind];
-  const src = readFileSync(join(ROOT, "docs", d.file), "utf8")
-    .replace(/\]\(GUIDE\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/guide${hash ?? ""})`)
-    .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`)
-    .replace(/\]\((ARCHITECTURE|CONNECT|REPORT)\.md(#[^)\s]*)?\)/g, (_m, f: string, hash: string | undefined) => `](/${f === "REPORT" ? "report" : f.toLowerCase()}${hash ?? ""})`);
+  const d = docByKind(kind);
+  const src = readFileSync(join(ROOT, "docs", d.file), "utf8").replace(/\]\(([A-Z]+)\.md(#[^)\s]*)?\)/g, (m, f: string, hash: string | undefined) => {
+    const to = DOC_PAGES.find((p) => p.file === `${f}.md`);
+    return to ? `](${to.path}${hash ?? ""})` : m;
+  });
   const r = renderMarkdown(src);
   if (kind === "architecture") {
     // "Figure: <name> (animated on the site at /architecture)." paragraphs become the animated working models
@@ -522,13 +530,111 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
   }
   const extra = kind === "report" ? reportComputed(stats) : null;
   if (extra) r.headings.push(...extra.headings);
-  const toc = r.headings.filter((h) => h.level === 2).map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`);
+  const h2 = r.headings.filter((h) => h.level === 2);
+  const i = DOC_PAGES.indexOf(d);
+  const prev = DOC_PAGES[i - 1];
+  const next = DOC_PAGES[i + 1];
+  const pager = `<nav class="pager" aria-label="${T("More docs")}">${prev ? `<a class="pv" href="${prev.path}"><span>${T("Previous page")}</span><b>${esc(T(prev.label))}</b></a>` : "<i></i>"}${next ? `<a class="nx" href="${next.path}"><span>${T("Next page")}</span><b>${esc(T(next.label))}</b></a>` : ""}</nav>`;
+  const mobileToc = h2.length ? `<details class="mtoc"><summary>${T("On this page")}</summary><ol>${h2.map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`).join("")}</ol></details>` : "";
   const body = `<main class="wrap doc-wrap">
-<nav class="toc" aria-label="${T("On this page")}"><p class="eyebrow">${T("On this page")}</p><ol>${toc.join("")}</ol></nav>
-<article class="doc">${lang() === "en" ? "" : `<p class="doc-note">${T("This document is in English only. The rest of the site is translated.")}</p>`}${r.html}${extra?.html ?? ""}${kind === "legal" ? contactBlock() : ""}</article>
+${docsSidebar(kind, h2)}
+<article class="doc"><p class="crumbs"><a href="/docs">${T("Docs")}</a><span>/</span>${T(d.group)}<span>/</span><b>${esc(T(d.label))}</b></p>${mobileToc}${lang() === "en" ? "" : `<p class="doc-note">${T("This document is in English only. The rest of the site is translated.")}</p>`}${r.html}${extra?.html ?? ""}${kind === "legal" ? contactBlock() : ""}${pager}</article>
 </main>`;
-  return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats), ...(kind === "architecture" ? { css: FIGURE_CSS } : {}) });
+  return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats), css: DOCS_CSS + (kind === "architecture" ? FIGURE_CSS : "") });
 }
+
+/** /docs: the documentation home. */
+export function renderDocsHome(c: Census, stats: DemoStats | null): string {
+  const card = (d: DocPage) => `<a class="dcard" href="${d.path}"><b>${esc(T(d.label))}</b><span>${esc(T(d.blurb))}</span><i aria-hidden="true">→</i></a>`;
+  const groups = DOC_GROUPS.map((g) => `<section class="dgroup"><p class="eyebrow">${T(g)}</p><div class="dcards">${DOC_PAGES.filter((d) => d.group === g).map(card).join("")}</div></section>`).join("");
+  const body = `<main class="wrap doc-wrap">
+${docsSidebar(null, [])}
+<article class="doc dhome-page">
+<p class="crumbs"><b>${T("Docs")}</b></p>
+<h1>${T("Fiangshi docs")}</h1>
+<p class="dlede">${T("Everything you need to check a payee before an agent pays: how to use it, how it works, and the evidence that it does what it says.")}</p>
+<div class="dstart">
+<a href="/"><span>01</span><b>${T("Try a check")}</b><em>${T("Paste a paid endpoint on the home page. Free.")}</em></a>
+<a href="/connect"><span>02</span><b>${T("Connect an agent")}</b><em>${T("MCP setup for Claude, Codex, Grok, Hermes and more.")}</em></a>
+<a href="/cli"><span>03</span><b>${T("Use the CLI")}</b><em>${T("Verdicts as exit codes, plus an agent skill.")}</em></a>
+</div>
+${groups}
+<section class="dgroup"><p class="eyebrow">${T("For agents")}</p>
+<div class="scroll"><pre><code>fiangshi preview "https://api.example.com/paid" --json   # exit 0 ALLOW · 10 REVIEW · 20 BLOCK
+claude mcp add fiangshi -- node &lt;repo&gt;/dist/src/mcp/server.js
+fiangshi skill install claude</code></pre></div>
+<p class="mut">${T("Machine-readable: {a} lists every payee in the census; {b} answers one URL as JSON.", { a: '<a href="/v1/index.json">/v1/index.json</a>', b: "<code>/v1/preview?url=</code>" })}</p>
+</section>
+</article>
+</main>`;
+  return page({ title: "Docs · Fiangshi", description: "Fiangshi documentation: guide, connect, CLI and skill, architecture, test report and legal.", status: censusStatus(c), body, foot: footer(c, stats), css: DOCS_CSS });
+}
+
+const DOCS_CSS = `
+.doc-wrap{grid-template-columns:220px minmax(0,1fr);gap:56px}
+.dside{position:sticky;top:20px;max-height:calc(100vh - 40px);overflow:auto;font-size:13px;scrollbar-width:thin;padding-right:6px}
+.dhome{display:block;font:600 11.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:var(--mut);padding:0 0 16px;border-bottom:1px solid var(--line2);margin-bottom:16px}
+.dhome.on,.dhome:hover{color:var(--fg)}
+.dgrp{font:600 10.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--red-text);margin:18px 0 10px}
+.dgrp:first-child{margin-top:0}
+.dnav ul{display:grid;gap:2px}
+.dnav li>a{display:block;padding:5px 10px;border-left:2px solid transparent;color:var(--mut);text-decoration:none}
+.dnav li>a:hover{color:var(--fg)}
+.dnav li>a[aria-current]{color:var(--fg);border-left-color:var(--red);background:#0d0d0d}
+.dtoc{display:grid;gap:6px;margin:8px 0 10px 12px;padding-left:10px;border-left:1px solid var(--line2);font-size:12px}
+.dtoc a{color:var(--dim);text-decoration:none}
+.dtoc a:hover{color:var(--fg)}
+.crumbs{display:flex;flex-wrap:wrap;gap:8px;font:12px var(--mono);letter-spacing:.06em;color:var(--mut)!important;margin:0 0 18px!important}
+.crumbs a{color:var(--mut);text-decoration:none}
+.crumbs a:hover{color:var(--fg)}
+.crumbs b{color:var(--fg);font-weight:600}
+.crumbs span{color:var(--line2)}
+.mtoc{display:none}
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:56px;padding-top:22px;border-top:1px solid var(--line2)}
+.pager a{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line2);padding:14px 16px;text-decoration:none}
+.pager a:hover{border-color:var(--fg);color:var(--fg)}
+.pager .nx{text-align:right;grid-column:2}
+.pager span{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.pager b{font:400 20px/1.2 var(--serif)}
+.dhome-page h1{margin-bottom:12px}
+.dlede{font-size:15.5px;color:var(--fg)!important;max-width:62ch}
+.dstart{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:30px 0 8px;border:1px solid var(--hud)}
+.dstart a{display:flex;flex-direction:column;gap:8px;padding:18px;text-decoration:none;border-left:1px solid var(--line2)}
+.dstart a:first-child{border-left:0}
+.dstart a:hover{background:#0d0d0d;color:var(--fg)}
+.dstart span{font:11px var(--mono);color:var(--red-text);letter-spacing:.18em}
+.dstart b{font:400 21px/1.15 var(--serif)}
+.dstart em{font-style:normal;color:var(--mut);font-size:12.5px}
+.dgroup{margin-top:44px}
+.dcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.dcard{position:relative;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line2);padding:18px 44px 18px 18px;text-decoration:none;transition:border-color .15s}
+.dcard:hover{border-color:var(--fg);color:var(--fg)}
+.dcard b{font:400 22px/1.15 var(--serif)}
+.dcard span{color:var(--mut);font-size:13px}
+.dcard i{position:absolute;right:16px;top:18px;font-style:normal;color:var(--red-text)}
+@media(max-width:860px){
+.doc-wrap{grid-template-columns:minmax(0,1fr);gap:18px}
+.dside{position:static;max-height:none;overflow:visible;padding:0}
+.dhome{padding-bottom:12px;margin-bottom:10px}
+.dnav{display:flex;flex-wrap:wrap;gap:6px}
+.dgrp{display:none}
+.dnav ul{display:flex;flex-wrap:wrap;gap:6px}
+.dnav li>a{border:1px solid var(--line2);padding:5px 10px}
+.dnav li>a[aria-current]{border-color:var(--red)}
+.dtoc{display:none}
+.mtoc{display:block;border:1px solid var(--line2);padding:10px 14px;margin:0 0 20px}
+.mtoc summary{cursor:pointer;font:600 11.5px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--red-text)}
+.mtoc ol{display:grid;gap:7px;margin:12px 0 2px;padding:0;list-style:none}
+.mtoc li{padding:0}
+.mtoc a{color:var(--mut);text-decoration:none}
+.dstart{grid-template-columns:minmax(0,1fr)}
+.dstart a{border-left:0;border-top:1px solid var(--line2)}
+.dstart a:first-child{border-top:0}
+.dcards{grid-template-columns:minmax(0,1fr)}
+.pager{grid-template-columns:minmax(0,1fr)}
+.pager .nx{grid-column:1}
+}
+`;
 
 /**
  * The computed half of the test report: every committed lab run (fixtures/lab/results*.json) and the latest measured

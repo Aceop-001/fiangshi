@@ -4,6 +4,7 @@
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
  */
 import { providerMode } from "./config.js";
+import { DOC_PAGES } from "./docs-index.js";
 import { LANGS, lang, t as T } from "./i18n.js";
 
 /** The page path without its language prefix, set by the server per request (for the language switcher). */
@@ -67,16 +68,6 @@ export const HERO_CSS = `
 .rain::before{background:${rainTile(7, 340, 480, 20, 9, 15)} 0 0/340px 480px;opacity:.5;animation:fall 46s linear infinite}
 .rain::after{background:${rainTile(1923, 390, 480, 26, 13, 30)} 0 0/390px 480px;opacity:.9;animation:fall 27s linear infinite}
 @keyframes fall{to{transform:translateY(480px)}}
-/* the tour button beside the check panel */
-.hero-in{grid-template-columns:minmax(0,760px) 112px;column-gap:32px;align-items:center}
-.tourbtn{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 10px 16px;border:1px solid var(--hud);background:var(--bg);text-decoration:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg);text-align:center;transition:border-color .2s,transform .2s}
-.tourbtn b{display:grid;place-items:center;width:46px;height:46px;border:1px solid var(--red);border-radius:50%;font:400 28px/1 var(--serif);color:var(--red-text)}
-.tourbtn:hover,.tourbtn:focus-visible{border-color:var(--red);color:var(--fg);transform:translateY(-3px)}
-@media(max-width:860px){
-.hero-in{grid-template-columns:minmax(0,1fr)}
-.tourbtn{flex-direction:row;justify-self:start;gap:12px;margin-top:18px;padding:8px 14px 8px 8px}
-.tourbtn b{width:30px;height:30px;font-size:19px}
-}
 /* first-visit tour: radio steps, no script */
 .tour{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.84);display:grid;place-items:center;padding:16px;overflow-y:auto}
 .tour-r{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
@@ -98,7 +89,6 @@ export const HERO_CSS = `
 .tour-b{color:var(--mut);font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .tour-x{position:absolute;top:6px;right:12px;font:24px/1 var(--serif);text-decoration:none;color:var(--mut);padding:4px}
 @media(max-width:600px){.tour-card{padding:22px 16px 16px}.tour-bands li{grid-template-columns:minmax(0,1fr);gap:4px}.tour-nav .tour-f{flex:1 1 100%;text-align:center}.tour-dots{order:-1;flex:1 1 100%;justify-content:center}}
-@media(prefers-reduced-motion:reduce){.tourbtn{transition:none}}
 `;
 
 const CSS = `
@@ -406,7 +396,9 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 `;
 
 /** The document pages every page links to, in the bar and in the footer. */
-export const SITE_LINKS: [href: string, label: string][] = [["/guide", "Guide"], ["/architecture", "Architecture"], ["/connect", "Connect"], ["/report", "Test report"], ["/legal", "Legal"]];
+export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"]];
+/** footer: every documentation page */
+export const FOOT_LINKS: [href: string, label: string][] = DOC_PAGES.map((d) => [d.path, d.label]);
 
 const MODE_NOTE: Record<string, string> = {
   fixture: "<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain.",
@@ -442,7 +434,7 @@ export function page(s: Shell): string {
 <header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
-<footer><div class="wrap foot"><p class="foot-links">${SITE_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
+<footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
 </body></html>
 `;
 }

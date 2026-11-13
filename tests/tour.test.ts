@@ -45,9 +45,9 @@ describe("first-visit tour", () => {
     expect(cookie).toContain("SameSite=Lax");
     const again = (await get("/", { cookie: TOUR_COOKIE })).body.toString("utf8");
     expect(again).not.toContain('class="tour"');
-    expect(again).toContain('class="tourbtn" href="/?tour=1"');
+    expect(again).not.toContain("tourbtn");
   });
-  it("the tour button reopens it even with the cookie", async () => {
+  it("?tour=1 reopens it even with the cookie", async () => {
     expect((await get("/?tour=1", { cookie: TOUR_COOKIE })).body.toString("utf8")).toContain('class="tour"');
   });
   it("closing it from a translated page returns to that language", async () => {

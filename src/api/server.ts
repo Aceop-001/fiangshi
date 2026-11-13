@@ -3,7 +3,7 @@
  *   GET /                       the site: census, case files, vows, funders, ledger (static HTML, no JS)
  *   GET /check?url=             free HTML probe: unpaid GET, null-payee gate, cached census band (no model, no data call)
  *   GET /receipt/:id            a receipt as an HTML slip with its verification result
- *   GET /guide (/docs), /architecture, /connect, /report, /legal   docs/*.md rendered as pages
+ *   GET /docs                   the documentation home; /guide /connect /cli /architecture /report /legal render docs/*.md
  *   GET /v1/preview?url=        free JSON · unpaid probe, null-payee gate, census answer (the MCP server's free tool)
  *   GET /health                 free
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
@@ -22,8 +22,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, num, providerMode } from "../config.js";
 import { loadCensus, loadDemoStats } from "../census.js";
-import { badgeSvg, renderCheck, renderDoc, renderIndex, renderNotFound, renderReceipt } from "../site.js";
+import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderNotFound, renderReceipt } from "../site.js";
 import { CSP, setPagePath } from "../site-theme.js";
+import { docByPath } from "../docs-index.js";
 import { lang, setLang, type Lang } from "../i18n.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
@@ -155,11 +156,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       res.writeHead(200, { "content-type": ASSETS[u.pathname]!.type, "cache-control": "max-age=3600", "x-content-type-options": "nosniff", "x-fiangshi-mode": providerMode() });
       return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
     }
-    if (u.pathname === "/guide" || u.pathname === "/docs") return html(res, 200, renderDoc("docs", c, loadDemoStats()));
-    if (u.pathname === "/architecture") return html(res, 200, renderDoc("architecture", c, loadDemoStats()));
-    if (u.pathname === "/connect") return html(res, 200, renderDoc("connect", c, loadDemoStats()));
-    if (u.pathname === "/report") return html(res, 200, renderDoc("report", c, loadDemoStats()));
-    if (u.pathname === "/legal") return html(res, 200, renderDoc("legal", c, loadDemoStats()));
+    if (u.pathname === "/docs" || u.pathname === "/docs/") return html(res, 200, renderDocsHome(c, loadDemoStats()));
+    const doc = docByPath(u.pathname);
+    if (doc) return html(res, 200, renderDoc(doc.kind, c, loadDemoStats()));
     if (u.pathname === "/check") {
       // Free page: one unpaid probe, the V6 gate, and the census band already published in /v1/index.json. Never a model call.
       const input = (u.searchParams.get("url") ?? "").trim();

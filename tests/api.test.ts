@@ -158,13 +158,13 @@ describe("HTTP API", () => {
     expect((await get(`/receipt/${"0".repeat(64)}`)).status).toBe(404);
   });
   it("/docs and /legal render the Markdown documents as static pages, linked from every page", async () => {
-    for (const [path, heading] of [["/guide", "Try it: real paid endpoints"], ["/docs", "The agent flow"], ["/report", "Every failure, in order"], ["/architecture", "The map"], ["/connect", "Claude Code"], ["/legal", "Terms of use"]] as const) {
+    for (const [path, heading] of [["/guide", "Try it: real paid endpoints"], ["/docs", "Fiangshi docs"], ["/cli", "Exit codes"], ["/report", "Every failure, in order"], ["/architecture", "The map"], ["/connect", "Claude Code"], ["/legal", "Terms of use"]] as const) {
       const r = await get(path);
       expect(r.status).toBe(200);
       expect(r.headers["content-security-policy"]).toContain("default-src 'none'");
       expect(r.body).not.toMatch(/<script/i);
       expect(r.body).toContain(heading);
-      expect(r.body).toContain("On this page");
+      expect(r.body).toContain(path === "/docs" ? "Docs home" : "On this page");
     }
     for (const path of ["/", `/check?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`, "/guide", "/report", "/legal"]) {
       const body = (await get(path)).body;
@@ -201,7 +201,21 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the hero is the check panel and the tour button: no clock, no poster, no dragon, no images", async () => {
+  it("docs: one Docs link in the bar, a docs home, and a sidebar with the current page and previous / next", async () => {
+    const home = (await get("/")).body;
+    const bar = /<header class="bar">[\s\S]*?<\/header>/.exec(home)?.[0] ?? "";
+    expect(bar).toContain('<a href="/docs">Docs</a>');
+    for (const p of ["/guide", "/connect", "/report", "/legal", "/architecture"]) expect(bar).not.toContain(`href="${p}"`);
+    const hub = (await get("/docs")).body;
+    for (const p of ["/guide", "/connect", "/cli", "/architecture", "/report", "/legal"]) expect(hub).toContain(`<a class="dcard" href="${p}">`);
+    const cli = (await get("/cli")).body;
+    expect(cli).toContain('<a href="/cli" aria-current="page">CLI and skill</a>');
+    expect(cli).toContain('<p class="crumbs"><a href="/docs">Docs</a>');
+    expect(cli).toContain('class="pv" href="/connect"');
+    expect(cli).toContain('class="nx" href="/architecture"');
+    expect(cli).not.toMatch(/<script/i);
+  });
+  it("the hero is the check panel alone: no clock, no poster, no dragon, no images", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
     expect(home).not.toContain('class="clock"');

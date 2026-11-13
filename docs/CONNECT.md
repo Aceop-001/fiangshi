@@ -5,6 +5,7 @@ Fiangshi can be used from any AI tool in three ways:
 - **MCP**, for coding agents and desktop assistants: Claude Code, Claude Desktop, Codex, Grok CLI, Hermes, Cursor, VS Code and Gemini CLI. Fiangshi comes with its own MCP server (`src/mcp/server.ts`, no extra packages).
 - **Function calling**, for model APIs: xAI Grok, DeepSeek, or any OpenAI-compatible API. Your code gives the model a tool and calls Fiangshi's HTTP API when the model asks.
 - **Plain HTTP**, for anything else: `curl`, a script, or an x402 client.
+- **The CLI and the agent skill**, for agents that run shell commands: see [CLI and skill](CLI.md). The skill teaches an agent to check before every payment; the CLI returns the verdict as its exit code.
 
 Every way uses the same rules: Fiangshi only advises. It never pays, never signs and never holds money. Only ALLOW means go ahead. Treat REVIEW and `no_record` as "ask a human or lower the amount", and BLOCK as "do not pay".
 

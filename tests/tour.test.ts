@@ -45,9 +45,9 @@ describe("first-visit tour", () => {
     expect(cookie).toContain("SameSite=Lax");
     const again = (await get("/", { cookie: TOUR_COOKIE })).body.toString("utf8");
     expect(again).not.toContain('class="tour"');
-    expect(again).toContain('class="ticket" href="/?tour=1"');
+    expect(again).toContain('class="tourbtn" href="/?tour=1"');
   });
-  it("the ticket button reopens it even with the cookie", async () => {
+  it("the tour button reopens it even with the cookie", async () => {
     expect((await get("/?tour=1", { cookie: TOUR_COOKIE })).body.toString("utf8")).toContain('class="tour"');
   });
   it("closing it from a translated page returns to that language", async () => {
@@ -61,16 +61,27 @@ describe("first-visit tour", () => {
     for (const bad of ["https://evil.example", "//evil.example", "/\\evil.example", "javascript:alert(1)", "", null, "/a b"]) expect(safeNext(bad)).toBe("/");
     expect(safeNext("/guide#limits")).toBe("/guide#limits");
   });
-  it("the ticket image is served by exact name only", async () => {
-    const r = await get("/assets/ticket.webp");
-    expect(r.status).toBe(200);
-    expect(r.headers["content-type"]).toBe("image/webp");
-    expect(r.body.subarray(8, 12).toString("latin1")).toBe("WEBP");
-    expect((await get("/assets/../package.json")).status).toBe(404);
-  });
   it("the Legal page discloses the cookie", async () => {
     const legal = (await get("/legal")).body.toString("utf8");
     expect(legal).toContain("fiangshi_tour");
     expect(legal).not.toContain("set no cookies");
+  });
+});
+
+describe("architecture working models", () => {
+  it("four animated figures replace the markers, with no script and no image file", async () => {
+    const html = (await get("/architecture")).body.toString("utf8");
+    expect((html.match(/<figure class="fxfig">/g) ?? []).length).toBe(4);
+    expect(html).not.toContain("animated on the site at /architecture).");
+    expect(html).toContain("<animateMotion");
+    expect(html).not.toMatch(/<script|<img|xlink:href|href="http/i);
+    for (const t of ["Three checks, live", "Who talks to whom, and where the money goes", "The lowest band wins", "The receipt chain catches an edit"]) expect(html).toContain(t);
+  });
+  it("the figures only show values the lab produced, and say when values are examples", async () => {
+    const html = (await get("/architecture")).body.toString("utf8");
+    expect(html).toContain("api.cleave.fi/x402/gas");
+    expect(html).toContain("score 86.43");
+    expect(html).toContain("The numbers shown are examples.");
+    expect(html).toContain("The hashes shown are shortened examples.");
   });
 });

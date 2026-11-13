@@ -12,6 +12,7 @@ import type { Census, CensusPayee, DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
 import { renderMarkdown } from "./md.js";
+import { FIGURE_CSS, figureHtml } from "./arch-visuals.js";
 import { lang, t as T } from "./i18n.js";
 import { HERO_CSS, SITE_LINKS, bareUrl, esc, page, probeForm, short, usd } from "./site-theme.js";
 
@@ -226,7 +227,6 @@ export function tourOverlay(): string {
     {
       h: T("Welcome to Fiangshi"),
       p: T("Before an AI agent pays an x402 endpoint, Fiangshi checks the wallet that would be paid. This tour takes one minute."),
-      extra: `<img class="tour-ticket" src="/assets/ticket.webp" width="120" height="380" alt="${T("A ticket that reads Hope and Good Luck")}">`,
     },
     { h: T("1. Paste a paid endpoint"), p: T("Put an x402 URL in the check panel and press Probe. Fiangshi makes one unpaid request and reads the payment terms. This part is free.") },
     {
@@ -276,7 +276,7 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
 ${probeForm()}
 <p class="try">${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}</p>
 </div></div>
-<a class="ticket" href="/?tour=1"><img src="/assets/ticket.webp" width="120" height="380" alt=""><span>${T("Take the tour")}</span></a>
+<a class="tourbtn" href="/?tour=1"><b aria-hidden="true">?</b><span>${T("Take the tour")}</span></a>
 </div></section>
 
 <section class="sec" id="census"><div class="wrap">
@@ -515,6 +515,11 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
     .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`)
     .replace(/\]\((ARCHITECTURE|CONNECT|REPORT)\.md(#[^)\s]*)?\)/g, (_m, f: string, hash: string | undefined) => `](/${f === "REPORT" ? "report" : f.toLowerCase()}${hash ?? ""})`);
   const r = renderMarkdown(src);
+  if (kind === "architecture") {
+    // "Figure: <name> (animated on the site at /architecture)." paragraphs become the animated working models
+    let n = 0;
+    r.html = r.html.replace(/<p>Figure: ([a-z ,]+) \(animated on the site at \/architecture\)\.<\/p>/g, (m, key: string) => figureHtml(key, ++n) ?? m);
+  }
   const extra = kind === "report" ? reportComputed(stats) : null;
   if (extra) r.headings.push(...extra.headings);
   const toc = r.headings.filter((h) => h.level === 2).map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`);
@@ -522,7 +527,7 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
 <nav class="toc" aria-label="${T("On this page")}"><p class="eyebrow">${T("On this page")}</p><ol>${toc.join("")}</ol></nav>
 <article class="doc">${lang() === "en" ? "" : `<p class="doc-note">${T("This document is in English only. The rest of the site is translated.")}</p>`}${r.html}${extra?.html ?? ""}${kind === "legal" ? contactBlock() : ""}</article>
 </main>`;
-  return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats) });
+  return page({ title: `${r.title ?? d.fallback} · Fiangshi`, description: d.description, status: censusStatus(c), body, foot: footer(c, stats), ...(kind === "architecture" ? { css: FIGURE_CSS } : {}) });
 }
 
 /**

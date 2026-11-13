@@ -43,7 +43,6 @@ import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
-  "/assets/ticket.webp": { file: "ticket.webp", type: "image/webp" },
 };
 
 /** The one cookie the site sets: it only remembers that the first-visit tour was closed. Disclosed in docs/LEGAL.md. */

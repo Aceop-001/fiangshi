@@ -2,6 +2,14 @@
 
 This page explains how Fiangshi is built, so an integrator or auditor can trust it. It covers every component, every outside service it talks to, where data is kept, and what happens when each part fails. Every threshold below is copied from the source file named next to it. If this page and the code disagree, the code is right, and that is a bug in this page.
 
+## See it working
+
+The pictures on this page are working models: they move through the same steps the code takes. On the site at `/architecture` they are animated; in the repository the text describes them.
+
+Figure: one check, live (animated on the site at /architecture).
+
+Figure: who talks to whom (animated on the site at /architecture).
+
 ## The map
 
 ```text
@@ -113,9 +121,13 @@ Model replies are cached by a hash of the exact evidence they saw, so the same e
 
 `src/core/decide.ts`: final band = the lowest of the score band, the model band and the deciding rule's band. ALLOW needs all three to agree. The model can only lower the band, never raise it.
 
+Figure: lowest band wins (animated on the site at /architecture).
+
 ### 8. Receipt and ledger
 
 `src/core/receipt.ts` writes a receipt with: payee, url, terms_hash, price, band, score, vow_fired, evidence quotes, model verdict and degraded flag, snapshot_id, checked_at, `chain: "eip155:8453"`, `prev_hash`, `receipt_hash` and settlement. `receipt_hash` is the sha256 of the canonical JSON of every other field, and `prev_hash` links it to the receipt before it in `data/ledger.jsonl`. Changing any field breaks `GET /v1/verify`.
+
+Figure: the receipt chain (animated on the site at /architecture).
 
 Receipts are tamper-evident through the hash chain. They are **not** signed with a private key: Fiangshi holds no keys at all. Anyone can recompute a hash.
 

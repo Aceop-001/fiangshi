@@ -35,7 +35,6 @@ const ROWS: [string, string, string, string][] = [
   ["Step {k} of {n}", "第 {k} 步，共 {n} 步", "ステップ {k} / {n}", "{n}단계 중 {k}단계"],
   ["Welcome to Fiangshi", "欢迎使用 Fiangshi", "Fiangshi へようこそ", "Fiangshi에 오신 것을 환영합니다"],
   ["Before an AI agent pays an x402 endpoint, Fiangshi checks the wallet that would be paid. This tour takes one minute.", "在 AI 代理为 x402 端点付款之前，Fiangshi 会检查将要收款的钱包。本导览只需一分钟。", "AI エージェントが x402 エンドポイントに支払う前に、Fiangshi は支払い先のウォレットを確認します。このツアーは 1 分で終わります。", "AI 에이전트가 x402 엔드포인트에 결제하기 전에 Fiangshi가 돈을 받을 지갑을 확인합니다. 이 둘러보기는 1분이면 끝납니다."],
-  ["A ticket that reads Hope and Good Luck", "一张写着 Hope 和 Good Luck 的票", "Hope と Good Luck と書かれたチケット", "Hope와 Good Luck이 적힌 티켓"],
   ["1. Paste a paid endpoint", "1. 粘贴付费端点", "1. 有料エンドポイントを貼り付ける", "1. 유료 엔드포인트 붙여넣기"],
   ["Put an x402 URL in the check panel and press Probe. Fiangshi makes one unpaid request and reads the payment terms. This part is free.", "在检查面板中填入 x402 URL，然后点击“探测”。Fiangshi 会发送一次不付款的请求并读取付款条款。这一步免费。", "チェックパネルに x402 の URL を入れて「プローブ」を押します。Fiangshi は支払いなしのリクエストを 1 回送り、支払い条件を読み取ります。ここまでは無料です。", "확인 패널에 x402 URL을 넣고 '탐색'을 누르세요. Fiangshi가 결제 없이 요청을 한 번 보내 결제 조건을 읽습니다. 이 단계는 무료입니다."],
   ["2. Read the verdict", "2. 查看判定", "2. 判定を読む", "2. 판정 읽기"],

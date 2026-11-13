@@ -201,13 +201,14 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the hero is the check panel and the tour ticket: no clock, no poster, no dragon", async () => {
+  it("the hero is the check panel and the tour button: no clock, no poster, no dragon, no images", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
     expect(home).not.toContain('class="clock"');
     expect(home).toContain('<form class="probe"');
-    expect([...home.matchAll(/\/assets\/[\w.-]+/g)].map((m) => m[0]).every((a) => a === "/assets/ticket.webp")).toBe(true);
-    for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp"]) expect((await get(a)).status).toBe(404);
+    expect(home).not.toContain("/assets/");
+    expect(home).not.toMatch(/<img/i);
+    for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp", "/assets/ticket.webp"]) expect((await get(a)).status).toBe(404);
   });
   it("/report computes the lab history from fixtures/lab and lists every run", async () => {
     const body = (await get("/report")).body;

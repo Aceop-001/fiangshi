@@ -20,7 +20,8 @@
     "verify": "tsx scripts/verify-receipt.ts",
     "fiangshi": "tsx src/cli/index.ts",
     "dev": "tsx src/api/server.ts",
-    "localhost-check": "tsx scripts/localhost-check.ts"
+    "localhost-check": "tsx scripts/localhost-check.ts",
+    "mcp": "tsx src/mcp/server.ts"
   },
   "dependencies": {
     "zod": "^3.23.8"

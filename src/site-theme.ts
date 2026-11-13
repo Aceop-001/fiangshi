@@ -67,6 +67,41 @@ export const HERO_CSS = `
 .rain::before{background:${rainTile(7, 340, 480, 20, 9, 15)} 0 0/340px 480px;opacity:.5;animation:fall 46s linear infinite}
 .rain::after{background:${rainTile(1923, 390, 480, 26, 13, 30)} 0 0/390px 480px;opacity:.9;animation:fall 27s linear infinite}
 @keyframes fall{to{transform:translateY(480px)}}
+/* the tour ticket beside the check panel */
+.hero-in{grid-template-columns:minmax(0,760px) 120px;column-gap:40px;align-items:center}
+.ticket{display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg);text-align:center}
+.ticket img{display:block;width:120px;height:auto;transform:rotate(3deg);transition:transform .25s ease;filter:drop-shadow(0 12px 24px rgba(0,0,0,.7))}
+.ticket:hover img,.ticket:focus-visible img{transform:rotate(0) translateY(-6px)}
+.ticket span{border-bottom:1px solid var(--red);padding-bottom:2px}
+.ticket:hover{color:var(--fg)}
+@media(max-width:860px){
+.hero-in{grid-template-columns:minmax(0,1fr)}
+.ticket{flex-direction:row;justify-self:start;gap:14px;margin-top:22px}
+.ticket img{width:52px;transform:rotate(-4deg)}
+}
+/* first-visit tour: radio steps, no script */
+.tour{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.84);display:grid;place-items:center;padding:16px;overflow-y:auto}
+.tour-r{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.tour-card{position:relative;width:min(560px,100%);border:1px solid var(--hud);background:var(--bg);padding:26px 24px 20px}
+.tour-card::before{content:"";position:absolute;inset:-4px;pointer-events:none;background:linear-gradient(var(--red),var(--red)) 0 0/7px 7px no-repeat,linear-gradient(var(--red),var(--red)) 100% 0/7px 7px no-repeat,linear-gradient(var(--red),var(--red)) 0 100%/7px 7px no-repeat,linear-gradient(var(--red),var(--red)) 100% 100%/7px 7px no-repeat}
+.tour-r:focus-visible~.tour-card{outline:2px solid var(--fg);outline-offset:6px}
+.tour-s{display:none}
+#ts1:checked~.tour-card .s1,#ts2:checked~.tour-card .s2,#ts3:checked~.tour-card .s3,#ts4:checked~.tour-card .s4,#ts5:checked~.tour-card .s5{display:block}
+.tour-s h2{font-size:clamp(24px,4.4vw,34px);line-height:1.1;margin:10px 0 12px;padding-right:24px}
+.tour-s>p:not(.eyebrow){color:#d6d6d6;max-width:52ch}
+.tour-ticket{display:block;width:96px;height:auto;margin:18px auto 0;transform:rotate(-3deg)}
+.tour-bands{display:grid;gap:10px;margin-top:16px}
+.tour-bands li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:baseline;color:#d6d6d6}
+.tour-nav{display:flex;align-items:center;flex-wrap:wrap;gap:12px 16px;margin-top:24px}
+.tour-dots{display:flex;gap:6px;margin:0 auto}
+.tour-dots label{width:9px;height:9px;border:1px solid var(--mut);cursor:pointer}
+#ts1:checked~.tour-card .d1,#ts2:checked~.tour-card .d2,#ts3:checked~.tour-card .d3,#ts4:checked~.tour-card .d4,#ts5:checked~.tour-card .d5{background:var(--red);border-color:var(--red)}
+.tour-f{background:var(--fg);color:#000;border:0;padding:9px 16px;font:600 12px var(--mono);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;text-decoration:none}
+.tour-f:hover{color:#000;background:#fff}
+.tour-b{color:var(--mut);font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.tour-x{position:absolute;top:6px;right:12px;font:24px/1 var(--serif);text-decoration:none;color:var(--mut);padding:4px}
+@media(max-width:600px){.tour-card{padding:22px 16px 16px}.tour-bands li{grid-template-columns:minmax(0,1fr);gap:4px}.tour-nav .tour-f{flex:1 1 100%;text-align:center}.tour-dots{order:-1;flex:1 1 100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.ticket img{transition:none}}
 `;
 
 const CSS = `
@@ -374,7 +409,7 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 `;
 
 /** The document pages every page links to, in the bar and in the footer. */
-export const SITE_LINKS: [href: string, label: string][] = [["/guide", "Guide"], ["/report", "Test report"], ["/legal", "Legal"]];
+export const SITE_LINKS: [href: string, label: string][] = [["/guide", "Guide"], ["/architecture", "Architecture"], ["/connect", "Connect"], ["/report", "Test report"], ["/legal", "Legal"]];
 
 const MODE_NOTE: Record<string, string> = {
   fixture: "<strong>Fixture mode.</strong> Provider replies are recorded responses replayed through the real parser, vows and receipt chain.",

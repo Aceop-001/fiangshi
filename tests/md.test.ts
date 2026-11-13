@@ -54,6 +54,19 @@ describe("the documents themselves", () => {
     const legal = renderMarkdown(read("LEGAL.md"));
     expect(legal.headings.filter((h) => h.level === 2).map((h) => h.text)).toEqual(["In short", "Terms of use", "Verdicts about sellers", "Privacy", "Licence and third parties", "Contact"]);
   });
+  it("architecture, connect and report have the sections the site and the README promise", () => {
+    const h2 = (f: string) => renderMarkdown(read(f)).headings.filter((h) => h.level === 2).map((h) => h.text);
+    expect(h2("ARCHITECTURE.md")).toEqual(["The map", "What each step does", "Outside services", "Storage", "Security and trust model", "Budgets and limits", "Configuration", "Failure modes", "What it does not do"]);
+    expect(h2("CONNECT.md")).toEqual(["Before you start (all clients)", "The four tools", "Claude Code", "Claude Desktop", "Codex (OpenAI Codex CLI)", "Grok CLI", "Hermes", "Cursor", "VS Code (GitHub Copilot agent mode)", "Gemini CLI", "Any other MCP client", "xAI Grok API (function calling)", "DeepSeek API (function calling)", "Plain HTTP", "Troubleshooting"]);
+    expect(h2("REPORT.md")).toEqual(["Where things stand", "How we test", "Timeline", "Every failure, in order", "Rule changes, each one measured", "Surf: what we measured about the data source", "Still failing or not done"]);
+  });
+  it("the connect guide names only the four tools the MCP server has, and never hard-codes a model id", async () => {
+    const { TOOLS } = await import("../src/mcp/server.js");
+    const doc = read("CONNECT.md");
+    const named = new Set([...doc.matchAll(/`(fiangshi_[a-z_]+)/g)].map((m) => m[1]));
+    expect([...named].sort()).toEqual(TOOLS.map((t) => t.name).sort());
+    expect(doc).not.toMatch(/model\s*=\s*"/i);
+  });
   it("every tagged JSON example in the guide is valid JSON", () => {
     const blocks = fencedBlocks(read("GUIDE.md"));
     expect(Object.keys(blocks).sort()).toEqual(["check-402", "check-block", "check-paid", "verify", "x-payment"]);

@@ -217,7 +217,42 @@ function ledger(c: Census): string {
   }).join("");
 }
 
-export function renderIndex(c: Census, stats: DemoStats | null): string {
+/**
+ * The first-visit tour: five steps switched by radio buttons and CSS (no script). It is shown until the visitor closes
+ * it; closing goes through /tour/done, which sets the site's one functional cookie. /?tour=1 opens it again.
+ */
+export function tourOverlay(): string {
+  const steps: { h: string; p: string; extra?: string }[] = [
+    {
+      h: T("Welcome to Fiangshi"),
+      p: T("Before an AI agent pays an x402 endpoint, Fiangshi checks the wallet that would be paid. This tour takes one minute."),
+      extra: `<img class="tour-ticket" src="/assets/ticket.webp" width="120" height="380" alt="${T("A ticket that reads Hope and Good Luck")}">`,
+    },
+    { h: T("1. Paste a paid endpoint"), p: T("Put an x402 URL in the check panel and press Probe. Fiangshi makes one unpaid request and reads the payment terms. This part is free.") },
+    {
+      h: T("2. Read the verdict"),
+      p: T("Every answer is one of three words."),
+      extra: `<ul class="tour-bands"><li>${chip("ALLOW")} ${T("No rule fired and the evidence is strong. Go ahead.")}</li><li>${chip("REVIEW")} ${T("Something is missing or unclear. Ask a human, or lower the amount.")}</li><li>${chip("BLOCK")} ${T("A rule fired. Do not pay. The rule and its evidence are quoted.")}</li></ul>`,
+    },
+    { h: T("3. Keep the receipt"), p: T("Each verdict is sealed with a sha256 hash chained to the one before. Open the receipt any time: if anything in it was changed, the check fails.") },
+    { h: T("4. Connect your agent"), p: T("Use Fiangshi from Claude, Codex, Grok, Hermes, DeepSeek and others. The Connect page has a setup guide for each one.") },
+  ];
+  const n = steps.length;
+  const radios = steps.map((_, i) => `<input class="tour-r" type="radio" name="tour" id="ts${i + 1}"${i === 0 ? " checked" : ""} aria-label="${T("Step {k} of {n}", { k: i + 1, n })}">`).join("");
+  const body = steps
+    .map((st, i) => {
+      const back = i > 0 ? `<label class="tour-b" for="ts${i}">${T("Back")}</label>` : `<a class="tour-b" href="/tour/done?next=/">${T("Skip tour")}</a>`;
+      const fwd =
+        i < n - 1
+          ? `<label class="tour-f" for="ts${i + 2}">${T("Next")}</label>`
+          : `<a class="tour-b" href="/tour/done?next=/connect">${T("Open the connect guide")}</a><a class="tour-f" href="/tour/done?next=/">${T("Start checking")}</a>`;
+      return `<section class="tour-s s${i + 1}"><p class="eyebrow">${T("Tour · step {k} of {n}", { k: i + 1, n })}</p><h2 id="tour-h${i + 1}">${st.h}</h2><p>${st.p}</p>${st.extra ?? ""}<div class="tour-nav">${back}<span class="tour-dots">${steps.map((_, j) => `<label for="ts${j + 1}" class="d${j + 1}" title="${T("Step {k} of {n}", { k: j + 1, n })}"></label>`).join("")}</span>${fwd}</div></section>`;
+    })
+    .join("");
+  return `<div class="tour" id="tour" role="dialog" aria-modal="true" aria-label="${T("Fiangshi tour")}">${radios}<div class="tour-card"><a class="tour-x" href="/tour/done?next=/" aria-label="${T("Close the tour")}">&times;</a>${body}</div></div>`;
+}
+
+export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: boolean } = {}): string {
   const n = c.payees.length;
   const f = featured(c);
   const z = cautionary(c);
@@ -233,7 +268,7 @@ export function renderIndex(c: Census, stats: DemoStats | null): string {
   const cached = num("FIANGSHI_PRICE_CHECK", 0.05);
   const payeePrice = num("FIANGSHI_PRICE_PAYEE", 0.02);
 
-  const body = `<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
+  const body = `${o.tour ? tourOverlay() : ""}<section class="hero"><div class="rain" aria-hidden="true"></div><div class="wrap hero-in">
 <div class="hud"><div class="hud-h"><span>${T("Pre-payment check")}</span><span>x402 · Base</span></div><div class="hud-b">
 <p class="kicker">${T("Counterparty oracle for agent payments")}</p>
 <h1>${T("Who is behind the 402?").replace(" 402", "&nbsp;402")}</h1>
@@ -241,6 +276,7 @@ export function renderIndex(c: Census, stats: DemoStats | null): string {
 ${probeForm()}
 <p class="try">${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}</p>
 </div></div>
+<a class="ticket" href="/?tour=1"><img src="/assets/ticket.webp" width="120" height="380" alt=""><span>${T("Take the tour")}</span></a>
 </div></section>
 
 <section class="sec" id="census"><div class="wrap">
@@ -448,6 +484,8 @@ ${hashBars(r.receipt_hash)}
 
 const DOCS = {
   docs: { file: "GUIDE.md", fallback: "Fiangshi guide", description: "How an agent uses Fiangshi, how a verdict is made, and how to run it." },
+  architecture: { file: "ARCHITECTURE.md", fallback: "Fiangshi architecture", description: "How Fiangshi is built: the pipeline map, every outside service, storage, the trust model and failure modes." },
+  connect: { file: "CONNECT.md", fallback: "Connect Fiangshi to your AI", description: "Install guides for Claude Code, Claude Desktop, Codex, Grok, Hermes, Cursor, VS Code, Gemini, xAI and DeepSeek." },
   report: { file: "REPORT.md", fallback: "Test report", description: "Every failure in building Fiangshi, what fixed it, and what the tests say now." },
   legal: { file: "LEGAL.md", fallback: "Legal", description: "Fiangshi terms of use, what a verdict about a seller means, privacy, licence." },
 } as const;
@@ -474,7 +512,8 @@ export function renderDoc(kind: DocKind, c: Census, stats: DemoStats | null): st
   const d = DOCS[kind];
   const src = readFileSync(join(ROOT, "docs", d.file), "utf8")
     .replace(/\]\(GUIDE\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/guide${hash ?? ""})`)
-    .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`);
+    .replace(/\]\(LEGAL\.md(#[^)\s]*)?\)/g, (_m, hash: string | undefined) => `](/legal${hash ?? ""})`)
+    .replace(/\]\((ARCHITECTURE|CONNECT|REPORT)\.md(#[^)\s]*)?\)/g, (_m, f: string, hash: string | undefined) => `](/${f === "REPORT" ? "report" : f.toLowerCase()}${hash ?? ""})`);
   const r = renderMarkdown(src);
   const extra = kind === "report" ? reportComputed(stats) : null;
   if (extra) r.headings.push(...extra.headings);
@@ -514,8 +553,15 @@ function reportComputed(stats: DemoStats | null): { html: string; headings: { le
   const now = stats
     ? '<p>Last full measurement, ' + esc(stats.measured_at.slice(0, 10)) + ', by <code>npm run localhost-check -- --live</code> (it needs the model keys). Re-run it to refresh these numbers.</p><ul><li><strong>' + stats.tests_passed + ' tests</strong> passing (<code>npm test</code>).</li><li><strong>Accept gates ' + esc(stats.accept) + '</strong>, offline, with the network unplugged (<code>npm run accept</code>).</li><li><strong>End to end 10 / 10</strong>, warm check ' + stats.warm_p50_ms + ' ms.</li><li>A fresh copy with no keys passes all of these in fixture mode.</li></ul>'
     : "<p>Run <code>npm run localhost-check -- --live</code> to measure the current status.</p>";
-  const html = '<h2 id="lab-runs">Lab runs, as committed</h2><p>Each run of the adversarial lab: 6 attack cases and 3 real sellers, each with an expected answer written before the run. Read from <code>fixtures/lab/</code> when this page loads.</p><div class="scroll"><table class="tbl"><tr><th>run</th><th>when</th><th class="n">passed</th><th>failed</th><th>superseded</th><th>outcome</th><th>file</th></tr>' + rows + '</table></div><h2 id="status-now">Last measured status</h2>' + now;
-  return { html, headings: [{ level: 2, id: "lab-runs", text: "Lab runs, as committed" }, { level: 2, id: "status-now", text: "Last measured status" }] };
+  let hist = "";
+  try {
+    const md = readFileSync(join(ROOT, "artifacts", "history.md"), "utf8").replace(/^# .*\r?\n/, "");
+    hist = '<h2 id="history">Tests and gates, commit by commit</h2>' + renderMarkdown(md).html;
+  } catch {
+    /* no history file */
+  }
+  const html = hist + '<h2 id="lab-runs">Lab runs, as committed</h2><p>Each run of the adversarial lab: 6 attack cases and 3 real sellers, each with an expected answer written before the run. Read from <code>fixtures/lab/</code> when this page loads.</p><div class="scroll"><table class="tbl"><tr><th>run</th><th>when</th><th class="n">passed</th><th>failed</th><th>superseded</th><th>outcome</th><th>file</th></tr>' + rows + '</table></div><h2 id="status-now">Last measured status</h2>' + now;
+  return { html, headings: [...(hist ? [{ level: 2, id: "history", text: "Tests and gates, commit by commit" }] : []), { level: 2, id: "lab-runs", text: "Lab runs, as committed" }, { level: 2, id: "status-now", text: "Last measured status" }] };
 }
 
 export function renderNotFound(what: string, c: Census, stats: DemoStats | null): string {

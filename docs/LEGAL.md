@@ -8,7 +8,7 @@ Version 2026-11-10. This page covers any running copy of Fiangshi: its pages and
 - You decide whether to pay. Nothing Fiangshi returns is an instruction, a guarantee or an endorsement.
 - Fiangshi never holds funds or keys, and never signs or sends a transaction.
 - A verdict about a seller is not an accusation. It is the output of published rules applied to public data.
-- There are no accounts, cookies, scripts or analytics.
+- There are no accounts, scripts or analytics. There is one functional cookie, and it only remembers that you closed the first-visit tour.
 
 ## Terms of use
 
@@ -81,7 +81,17 @@ A sealed receipt cannot be edited: that is what makes receipts verifiable. A cor
 
 The software does not store the paying wallet address, your IP address or any identifier for you, and it keeps no request log. The company that hosts a given copy may keep its own server logs.
 
-The pages set no cookies, use no local storage, run no scripts and load nothing from other sites.
+The pages use no local storage, run no scripts and load nothing from other sites.
+
+### The one cookie
+
+When you close or finish the first-visit tour, the site sets one cookie so the tour does not open again:
+
+| name | value | lifetime | purpose |
+|---|---|---|---|
+| `fiangshi_tour` | `done` | one year | remembers that the tour was closed |
+
+It is strictly functional. It holds no identifier, it is the same for every visitor, it is never read for anything else, and it is never sent to anyone but this site (`HttpOnly`, `SameSite=Lax`). If you delete it, the tour opens again on your next visit. The cookie is set only at the moment you close the tour.
 
 ### Who else receives data when a check runs
 

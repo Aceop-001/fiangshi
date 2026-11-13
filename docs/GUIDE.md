@@ -270,6 +270,7 @@ Identity is the one optional part: leaving it out rescales the other weights, an
 
 | route | price | returns |
 |---|---|---|
+| `GET /v1/preview?url=` | free | One unpaid probe, the null-payee rule, and the census answer for the payee: `ALLOW`, `REVIEW`, `BLOCK` or `no_record`. No model and no data call. This is what the MCP tool `fiangshi_preview` calls. |
 | `GET /v1/check?url=` | $0.05 cached (`FIANGSHI_PRICE_CHECK`), $0.15 cold (`FIANGSHI_PRICE_CHECK_COLD`) | The verdict above. A null payee answers BLOCK for free. The 402 quotes the price that applies. |
 | `GET /v1/payee/:address` | $0.02 by default (`FIANGSHI_PRICE_PAYEE`) | The census record for one payee: band, score, vows fired, listing name and how it was corroborated, first funder, receipt id. |
 | `GET /v1/index.json` | free | Every census payee: address, example endpoint, band, score, vows fired, receipt id. |
@@ -278,7 +279,7 @@ Identity is the one optional part: leaving it out rescales the other weights, an
 | `GET /v1/badge/:address.svg` | free | A small badge coloured by band. |
 | `GET /health` | free | Liveness, census size and time. |
 
-The pages `/`, `/check?url=` and `/receipt/:id` show the same free data for people.
+The pages `/`, `/check?url=` and `/receipt/:id` show the same free data for people. To use Fiangshi from Claude, Codex, Grok, Hermes, DeepSeek or another AI tool, see [Connect](CONNECT.md). For how it is built, see [Architecture](ARCHITECTURE.md).
 
 ## Receipts
 

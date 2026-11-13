@@ -3,7 +3,8 @@
  *   GET /                       the site: census, case files, vows, funders, ledger (static HTML, no JS)
  *   GET /check?url=             free HTML probe: unpaid GET, null-payee gate, cached census band (no model, no data call)
  *   GET /receipt/:id            a receipt as an HTML slip with its verification result
- *   GET /docs, GET /legal       docs/GUIDE.md and docs/LEGAL.md rendered as pages
+ *   GET /guide (/docs), /architecture, /connect, /report, /legal   docs/*.md rendered as pages
+ *   GET /v1/preview?url=        free JSON · unpaid probe, null-payee gate, census answer (the MCP server's free tool)
  *   GET /health                 free
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
@@ -42,7 +43,17 @@ import { appendReceipt, ledgerPath, readLedger } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
+  "/assets/ticket.webp": { file: "ticket.webp", type: "image/webp" },
 };
+
+/** The one cookie the site sets: it only remembers that the first-visit tour was closed. Disclosed in docs/LEGAL.md. */
+export const TOUR_COOKIE = "fiangshi_tour=done";
+const tourDone = (req: IncomingMessage) => (req.headers.cookie ?? "").split(";").some((c) => c.trim() === TOUR_COOKIE);
+/** A same-site path to return to after the tour; anything else (another host, "//", a scheme) goes home. */
+export function safeNext(raw: string | null): string {
+  const n = (raw ?? "/").trim();
+  return /^\/(?![/\\])[\w\-./#?=&%]{0,200}$/.test(n) ? n : "/";
+}
 
 /** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
 const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) => {
@@ -132,13 +143,22 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   const self = `http://${req.headers.host ?? "127.0.0.1"}`;
   try {
     if (req.method !== "GET") return json(res, 405, { error: "GET only" });
-    if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats()));
+    if (u.pathname === "/") return html(res, 200, renderIndex(c, loadDemoStats(), { tour: !tourDone(req) || u.searchParams.get("tour") === "1" }));
+    if (u.pathname === "/tour/done") {
+      // Closing the tour sets the one functional cookie, then returns to the page asked for, in the same language.
+      let next = safeNext(u.searchParams.get("next"));
+      if (lang() !== "en" && !next.startsWith(`/${lang()}/`) && next !== `/${lang()}`) next = next === "/" ? `/${lang()}` : `/${lang()}${next}`;
+      res.writeHead(303, { location: next, "set-cookie": `${TOUR_COOKIE}; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax`, "cache-control": "no-store" });
+      return void res.end();
+    }
     if (ASSETS[u.pathname]) {
       // brand images, by exact name only (no path is ever built from the request)
       res.writeHead(200, { "content-type": ASSETS[u.pathname]!.type, "cache-control": "max-age=3600", "x-content-type-options": "nosniff", "x-fiangshi-mode": providerMode() });
       return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
     }
     if (u.pathname === "/guide" || u.pathname === "/docs") return html(res, 200, renderDoc("docs", c, loadDemoStats()));
+    if (u.pathname === "/architecture") return html(res, 200, renderDoc("architecture", c, loadDemoStats()));
+    if (u.pathname === "/connect") return html(res, 200, renderDoc("connect", c, loadDemoStats()));
     if (u.pathname === "/report") return html(res, 200, renderDoc("report", c, loadDemoStats()));
     if (u.pathname === "/legal") return html(res, 200, renderDoc("legal", c, loadDemoStats()));
     if (u.pathname === "/check") {
@@ -159,6 +179,23 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     if (hm) {
       const f = findReceipt(hm[1]!);
       return f ? html(res, 200, renderReceipt(f.r, verifyOne(f.r), c, self, loadDemoStats())) : html(res, 404, renderNotFound("No receipt with that id.", c, loadDemoStats()));
+    }
+    if (u.pathname === "/v1/preview") {
+      // Free JSON twin of the /check page, for agents and the MCP server: one unpaid probe, the null-payee gate and the
+      // census answer. Never a model call, never a Surf call. A full verdict on a live probe is the paid /v1/check.
+      const input = (u.searchParams.get("url") ?? "").trim();
+      if (!/^https?:\/\/\S{1,2000}$/i.test(input)) return json(res, 400, { error: "pass ?url=<an http or https x402 endpoint>" });
+      const pr = await probe(input);
+      if (!pr.ok) return json(res, 200, { url: input, verdict: "no_verdict", reason: `probe failed: ${pr.error}`, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
+      const terms = { price_usd: pr.terms.price, network: pr.terms.network, asset: pr.terms.asset, pay_to: pr.payTo_raw, terms_hash: pr.terms.terms_hash };
+      if (v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
+        const r = await check(input, { probe: pr });
+        return json(res, 200, { url: input, verdict: "BLOCK", source: "null_payee rule at probe time", vow_fired: "null_payee", reason: r.decision.verdict.citations[0]?.quote ?? "null payee", terms, cost_usd: 0, receipt_id: r.receipt.receipt_hash });
+      }
+      const cp = c.payees.find((x) => x.payee === pr.terms.payee);
+      if (cp)
+        return json(res, 200, { url: input, verdict: cp.band, source: `census of ${c.payees.length} payees, ${c.window_days}-day window, taken ${c.at}`, score: cp.score, vows_fired: cp.vows, terms, receipt_id: cp.receipt_id, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
+      return json(res, 200, { url: input, verdict: "no_record", source: "payee not in the census", reason: "Fiangshi holds no on-chain signals for this payee yet. The paid check fetches them (cold check). Never treat no_record as ALLOW.", terms, paid_check: `${self}/v1/check?url=${encodeURIComponent(input)}` });
     }
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement() });
     if (u.pathname === "/v1/index.json")

@@ -158,7 +158,7 @@ describe("HTTP API", () => {
     expect((await get(`/receipt/${"0".repeat(64)}`)).status).toBe(404);
   });
   it("/docs and /legal render the Markdown documents as static pages, linked from every page", async () => {
-    for (const [path, heading] of [["/guide", "Try it: real paid endpoints"], ["/docs", "The agent flow"], ["/report", "What broke, and what fixed it"], ["/legal", "Terms of use"]] as const) {
+    for (const [path, heading] of [["/guide", "Try it: real paid endpoints"], ["/docs", "The agent flow"], ["/report", "Every failure, in order"], ["/architecture", "The map"], ["/connect", "Claude Code"], ["/legal", "Terms of use"]] as const) {
       const r = await get(path);
       expect(r.status).toBe(200);
       expect(r.headers["content-security-policy"]).toContain("default-src 'none'");
@@ -170,6 +170,8 @@ describe("HTTP API", () => {
       const body = (await get(path)).body;
       expect(body).toContain('<a href="/guide">Guide</a>');
       expect(body).toContain('<a href="/report">Test report</a>');
+      expect(body).toContain('<a href="/architecture">Architecture</a>');
+      expect(body).toContain('<a href="/connect">Connect</a>');
       expect(body).toContain('<a class="brand" href="/">FIANGSHI</a>');
       expect(body).toContain('<a href="/legal">Legal</a>');
     }
@@ -199,12 +201,12 @@ describe("HTTP API", () => {
     expect(r.cold).toMatchObject({ ok: false, reason: "unavailable", surf_calls: 0 });
     expect(r.receipt.evidence.some((e: { signal: string }) => e.signal === "cold_check")).toBe(true);
   });
-  it("the hero is the check panel alone: no clock, no poster, no dragon, no asset route", async () => {
+  it("the hero is the check panel and the tour ticket: no clock, no poster, no dragon", async () => {
     const home = (await get("/")).body;
     expect(home).not.toMatch(/<script/i);
     expect(home).not.toContain('class="clock"');
     expect(home).toContain('<form class="probe"');
-    expect(home).not.toContain("/assets/");
+    expect([...home.matchAll(/\/assets\/[\w.-]+/g)].map((m) => m[0]).every((a) => a === "/assets/ticket.webp")).toBe(true);
     for (const a of ["/assets/guardian-poster.webp", "/assets/dragon.webp"]) expect((await get(a)).status).toBe(404);
   });
   it("/report computes the lab history from fixtures/lab and lists every run", async () => {

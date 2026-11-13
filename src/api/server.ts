@@ -28,6 +28,7 @@ import { docByPath } from "../docs-index.js";
 import { lang, setLang, type Lang } from "../i18n.js";
 import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
+import { decodeReceiptParam, receiptVerifyUrl } from "../receipt-url.js";
 import { paymentRequired, paymentResponse, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
 import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
@@ -42,7 +43,7 @@ import { hashOf } from "../core/canonical.js";
 import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
-import { appendReceipt, currentEpoch, ledgerPath, readLedger } from "../ledger/store.js";
+import { appendReceipt, currentEpoch, ledgerDurability, ledgerPath, readLedger, restoreFromMirror } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
@@ -87,14 +88,16 @@ function localiseLinks(body: string): string {
   );
 }
 
+const UNKNOWN_ID = { error: "unknown receipt id: the live ledger resets on redeploy", hint: "if you kept the receipt, verify it with ?receipt=<base64url JSON>" };
+
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
   const c = loadCensus();
   const cr = c.receipts.get(id);
   // a v4 census receipt (2026-11-09) links within its own chain, not the refreshed one
   if (cr) return { r: cr, chain: "census", list: c.ledger.some((x) => x.receipt_hash === id) ? c.ledger : legacyCensus().ledger };
   const list = readLedger(ledgerPath()).flatMap((x) => {
-    const p = Receipt.safeParse(x);
-    return p.success ? [p.data] : [];
+    // schema-checked, but returned exactly as stored, so /v1/receipt/:id is byte-identical to the paid answer's receipt
+    return Receipt.safeParse(x).success ? [x as Receipt] : [];
   });
   const r = list.find((x) => x.receipt_hash === id);
   return r ? { r, chain: "ledger", list } : null;
@@ -109,6 +112,10 @@ type VerifyOut = {
   valid: boolean;
   errors: string[];
   chain: string;
+  /** how the receipt reached us: looked up by id, or handed over as its payload */
+  source?: "id" | "payload";
+  /** "verified" only when a ledger on this server holds the predecessor and the link was checked */
+  chain_linkage?: "verified" | "unverified";
   chain_id?: string | null;
   chain_started_at?: string;
   continuity?: string;
@@ -139,8 +146,8 @@ function rederive(r: Receipt): Pick<VerifyOut, "policy_version" | "band_rederive
   return { policy_version: version, band_rederived: null, band_matches: null, policy_note: `Issued under policy ${version}; the signals behind it are not retained, so the band cannot be re-derived. The hash still proves the receipt is unchanged.` };
 }
 
-function verifyOne(obj: unknown): VerifyOut {
-  const out = verifyOneHash(obj);
+function verifyOne(obj: unknown, source: "id" | "payload" = "id"): VerifyOut {
+  const out = { source, ...verifyOneHash(obj) };
   if (!out.valid) return out;
   const d = rederive(obj as Receipt);
   if (d.band_matches === false) return { ...out, ...d, valid: false, errors: [`band ${(obj as Receipt).band} does not follow from its own policy (${d.band_rederived} expected)`] };
@@ -149,34 +156,37 @@ function verifyOne(obj: unknown): VerifyOut {
 
 function verifyOneHash(obj: unknown): VerifyOut {
   const v = verifyReceipt(obj);
-  if (!v.ok) return { valid: false, errors: v.errors, chain: "n/a" };
+  if (!v.ok) return { valid: false, errors: v.errors, chain: "n/a", chain_linkage: "unverified" };
   const r = obj as Receipt;
   const known = findReceipt(r.receipt_hash);
   const epoch = existsSync(ledgerPath()) ? currentEpoch() : null;
   if (!known) {
     const other = r.chain_id && r.chain_id !== epoch?.chain_id;
+    // a payload alone proves its own hash and band; it cannot prove the link to a predecessor this server does not hold
     return {
       valid: true,
       errors: [],
       chain: other ? "an earlier ledger epoch (hash self-consistent)" : "not in a known ledger (hash self-consistent)",
+      chain_linkage: "unverified",
       chain_id: r.chain_id ?? null,
-      continuity: other ? "This receipt is intact, but it belongs to a ledger epoch this server no longer holds, so its link to the receipts around it cannot be checked here." : "The hash checks out; this server holds no ledger containing it.",
+      continuity: "This receipt is internally consistent and its band re-derives. The link to the previous receipt cannot be checked because the ledger that held it is not on this server. Keep the payload; that is the durable part.",
     };
   }
   const i = known.list.findIndex((x) => x.receipt_hash === r.receipt_hash);
   const prev = i <= 0 ? "genesis" : known.list[i - 1]!.receipt_hash;
-  if (r.prev_hash !== prev) return { valid: false, errors: [`prev_hash ${r.prev_hash} does not link to ${prev}`], chain: known.chain };
-  if (known.chain === "census") return { valid: true, errors: [], chain: `census #${i}`, chain_id: null, continuity: "The census chain is rebuilt identically from committed data on every start, so it never resets." };
+  if (r.prev_hash !== prev) return { valid: false, errors: [`prev_hash ${r.prev_hash} does not link to ${prev}`], chain: known.chain, chain_linkage: "unverified" };
+  if (known.chain === "census") return { valid: true, errors: [], chain: `census #${i}`, chain_linkage: "verified", chain_id: null, continuity: "The census chain is rebuilt identically from committed data on every start, so it never resets." };
   return {
     valid: true,
     errors: [],
     chain: `ledger #${i}`,
+    chain_linkage: "verified",
     chain_id: r.chain_id ?? null,
     chain_started_at: epoch?.started_at,
     continuity:
       epoch?.durability === "durable"
         ? "Continuous since this epoch started."
-        : "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id.",
+        : "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id. A receipt never depends on it: hash and band are verifiable from the receipt itself.",
   };
 }
 
@@ -267,7 +277,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const cp = c.payees.find((x) => x.payee === pr.terms.payee);
       return json(res, 200, cp ? censusAnswer(input, terms, c, cp, paid) : noRecordAnswer(input, terms, c, paid));
     }
-    if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement() });
+    if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement(), ledger_durability: ledgerDurability() });
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {
         census_at: c.at,
@@ -293,23 +303,20 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     m = /^\/v1\/receipt\/([0-9a-f]{64})$/.exec(u.pathname);
     if (m) {
       const f = findReceipt(m[1]!);
-      return f ? json(res, 200, { chain: f.chain, receipt: f.r }) : json(res, 404, { error: "unknown receipt id" });
+      return f ? json(res, 200, { chain: f.chain, receipt: f.r }) : json(res, 404, UNKNOWN_ID);
     }
     if (u.pathname === "/v1/verify") {
       const id = u.searchParams.get("id");
       const raw = u.searchParams.get("receipt");
       if (raw) {
-        let obj: unknown;
-        try {
-          obj = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"));
-        } catch {
-          return json(res, 200, { valid: false, errors: ["receipt is not base64url JSON"] });
-        }
-        return json(res, 200, verifyOne(obj));
+        const d = decodeReceiptParam(raw);
+        if (!d.ok) return json(res, d.error.includes("larger than") ? 413 : 200, { source: "payload", valid: false, errors: [d.error] });
+        const rid = (d.obj as { receipt_hash?: unknown } | null)?.receipt_hash;
+        return json(res, 200, { id: typeof rid === "string" ? rid : null, ...verifyOne(d.obj, "payload") });
       }
       if (id) {
         const f = findReceipt(id);
-        return f ? json(res, 200, { id, ...verifyOne(f.r) }) : json(res, 200, { id, valid: false, errors: ["unknown receipt id"] });
+        return f ? json(res, 200, { id, ...verifyOne(f.r, "id") }) : json(res, 404, { id, source: "id", valid: false, ...UNKNOWN_ID });
       }
       return json(res, 400, { error: "pass ?id=<receipt id> or ?receipt=<base64url receipt JSON>" });
     }
@@ -329,7 +336,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       // V6 at probe time: a null/sink payTo is BLOCKed before any spend: no payment asked, no data or model call
       if (pr.ok && v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
         const r = await check(target, { probe: pr });
-        return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired ?? null, vows_fired: r.decision.vows.filter((v) => v.fired).map((v) => v.vow), reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, settlement: "dry-run", ms: Math.round(performance.now() - t0) });
+        return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired ?? null, vows_fired: r.decision.vows.filter((v) => v.fired).map((v) => v.vow), reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, receipt_verify_url: receiptVerifyUrl(self, r.receipt), settlement: "dry-run", ms: Math.round(performance.now() - t0) }, { "x-receipt-verify": receiptVerifyUrl(self, r.receipt) });
       }
       // Cached SKU: a census payee or a cold payee fetched in the last 72 h. Cold SKU: anyone else, fetched live from Surf.
       const terms = pr.ok ? pr.terms : null;
@@ -396,8 +403,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         model_calls: modelCalls.length - mc0,
         receipt_id: receipt.receipt_hash,
         receipt,
+        receipt_verify_url: receiptVerifyUrl(self, receipt),
         ms: Math.round(performance.now() - t0),
-      }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
+      }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from), "x-receipt-verify": receiptVerifyUrl(self, receipt) });
     }
     return json(res, 404, { error: "not found" });
   } catch (e) {
@@ -412,6 +420,8 @@ export function startServer(port = num("PORT", 8787), host = process.env.HOST ??
   if (process.env.FIANGSHI_OFFLINE !== "1") process.env.SNAPSHOT_SOURCE = "live"; // probe live endpoints
   process.env.MOCK_MODELS ??= "";
   loadCensus(); // fail fast if fixtures are missing
+  const rs = restoreFromMirror(); // a mirror, if configured, is loaded before the first request
+  if (rs) process.stdout.write(`ledger restored: ${rs.entries} entries, chain ${rs.intact} intact${rs.refused ? `, ${rs.refused} refused` : ""}\n`);
   // one failed request must never take the server down
   const server = createServer((req, res) =>
     handle(req, res).catch((e) => {

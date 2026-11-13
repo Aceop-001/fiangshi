@@ -13,7 +13,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 | verdictable payees | 1,870 (97.2%) | `scripts/winrate.ts` |
 | lab | 9 cases: 8 pass, 1 superseded by a documented rule change | `scripts/matrix.ts` |
 | real sellers in the lab (controls) | 3 of 3 reach ALLOW | `artifacts/matrix.md` |
-| accept gates | 16 of 16, offline, network unplugged | `npm run accept` |
+| accept gates | 17 of 17, offline, network unplugged | `npm run accept` |
 | end to end | 10 of 10 on a local server, with no keys (fixture mode) and with keys (live) | `npm run localhost-check` |
 | census cost | 620 credits billed for the 13 Nov refresh of 1,923 payees (the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
@@ -26,7 +26,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 There are four layers, and each one must be green before a commit.
 
 1. **Unit and table tests** (`npm test`, vitest). Pure functions (score, rules, receipts, drift, the probe parser, the markdown renderer, translations) are tested at their edges: 0, the middle, 1, and missing. Each rule has its own table of cases, and a precedence test proves a rule beats a model ALLOW.
-2. **Accept gates** (`npm run accept`). Sixteen checks run with the network blocked by a preload that refuses every connection except the local machine. They are listed in the table below.
+2. **Accept gates** (`npm run accept`). Seventeen checks run with the network blocked by a preload that refuses every connection except the local machine. They are listed in the table below.
 3. **End to end** (`npm run localhost-check`). A real server on a free local port, then ten checks over HTTP: the site, the free check, a BLOCK with a receipt, the paid 402, a paid call with a test payment header, verify, tamper, the index, the badge and the timing.
 4. **The adversarial lab** (`npx tsx scripts/matrix.ts`). Six attack cases and three real sellers run through the live pipeline. The expected answer for each case is committed **before** the run, and is never edited afterwards.
 
@@ -48,6 +48,7 @@ There are four layers, and each one must be green before a commit.
 | G14 | the kinship thresholds hold |
 | G15 | the sensitivity table matches the numbers |
 | G16 | no ALLOW in the published index is past the freshness window (policy v5), at the reference time, just past the limit and long after |
+| G17 | a receipt outlives the server: after a restart with the ledger deleted, the id answers 404 with a hint, the payload still verifies (band re-derived, chain link reported as unverified), and one changed byte fails |
 
 A fifth check runs once per release: a fresh copy of the repository with no keys, then `npm ci`, `npm test`, `npm run accept` and `npm run localhost-check`. It has passed every time since 9 Nov.
 
@@ -71,6 +72,7 @@ A fifth check runs once per release: a fresh copy of the repository with no keys
 | 13 Nov | policy v5 | per-record freshness and the stale cap (a band cap, not a vow) | `bb8acc9` |
 | 13 Nov | refresh | paid Surf refresh of all 1,923 Base payees (620 credits) | `55d860e` |
 | 13 Nov | paid route | real x402 terms in the 402, `X-PAYMENT-RESPONSE`, every figure regenerated, gate G16, the captured live 402 | `3ec5f7a` … `ffb54b4` |
+| 13 Nov | durable receipts | the paid answer carries its receipt and a verify URL, honest payload verification, ledger mirror, gate G17 | this release |
 
 The full per-commit list, with the number of test files, test cases and gates at each commit, is in the table near the end of this page.
 
@@ -239,6 +241,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Fix.** Replaced by ApiToll Crypto Prices (ALLOW) and Earthquake Intelligence (kinship BLOCK, a funder shared with 20 others), both chosen only after a live GET returned 402.
 - **Proof.** All six guide endpoints answer through `api.fiangshi.xyz/v1/preview` with the band the guide states; `tests/guide-examples.test.ts` checks every stated fact against the census.
 
+### F24. A paid receipt died with the server (13 Nov)
+
+- **Seen.** An outside review asked for a receipt issued two hours earlier by id: 404, because the live ledger on Render's free tier is wiped on redeploy. The paid answer did not hand back anything durable to keep, and `?receipt=` answered as if the chain link had been checked.
+- **Cause.** The ledger was the only copy, and payload verification reused the wording of a ledger lookup.
+- **Fix.** The paid answer now carries its full receipt and a `receipt_verify_url` (also in `X-RECEIPT-VERIFY`). Verification reports `source` and `chain_linkage`, and from a payload it says plainly that the link to the previous receipt cannot be checked. A forgotten id answers 404 with a hint. An optional ledger mirror restores ids on start; export and import scripts move a ledger and refuse entries that do not link.
+- **Proof.** Gate G17 restarts a server with its ledger deleted: the id answers 404, the payload verifies with `band_matches: true` and `chain_linkage: "unverified"`, and one changed byte fails. `tests/receipt-durable.test.ts` covers the rest.
+
 ## Rule changes, each one measured
 
 Every rule change was simulated on the census before it was applied, and its effect was recorded.
@@ -277,6 +286,7 @@ These are open, and they are not hidden anywhere else either.
 - **Most shared funders have no name.** 47 of the 49 funders behind a kinship vow have no Surf label. If they turn out to be exchanges or relayers, up to 436 of the 552 BLOCKs (79%) could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
 - **The first funder of an old wallet drifts with the window** (F20). Not fixed in this pass, because it needs a rubric change.
 - **The census goes stale on 16 Nov around 10:54 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
+- **The public API's ledger is ephemeral.** No mirror is configured on Render's free tier, so ids are forgotten on redeploy; receipts stay verifiable from their payload.
 - **No real payment yet.** Settlement is a dry run until the owner pays from their own wallet. Fiangshi will not do it for them.
 - **3 real control sellers in the lab, not 10.** The census only had a few sellers that pass every rule with complete data.
 - **The age, history and identity rules have no live case.** They are tested on fixtures and tables only.

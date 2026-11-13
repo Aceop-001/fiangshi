@@ -76,12 +76,14 @@ describe("GET /v1/verify reports the epoch honestly", () => {
     expect(v.chain_id).toBe(r.chain_id);
     expect(v.continuity).toContain("resets when it is redeployed");
   });
-  it("a receipt from an earlier epoch: still valid, but says its continuity cannot be checked here", async () => {
+  it("a receipt from an earlier epoch: still valid, but says its chain link cannot be checked on this server", async () => {
     const old: Receipt = appendReceipt(body(9), join(tmp(), "ledger.jsonl"));
     const enc = Buffer.from(JSON.stringify(old)).toString("base64url");
     const v = await get(`/v1/verify?receipt=${enc}`);
     expect(v.valid).toBe(true);
     expect(v.chain).toBe("an earlier ledger epoch (hash self-consistent)");
-    expect(v.continuity).toContain("cannot be checked here");
+    expect(v.continuity).toContain("cannot be checked because the ledger that held it is not on this server");
+    expect(v.chain_linkage).toBe("unverified");
+    expect(v.source).toBe("payload");
   });
 });

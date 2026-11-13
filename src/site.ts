@@ -8,6 +8,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, checkHref, env, liveApi, num, policyTtlHours, staticSite } from "./config.js";
+import { receiptVerifyUrl } from "./receipt-url.js";
 import { censusUnknowns, freshness } from "./preview.js";
 import { POLICY_VERSION } from "./core/cap.js";
 import { sellerPayTo } from "./adapters/x402.js";
@@ -364,6 +365,17 @@ export type CheckView =
   | { kind: "census"; url: string; terms: Terms; payTo: string; payee: CensusPayee }
   | { kind: "unknown"; url: string; terms: Terms; payTo: string };
 
+/**
+ * The durable part of a receipt: its id and a URL that verifies it from its own payload, as selectable text (no script).
+ * On the static site the URL points at the live API; with no API configured the block is left out.
+ */
+function keepReceipt(r: Receipt, self: string): string {
+  const base = staticSite() ? liveApi() : self;
+  if (!base) return "";
+  const url = receiptVerifyUrl(base, r);
+  return `<div class="keep"><p class="eyebrow">${T("Keep this receipt")}</p><dl class="kvs">${kv("Receipt id", `<code>${esc(r.receipt_hash)}</code>`)}</dl><textarea class="vurl" readonly rows="4" spellcheck="false" aria-label="${esc(T("Receipt verify URL"))}">${esc(url)}</textarea><p class="mut">${T("Verify without our server: paste this URL in a browser; you do not need our ledger.")}</p></div>`;
+}
+
 const kv = (k: string, v: string) => `<div class="kv"><dt>${esc(T(k))}</dt><i></i><dd>${v}</dd></div>`;
 
 function termsRows(url: string, terms: Terms, payTo: string): string {
@@ -394,7 +406,8 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
     verdict = `<div class="verdict BLOCK"><span class="stamp">BLOCK</span><div><h2>${T("Blocked at probe time by vow I, null_payee.")}</h2><p>${esc(v.reason)}.</p><p>${T("No data or model call was made. Cost: $0.00.")}</p></div></div>`;
     detail = `<div class="hud"><div class="hud-h"><span>${T("Probe")}</span><span>${T("unpaid GET")}</span></div><dl class="hud-b kvs">${termsRows(v.url, v.terms, v.payTo)}${kv("Receipt", `<a href="/receipt/${r.receipt_hash}"><code>${esc(short(r.receipt_hash, 12, 8))}</code></a>`)}</dl></div>
 <div class="cols"><div><p class="eyebrow">${T("Why")}</p><ul class="quotes"><li><b>Vow ${vowNo("null_payee")} · null_payee</b>${esc(VOWS.null_payee.rule)}</li></ul></div>
-<div><p class="eyebrow">${T("Same answer for an agent")}</p><ul class="next"><li>Free, as JSON, with the sealed receipt:<code class="cmd">curl "${esc(self)}/v1/check?url=${esc(encodeURIComponent(v.url))}"</code></li></ul></div></div>`;
+<div><p class="eyebrow">${T("Same answer for an agent")}</p><ul class="next"><li>Free, as JSON, with the sealed receipt:<code class="cmd">curl "${esc(self)}/v1/check?url=${esc(encodeURIComponent(v.url))}"</code></li></ul></div></div>
+${keepReceipt(r, self)}`;
   } else if (v.kind === "census") {
     const p = v.payee;
     const r = c.receipts.get(p.receipt_id);
@@ -406,7 +419,8 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
     detail = `<div class="hud"><div class="hud-h"><span>${T("Probe")}</span><span>${T("unpaid GET")}</span></div><dl class="hud-b kvs">${termsRows(v.url, v.terms, v.payTo)}${drift}${p.service ? kv("Listed as", esc(p.service)) : ""}${kv("Data collected", `${esc(p.as_of.slice(0, 16).replace("T", " "))} UTC`)}${kv("Census receipt", `<a href="/receipt/${p.receipt_id}"><code>${esc(short(p.receipt_id, 12, 8))}</code></a>`)}</dl></div>
 <div class="cols"><div><p class="eyebrow">${p.vows.length ? T("Why") : T("Evidence on the receipt")}</p><ul class="quotes">${p.vows.map((x) => `<li><b>Vow ${vowNo(x)} · ${esc(x)}</b>${esc(VOWS[x as VowName]?.rule ?? "")}${x === "kinship" && funder ? ` This payee's first funder also first funded ${funder.payees - 1} other census payees.` : ""}</li>`).join("")}${(r?.evidence ?? []).map((e) => `<li><b>${esc(e.signal)}</b>${esc(e.quote)}</li>`).join("")}</ul></div>
 <div><p class="eyebrow">${T("Go further")}</p><ul class="next">${paidOn ? `<li>A paid check adds SERV adjudication on the live terms and seals a fresh receipt. $${cached.toFixed(2)} over x402:${paidCmd(v.url)}</li><li>The full census record for this payee. $${payeePrice.toFixed(2)} over x402:<code class="cmd">curl -i "${esc(self)}/v1/payee/${esc(p.payee)}"</code></li>` : `<li>${T("The paid check is not enabled on this server: its operator has not set a receiving wallet.")}</li>`}<li>${T("The same answer as JSON, free:")}<code class="cmd">curl "${esc(self)}/v1/preview?url=${esc(encodeURIComponent(v.url))}"</code></li></ul></div></div>
-<div class="unknowns"><p class="eyebrow">${T("What we could not check")}</p><ul class="quotes">${censusUnknowns(c, p, f.stale, f.data_age_hours).map((u) => `<li>${esc(u)}</li>`).join("")}</ul></div>`;
+<div class="unknowns"><p class="eyebrow">${T("What we could not check")}</p><ul class="quotes">${censusUnknowns(c, p, f.stale, f.data_age_hours).map((u) => `<li>${esc(u)}</li>`).join("")}</ul></div>
+${r ? keepReceipt(r, self) : ""}`;
   } else {
     verdict = `<div class="verdict NONE"><span class="stamp">NO RECORD</span><div><h2>${T("This payee is not in the census.")}</h2><p>Fiangshi has no cached on-chain signals for <code>${esc(short(v.terms.payee))}</code>. It passed the null-payee gate, and that is all a free probe can say. A paid check fails closed to REVIEW until the payee is in a snapshot. It is never ALLOW by default.</p></div></div>`;
     detail = `<div class="hud"><div class="hud-h"><span>${T("Probe")}</span><span>${T("unpaid GET")}</span></div><dl class="hud-b kvs">${termsRows(v.url, v.terms, v.payTo)}</dl></div>
@@ -444,7 +458,7 @@ function hashBars(hash: string): string {
   return `<svg class="bars" viewBox="0 0 ${x} 40" preserveAspectRatio="none" role="img" aria-label="Barcode drawn from the receipt hash"><g fill="#111">${rects}</g></svg>`;
 }
 
-export function renderReceipt(r: Receipt, proof: { valid: boolean; errors: string[]; chain: string }, c: Census, self: string, stats: DemoStats | null): string {
+export function renderReceipt(r: Receipt, proof: { valid: boolean; errors: string[]; chain: string; chain_linkage?: "verified" | "unverified" }, c: Census, self: string, stats: DemoStats | null): string {
   const enr = r.enrichment ? `${r.enrichment.status}${r.enrichment.reason ? ` (${r.enrichment.reason})` : ""}` : null;
   const body = `<main class="wrap rc-wrap">
 <article class="rc" aria-label="Receipt">
@@ -478,10 +492,11 @@ ${hashBars(r.receipt_hash)}
 <p class="eyebrow">${T("Verification")}</p>
 <h1>${proof.valid ? T("This receipt checks out.") : T("This receipt does not verify.")}</h1>
 <div class="hud"><div class="hud-h"><span>${proof.valid ? "Hash verified" : "Invalid"}</span><span>${esc(proof.chain)}</span></div><div class="hud-b">
-<p class="big"><i class="st ${proof.valid ? "ALLOW" : "BLOCK"}"></i>${proof.valid ? T("The receipt hashes to its own id, and it links to the receipt before it.") : esc(proof.errors.join("; "))}</p>
+<p class="big"><i class="st ${proof.valid ? "ALLOW" : "BLOCK"}"></i>${!proof.valid ? esc(proof.errors.join("; ")) : proof.chain_linkage === "verified" ? T("The receipt hashes to its own id, and it links to the receipt before it.") : T("The receipt hashes to its own id. Its link to the receipt before it cannot be checked on this server.")}</p>
 <p class="mut">The id is the sha256 of the canonical JSON of every field except the id itself. Change one byte anywhere and the hash no longer matches. Each receipt also carries the id of the one before it, so removing or reordering a receipt breaks the chain.</p>
 <ul class="next" style="margin-top:16px"><li>Recompute it yourself:<code class="cmd">curl "${esc(self)}/v1/verify?id=${esc(r.receipt_hash)}"</code></li><li>The receipt as JSON:<code class="cmd">curl "${esc(self)}/v1/receipt/${esc(r.receipt_hash)}"</code></li></ul>
 </div></div>
+${keepReceipt(r, self)}
 <p class="try"><a href="/">${T("Back to the census")}</a>${checkHref(r.url) ? ` · <a href="${esc(checkHref(r.url)!)}">${T("probe this endpoint again")}</a>` : ""}</p>
 </aside>
 </main>`;

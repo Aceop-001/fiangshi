@@ -82,6 +82,7 @@ Fiangshi makes one unpaid request to the endpoint, reads the payment terms from 
     "prev_hash": "genesis",
     "receipt_hash": "a15e6048e6d4780cefa285c278ee1905c2ca36dc85ee40b2dd1a520356bd0c7b"
   },
+  "receipt_verify_url": "http://127.0.0.1:8787/v1/verify?receipt=eyJwYXllZSI6IjB4MDAwMDAw…",
   "settlement": "dry-run",
   "ms": 8
 }
@@ -214,6 +215,7 @@ The verdict (evidence list shortened here):
     "prev_hash": "a15e6048e6d4780cefa285c278ee1905c2ca36dc85ee40b2dd1a520356bd0c7b",
     "receipt_hash": "b4175805765067e81538ed8367d6edbc23ae3c2f7fba53fa5e83ebe3f8aea504"
   },
+  "receipt_verify_url": "http://127.0.0.1:8787/v1/verify?receipt=eyJwYXllZSI6IjB4ZDZmY2Ux…",
   "ms": 10
 }
 ```
@@ -260,11 +262,13 @@ curl "http://127.0.0.1:8787/v1/verify?id=b4175805765067e81538ed8367d6edbc23ae3c2
   "mode": "live",
   "id": "b4175805765067e81538ed8367d6edbc23ae3c2f7fba53fa5e83ebe3f8aea504",
   "valid": true,
+  "source": "id",
   "errors": [],
   "chain": "ledger #1",
+  "chain_linkage": "verified",
   "chain_id": "5f1c0d8e2a9b47c3e6d0f4a1b8c7e2d9f3a6b5c4d1e0f9a8b7c6d5e4f3a2b1c0",
   "chain_started_at": "2026-11-13T08:00:00.000Z",
-  "continuity": "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id.",
+  "continuity": "Continuous since this epoch started. This server's ledger resets when it is redeployed; a new epoch then starts with a new chain_id. A receipt never depends on it: hash and band are verifiable from the receipt itself.",
   "policy_version": "2026-11-13.5",
   "band_rederived": "BLOCK",
   "band_matches": true,
@@ -274,7 +278,13 @@ curl "http://127.0.0.1:8787/v1/verify?id=b4175805765067e81538ed8367d6edbc23ae3c2
 
 `band_rederived` is the band recomputed under the policy version the receipt was issued with, never under today's rules: a census receipt issued under policy 2026-11-09.4 keeps its original band even if today's answer for that payee is capped. If the recorded band does not follow from its own policy, `valid` is false. `chain_id` names the ledger epoch the receipt belongs to. On hosting whose disk does not survive a redeploy, each deploy starts a new epoch: older receipts still verify on their own (their hash is intact), but their link to their neighbours can only be checked against the epoch that issued them. Census receipts are rebuilt identically from committed data, so their chain never resets.
 
-You can also send a receipt you hold: `/v1/verify?receipt=` followed by the base64url encoding of the receipt JSON. Change one byte of it and `valid` becomes `false`.
+### Keep the receipt, not the id
+
+Every paid answer carries its full `receipt`, a `receipt_verify_url` and the same URL in the `X-RECEIPT-VERIFY` header. Keep that URL: it is `/v1/verify?receipt=` followed by the base64url encoding of the receipt JSON (or `gz:` followed by base64url of the gzipped JSON, for long receipts; at most 16 KB decoded). It works on any Fiangshi server, at any time, without our ledger. Change one byte of it and `valid` becomes `false`.
+
+What a receipt proves on its own is its hash and its band: the hash covers every field, and the band re-derives from the basis recorded on it. What it cannot prove on its own is its link to the receipt before it, because that needs the ledger that held the predecessor. The answer says which: `source` is `id` or `payload`, and `chain_linkage` is `verified` only when this server holds the ledger and checked the link. From a payload whose ledger is gone it is `unverified`, and `continuity` says so in plain words.
+
+The public API's live ledger is not durable: it resets when the server is redeployed. A receipt never depends on it: hash and band are verifiable from the receipt itself. Asking for a forgotten id answers `404` with a hint to send the payload instead. An operator who wants ids to survive sets `FIANGSHI_LEDGER_MIRROR` to a folder on storage that survives redeploys: every receipt is also written there, fsynced and never rewritten, and the server restores the chain from it on start (`/health` reports `ledger_durability`). `scripts/ledger-export.ts` and `scripts/ledger-import.ts` move a ledger by hand; import refuses any entry whose `prev_hash` does not link, and counts it.
 
 ## How a verdict is made
 

@@ -263,6 +263,13 @@ await gate("G16 no stale ALLOW in the published index (policy v5)", async () => 
   return `0 stale ALLOW at reference, +limit, +500 h (${out.join(" · ")})`;
 });
 
+await gate("G17 a receipt outlives the server (payload verify after ledger loss)", async () => {
+  const { gateSurvive } = await import("./gate-survive.js");
+  const r = await gateSurvive({ useDist: true }); // dist was rebuilt by G1
+  assert(r.ok, r.problems.join("; "));
+  return "id 404 + hint after restart; payload valid, band_matches, chain_linkage unverified; one byte -> invalid";
+});
+
 const total = Math.round(performance.now() - t0);
 const attempts = (globalThis as { __fiangshiNetAttempts?: number }).__fiangshiNetAttempts ?? 0;
 const failed = rows.filter((r) => !r.ok).length;

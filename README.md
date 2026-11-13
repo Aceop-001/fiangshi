@@ -36,12 +36,12 @@ Fiangshi is advisory only. It never holds funds, signs transactions or moves mon
 
 ## Try it
 
-**On the website.** Paste any x402 paid endpoint into the check box at [fiangshi.xyz](https://fiangshi.xyz). The check runs live on the Fiangshi API at [fiangshi-api.onrender.com](https://fiangshi-api.onrender.com/health): one unpaid probe, the null-payee rule and the census verdict, free. The site also shows the full census, every payee with its sealed receipt, the six rules and the documentation.
+**On the website.** Paste any x402 paid endpoint into the check box at [fiangshi.xyz](https://fiangshi.xyz). The check runs live on the Fiangshi API at [api.fiangshi.xyz](https://api.fiangshi.xyz/health): one unpaid probe, the null-payee rule and the census verdict, free. The site also shows the full census, every payee with its sealed receipt, the six rules and the documentation.
 
 **From any HTTP client, against the live API.**
 
 ```bash
-curl "https://fiangshi-api.onrender.com/v1/preview?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas"
+curl "https://api.fiangshi.xyz/v1/preview?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fgas"
 ```
 
 The free-tier server sleeps when idle; the first request after a quiet period can take up to a minute.
@@ -250,4 +250,4 @@ No dashboard, auth, admin panel or DB server. No custody, signing or sending of 
 - **2026-11-13 Python client, production start.** `clients/python/fiangshi_client.py`: one file, standard library only, with `preview`, `payee`, `verify_receipt`, `quote`, OpenAI-style `tools()` / `call_tool()`, and a command line with the same exit codes; its tests run inside `npm test` when Python is present. `npm start` (after `npm run build`) serves the compiled app on `--host 0.0.0.0` and `PORT`. Fixed: ten scripts located the project folder from their own path, so the compiled server could not find the census; all now use the shared root, and a test guards it. Behind an HTTPS proxy, handed-out links use https and the tour cookie is Secure. 315 tests.
 - **2026-11-13 Static edition on GitHub Pages.** `npm run export` runs the real server in static mode (`FIANGSHI_STATIC=1`), crawls every page in all four languages (home, docs, the 800 census receipts, `/v1/index.json`) and writes them to `site/` with `CNAME` and `404.html`; it fails if any page links to a missing page or a server-only route. In the static edition the check box shows the one-line CLI command instead of a form, try-it links open sealed receipts, and the tour is off. `.github/workflows/pages.yml` tests, exports and publishes on every push to `main`, at fiangshi.xyz. 319 tests.
 - **2026-11-13 Public launch.** https://fiangshi.xyz is live on GitHub Pages with HTTPS. The README is rewritten for readers outside the hackathon (what Fiangshi does, how to try it, integrations, quality, status), and the repository has a homepage, description and topics. `render.yaml` describes the live API service for Render (`api.fiangshi.xyz`); when the repository variable `FIANGSHI_API_URL` is set, the static site's check box and try-it links send checks to that API, and its CSP allows that one origin for forms. 322 tests.
-- **2026-11-13 Live checks.** The API runs on Render (`render.yaml`) at https://fiangshi-api.onrender.com. The repository variable `FIANGSHI_API_URL` points the website's check box and try-it links at it, so a visitor can paste a paid endpoint on fiangshi.xyz and get a live verdict and receipt.
+- **2026-11-13 Live checks.** The API runs on Render (`render.yaml`) at https://api.fiangshi.xyz (also https://fiangshi-api.onrender.com). The repository variable `FIANGSHI_API_URL` points the website's check box and try-it links at it, so a visitor can paste a paid endpoint on fiangshi.xyz and get a live verdict and receipt.

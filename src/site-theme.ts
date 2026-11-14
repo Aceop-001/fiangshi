@@ -33,8 +33,8 @@ export function logoSvg(o: { bezel?: boolean; label?: string } = {}): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="${esc(o.label ?? "Fiangshi")}"><circle cx="200" cy="200" r="${o.bezel ? 188 : 200}" fill="#000"/>${ticks}<g fill="${RED}" font-family="'Times New Roman',Times,serif" font-size="39" text-anchor="middle">${numerals}</g><g fill="#fff" font-family="'Songti SC','Noto Serif CJK SC','Source Han Serif SC','Noto Serif SC',SimSun,serif" font-size="62" text-anchor="middle" lang="zh-Hans"><text x="200" y="190" letter-spacing="10">菲昂</text><text x="200" y="262">诗</text></g></svg>`;
 }
 
-/** The site's mark: a black dial, twelve red ticks and a serif F. The favicon, and the icon beside the name in the bar. */
-const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#000"/><g stroke="${RED}" stroke-width="3">${Array.from({ length: 12 }, (_, k) => `<line x1="32" y1="5" x2="32" y2="13" transform="rotate(${k * 30} 32 32)"/>`).join("")}</g><text x="32" y="43" font-family="'Times New Roman',Times,serif" font-size="32" fill="#fff" text-anchor="middle">F</text></svg>`;
+/** The site's mark: a black dial, twelve red ticks and 菲, the first character of the Chinese name. The favicon, and the icon beside the name in the bar. */
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#000"/><g stroke="${RED}" stroke-width="3">${Array.from({ length: 12 }, (_, k) => `<line x1="32" y1="5" x2="32" y2="13" transform="rotate(${k * 30} 32 32)"/>`).join("")}</g><text x="32" y="42.5" font-family="'Songti SC','Noto Serif CJK SC','Source Han Serif SC','Noto Serif SC',SimSun,serif" font-size="28" fill="#fff" text-anchor="middle" lang="zh-Hans">菲</text></svg>`;
 const FAVICON = `data:image/svg+xml,${encodeURIComponent(ICON_SVG)}`;
 
 /** One seamless tile of falling red "?" streams (deterministic, so the page is byte-stable for a given census). */

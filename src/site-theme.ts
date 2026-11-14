@@ -409,7 +409,12 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 `;
 
 /** The document pages every page links to, in the bar and in the footer. */
-export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"]];
+/** Where the project lives. `x` stays null until the owner gives the account: no link is shown for it until then. */
+export const SOCIAL: { github: string; x: string | null } = { github: "https://github.com/Aceop-001/fiangshi", x: null };
+/** Pages link out only to these addresses, as plain links (never an asset, a form target or a script). Tests strip them before checking. */
+export const OUTBOUND_LINKS: string[] = [SOCIAL.github, ...(SOCIAL.x ? [SOCIAL.x] : [])];
+const SOCIAL_LINKS: [href: string, label: string][] = [[SOCIAL.github, "GitHub"], ...(SOCIAL.x ? ([[SOCIAL.x, "X"]] as [string, string][]) : [])];
+export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"], ...SOCIAL_LINKS];
 /** footer: every documentation page */
 export const FOOT_LINKS: [href: string, label: string][] = DOC_PAGES.map((d) => [d.path, d.label]);
 
@@ -448,7 +453,7 @@ export function page(s: Shell): string {
 <header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${mode === "static" ? esc(T("static edition")) : `${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}`}</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
-<footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a><span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
+<footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a>${SOCIAL_LINKS.map(([h, l]) => `<a href="${esc(h)}" rel="noopener">${esc(T(l))}</a>`).join("")}<span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
 </body></html>
 `;
 }

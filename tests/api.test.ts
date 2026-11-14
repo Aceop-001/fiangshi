@@ -7,6 +7,7 @@ import { demoXPayment, paymentRequired, verifyXPayment } from "../src/adapters/x
 import { startServer } from "../src/api/server.js";
 import { modelCalls } from "../src/adapters/serv.js";
 import { tmp } from "./helpers.js";
+import { OUTBOUND_LINKS } from "../src/site-theme.js";
 
 const PAYTO = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"; // EIP-55 example vector (dry-run demo only)
 const FROM = "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359";
@@ -132,7 +133,9 @@ describe("HTTP API", () => {
       expect(csp).toContain("default-src 'none'");
       expect(csp).not.toMatch(/script-src|connect-src|font-src/); // nothing but inline styles and data: images is allowed
       expect(r.body).not.toMatch(/<script/i);
-      expect(r.body).not.toMatch(/(src|href|action)="https?:/i); // no external asset, link or form target
+      // no external asset, link or form target, except plain <a> links to the project's own pages (GitHub, X)
+      const own = OUTBOUND_LINKS.reduce((b, u) => b.split(`<a href="${u}"`).join("<a href=\"OWN\""), r.body);
+      expect(own).not.toMatch(/(src|href|action)="https?:/i);
       expect(r.body).not.toMatch(/@import|url\((?!"data:)/i);
     }
   });

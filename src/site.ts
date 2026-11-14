@@ -19,7 +19,7 @@ import { renderMarkdown } from "./md.js";
 import { FIGURE_CSS, figureHtml } from "./arch-visuals.js";
 import { DOC_GROUPS, DOC_PAGES, docByKind, type DocPage } from "./docs-index.js";
 import { lang, t as T } from "./i18n.js";
-import { HERO_CSS, SITE_LINKS, bareUrl, esc, page, probeForm, short, usd } from "./site-theme.js";
+import { HERO_CSS, SITE_LINKS, SOCIAL, bareUrl, esc, page, probeForm, short, usd } from "./site-theme.js";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const BANDS = ["ALLOW", "REVIEW", "BLOCK"] as const;
@@ -257,6 +257,108 @@ export function tourOverlay(): string {
   return `<div class="tour" id="tour" role="dialog" aria-modal="true" aria-label="${T("Fiangshi tour")}">${radios}<div class="tour-card"><a class="tour-x" href="/tour/done?next=/" aria-label="${T("Close the tour")}">&times;</a>${body}</div></div>`;
 }
 
+
+/* ---------------------------------------------------------------- the home page story ------------------------- */
+
+/**
+ * The scroll story between the hero and the census: an "alpha" strip of the census numbers that matter most, then six
+ * chapters, each a short text that stays pinned while its live figure (the animated architecture SVGs) scrolls past.
+ * Every number comes from the census; the figures are the ones on /architecture. CSS only: reveals use scroll-driven
+ * animations where the browser has them and are simply visible where it does not.
+ */
+function alphaStrip(c: Census): string {
+  const n = c.payees.length;
+  const pct = ((100 * c.bands.BLOCK) / Math.max(1, n)).toFixed(1);
+  return `<section class="alpha-sec"><div class="wrap"><div class="alpha">
+<div><b>${n.toLocaleString("en-US")}</b><span>${T("sellers audited")}</span></div>
+<div class="hot"><b>${c.bands.BLOCK.toLocaleString("en-US")}</b><span>${T("{pct}% get BLOCK", { pct })}</span></div>
+<div><b>${c.base_resources.toLocaleString("en-US")}<i>→</i>${c.catalog_payees.toLocaleString("en-US")}</b><span>${T("paid endpoints, but only this many wallets")}</span></div>
+<div><b>$0.00</b><span>${T("to block a dead-end wallet")}</span></div>
+</div></div></section>`;
+}
+
+function story(c: Census): string {
+  const z = cautionary(c);
+  const k = c.funders.find((r) => r.kinship_fires);
+  const silence = c.payees.filter((p) => p.vows.includes("silence")).length;
+  const danger: string[] = [];
+  if (z)
+    danger.push(`<li style="--c:var(--block)"><p class="dg-h">${chip("BLOCK")}<b>${T("A hole")}</b></p><p>${T("{site} asks {price}, payable to the zero address. Money sent there is gone for good.", { site: `<a href="/receipt/${z.payee.receipt_id}">${esc(bareUrl(z.payee.url))}</a>`, price: usd(z.livePrice ?? z.catalogPrice) })}</p><code>${esc(ZERO)}</code></li>`);
+  if (k)
+    danger.push(`<li style="--c:var(--block)"><p class="dg-h">${chip("BLOCK")}<b>${T("One owner, many shops")}</b></p><p>${T("One unnamed wallet first funded {n} different sellers. The kinship vow treats them as one counterparty.", { n: k.payees })}</p><code>${esc(short(k.funder))}</code></li>`);
+  if (silence)
+    danger.push(`<li style="--c:var(--review)"><p class="dg-h">${chip("REVIEW")}<b>${T("Missing evidence")}</b></p><p>${T("{n} sellers are missing a required on-chain signal. Fiangshi never reads silence as safe.", { n: silence.toLocaleString("en-US") })}</p></li>`);
+  const ch = (no: number, id: string, title: string, lede: string, fig: string, extra = "") =>
+    `<section class="ch" id="${id}"><div class="wrap ch-in"><div class="ch-t rv"><p class="ch-no">${String(no).padStart(2, "0")}</p><h2>${title}</h2><p class="lede">${lede}</p>${extra}</div><div class="ch-f rv">${fig}</div></div></section>`;
+  return `<div id="story">
+${ch(1, "problem", T("Your agent can pay. It cannot see who it pays."), T("An x402 endpoint names a price and a wallet. Nothing in the payment says who owns that wallet, how old it is, or who else it is tied to. These are real cases from the census."), `<ul class="danger">${danger.join("")}</ul>`)}
+${ch(2, "map", T("Eight steps, live"), T("Follow the dot. Every check takes the same path, and each step names the file in the repo that runs it."), figureHtml("the map", 1) ?? "")}
+${ch(3, "three", T("Three requests, three answers"), T("A dead-end wallet stops at step 2, for free. A strong seller goes all the way to ALLOW. Missing data stops at the rules and gets REVIEW."), figureHtml("one check, live", 2) ?? "")}
+${ch(4, "money", T("Money never touches Fiangshi"), T("Fiangshi sits beside the payment, not in it. The agent pays from its own wallet, and only after the verdict."), figureHtml("who talks to whom", 3) ?? "")}
+${ch(5, "decide", T("The model advises, the vows decide."), T("The score, the model and six fixed rules each give a band. The lowest one wins, so a model can never talk its way to ALLOW."), figureHtml("lowest band wins", 4) ?? "", `<p class="ch-more"><a href="#vows">${T("See all six vows")} →</a></p>`)}
+${ch(6, "receipts", T("Receipts that catch an edit"), T("Every verdict is sealed with sha256 and chained to the one before. Change one word and verification fails from there on."), figureHtml("the receipt chain", 5) ?? "")}
+</div>`;
+}
+
+function followSection(): string {
+  const cards: [string, string, string][] = [[SOCIAL.github, "GitHub", "Aceop-001/fiangshi"]];
+  if (SOCIAL.x) cards.push([SOCIAL.x, "X", bareUrl(SOCIAL.x)]);
+  cards.push(["/docs", T("Docs"), T("guide, architecture, report")], ["/connect", T("Connect your agent"), "Claude · Codex · Grok · MCP"]);
+  return `<section class="sec" id="follow"><div class="wrap">
+<p class="eyebrow">${T("Follow the build")}</p>
+<h2>${T("Open source, built in public.")}</h2>
+<p class="lede">${T("Read the code, run the tests, and follow along.")}</p>
+<div class="follow">${cards.map(([h, l, s]) => `<a href="${esc(h)}"${h.startsWith("http") ? ' rel="noopener"' : ""}><b>${esc(l)}</b><small>${esc(s)}</small><i aria-hidden="true">↗</i></a>`).join("")}</div>
+</div></section>`;
+}
+
+const STORY_CSS = `
+.cue{display:inline-block;margin-top:24px;font:600 11.5px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--red-text);text-decoration:none;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(5px)}}
+.alpha-sec{border-bottom:1px solid var(--line2);background:#050505}
+.alpha{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.alpha>div{padding:22px 18px 20px;border-left:1px solid var(--line2);min-width:0}
+.alpha>div:first-child{border-left:0;padding-left:0}
+.alpha b{display:block;font:400 clamp(26px,3.3vw,42px)/1.05 var(--serif);color:var(--fg);white-space:nowrap}
+.alpha b i{font-style:normal;color:var(--mut);margin:0 .18em;font-size:.7em}
+.alpha .hot b{color:var(--red-text)}
+.alpha span{display:block;margin-top:8px;font:12px/1.45 var(--mono);color:var(--mut)}
+.ch{padding:96px 0 0}
+.ch-in{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:44px;align-items:start}
+.ch-t{position:sticky;top:28px}
+.ch-no{font:400 72px/1 var(--serif);color:var(--red-text);margin-bottom:14px}
+.ch-t h2{margin-bottom:14px}
+.ch-t .lede{color:var(--mut)}
+.ch-more{margin-top:14px;font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.ch-f .fxfig{margin-top:0}
+.danger{display:grid;gap:14px;padding:0}
+.danger li{list-style:none;border:1px solid var(--line2);border-left:3px solid var(--c);padding:16px 18px;background:#050505}
+.dg-h{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.dg-h b{font:400 22px/1.2 var(--serif)}
+.danger p{color:#d6d6d6}
+.danger code{display:block;margin-top:10px;font-size:12px;color:var(--mut);overflow-wrap:anywhere}
+.follow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));border:1px solid var(--line2)}
+.follow a{position:relative;display:block;padding:20px 18px;border-left:1px solid var(--line2);text-decoration:none;color:var(--fg);margin-left:-1px}
+.follow a:hover{background:#0b0b0b;color:var(--red-text)}
+.follow b{display:block;font:400 24px/1.2 var(--serif)}
+.follow small{display:block;margin-top:6px;font:12px var(--mono);color:var(--mut)}
+.follow i{position:absolute;top:16px;right:16px;font-style:normal;color:var(--red-text)}
+@supports (animation-timeline: view()){
+.rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% cover 26%}
+@keyframes rv{from{opacity:0;transform:translateY(46px)}to{opacity:1;transform:none}}
+}
+@media(max-width:900px){
+.ch{padding-top:64px}
+.ch-in{grid-template-columns:minmax(0,1fr);gap:18px}
+.ch-t{position:static}
+.ch-no{font-size:52px}
+.alpha{grid-template-columns:repeat(2,minmax(0,1fr))}
+.alpha>div:nth-child(3){border-left:0;padding-left:0}
+.alpha>div:nth-child(n+3){border-top:1px solid var(--line2)}
+}
+@media(prefers-reduced-motion:reduce){.rv{animation:none!important}.cue{animation:none}}
+`;
+
 export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: boolean } = {}): string {
   const n = c.payees.length;
   const f = featured(c);
@@ -283,8 +385,11 @@ export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: bool
 <p class="lede">${T("Fiangshi checks the wallet behind an x402 paid endpoint before your agent pays it. It answers ALLOW, REVIEW or BLOCK, quotes its evidence, and seals a receipt you can verify again later. Advisory only: it never holds funds.")}</p>
 ${probeForm()}
 <p class="try">${staticSite() && !liveApi() ? (tries.length ? T("See the sealed receipts for {links}.", { links: tries.join(` ${T("or")} `) }) : "") : `${T("Free: one unpaid request, the null-payee gate and the census band.")}${tries.length ? ` ${T("Try {links}.", { links: tries.join(` ${T("or")} `) })}` : ""}`}</p>
+<a class="cue" href="#story">${T("Scroll: how a check works")} ↓</a>
 </div></div>
 </div></section>
+${alphaStrip(c)}
+${story(c)}
 
 <section class="sec" id="census"><div class="wrap">
 <p class="eyebrow">${T("Census")}</p>
@@ -343,16 +448,17 @@ ${ledger(c)}
 <tr><td><code>GET /v1/verify?id=</code></td><td class="n">${T("free")}</td><td>${T("Recomputes the hash and the chain link. One changed byte gives valid: false.")}</td></tr>
 <tr><td><code>GET /v1/badge/:address.svg</code></td><td class="n">${T("free")}</td><td>${T("A badge coloured by band.")}</td></tr>
 </table></div>
-</div></section>`;
+</div></section>
+${followSection()}`;
 
   return page({
     title: "Fiangshi · who is behind the 402?",
     description: "Fiangshi checks the wallet behind an x402 paid endpoint before an agent pays it: ALLOW, REVIEW or BLOCK, with quoted evidence and a hash-chained receipt.",
     status: censusStatus(c),
-    nav: [["#census", "Census"], ["#cases", "Cases"], ["#vows", "Vows"], ["#funders", "Funders"], ["#ledger", "Ledger"], ["#api", "API"], ...SITE_LINKS],
+    nav: [["#story", "How it works"], ["#census", "Census"], ["#cases", "Cases"], ["#vows", "Vows"], ["#ledger", "Ledger"], ["#api", "API"], ...SITE_LINKS],
     body,
     foot: footer(c, stats),
-    css: HERO_CSS,
+    css: HERO_CSS + FIGURE_CSS + STORY_CSS,
   });
 }
 

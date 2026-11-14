@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { request, type Server } from "node:http";
 import { startServer, safeNext, TOUR_COOKIE } from "../src/api/server.js";
 import { tmp } from "./helpers.js";
+import { OUTBOUND_LINKS } from "../src/site-theme.js";
 
 let server: Server;
 let base = "";
@@ -81,7 +82,8 @@ describe("architecture working models", () => {
     expect((html.match(/<figure class="fxfig">/g) ?? []).length).toBe(5);
     expect(html).not.toContain("animated on the site at /architecture).");
     expect(html).toContain("<animateMotion");
-    expect(html).not.toMatch(/<script|<img|xlink:href|href="http/i);
+    const own = OUTBOUND_LINKS.reduce((b, u) => b.split(`<a href="${u}"`).join('<a href="OWN"'), html);
+    expect(own).not.toMatch(/<script|<img|xlink:href|href="http/i);
     for (const t of ["The map", "Three checks, live", "Who talks to whom, and where the money goes", "The lowest band wins", "The receipt chain catches an edit"]) expect(html).toContain(t);
   });
   it("the figures only show values the lab produced, and say when values are examples", async () => {

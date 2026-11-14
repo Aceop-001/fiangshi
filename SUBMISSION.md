@@ -2,13 +2,13 @@
 
 ## What it is
 
-Fiangshi checks who would receive an AI agent's payment before the agent pays. Give it a paid x402 web address and it answers ALLOW, REVIEW or BLOCK, quotes the evidence behind that answer, and seals a receipt anyone can re-check later. It never holds funds, never signs a transaction and never moves money: it advises, and the agent's own wallet decides.
+Fiangshi checks who would receive an AI agent's payment before the agent pays. Give it a paid x402 web address and it answers ALLOW, REVIEW or BLOCK, quotes the evidence behind that answer, and seals a receipt anyone can re-check later. It never holds, signs or moves money.
 
 ## The problem
 
 One endpoint in the public x402 catalogue, `api.cleave.fi/x402/gas`, asks $0.80 per call, payable to `0x0000000000000000000000000000000000000000`. That is the zero address: money sent there is gone for good, and nobody can ever deliver anything for it. An agent that pays it loses the money every time.
 
-Every guard in this space asks how much an agent may spend. None asks who receives it. Fiangshi asks that question first, and blocks this endpoint at probe time, before any data or model call, at a cost of $0.00.
+Every guard in this space asks how much an agent may spend; Fiangshi asks who receives it, and blocks this endpoint at probe time for $0.00.
 
 ## How it uses SERV Reasoning
 
@@ -29,14 +29,14 @@ The product is chain- and partner-agnostic: its core claim, payee-side diligence
 
 ## What was built during 2–15 November
 
-- The probe and 402 parser: one unpaid GET, x402 terms read from headers and body, `terms_hash` over canonical JSON (`src/adapters/probe.ts`).
-- The census of all 1,923 Base payees in the catalogue, over a 90-day window (`scripts/audit.ts`, `data/numbers.json`).
-- The six vows: `null_payee`, `age`, `kinship`, `history`, `identity`, `silence` (`src/core/vows.ts`).
-- The scoring model: 25M + 20P + 20R + 15I + 10E + 10C (`src/core/score.ts`).
-- Hash-chained receipts and `/v1/verify`, which recomputes every sha256 and chain link (`src/core/receipt.ts`).
-- The paid x402 route: 402 with real terms, then 200 with a verdict and receipt; settlement is dry-run (`src/api/server.ts`).
-- 355 tests across 38 test files, and 17 acceptance gates (`npm test`, `npm run accept`).
-- The static index and site at fiangshi.xyz, with no script (`src/site.ts`).
+- The probe and 402 parser: one unpaid GET, x402 terms read from headers and body, `terms_hash` over canonical JSON.
+- The census of all 1,923 Base payees in the catalogue, over a 90-day window.
+- The six vows: `null_payee`, `age`, `kinship`, `history`, `identity`, `silence`.
+- The scoring model: 25M + 20P + 20R + 15I + 10E + 10C.
+- Hash-chained receipts and `/v1/verify`, which recomputes every sha256 and chain link.
+- The paid x402 route: 402 with real terms, then 200 with a verdict and receipt; settlement is dry-run.
+- 355 tests across 38 test files, and 17 acceptance gates.
+- The static index and site at fiangshi.xyz, with no script.
 
 ## Evidence
 

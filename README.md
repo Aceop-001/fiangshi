@@ -91,8 +91,8 @@ The [architecture page](https://fiangshi.xyz/architecture) shows this as an anim
 
 | check | result |
 |---|---|
-| unit and integration tests | 333 passing (`npm test`) |
-| offline acceptance gates, network blocked | 15 / 15 (`npm run accept`) |
+| unit and integration tests | 355 passing (`npm test`) |
+| offline acceptance gates, network blocked | 17 / 17 (`npm run accept`) |
 | end to end on a live local server | 10 / 10 (`npm run localhost-check`) |
 | adversarial lab, expectations committed before each run | 8 pass, 1 superseded by a documented rule change |
 | numbers in documents vs. the data | enforced by gate G12 (`npx tsx scripts/numbers.ts --check`) |

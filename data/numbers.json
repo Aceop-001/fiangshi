@@ -1,0 +1,72 @@
+{
+  "chain": "eip155:8453",
+  "census": {
+    "payees": 1923,
+    "catalog_payees": 1923,
+    "window_days": 90,
+    "census_at": "2026-11-13T10:54:31.319Z"
+  },
+  "policy_version": "2026-11-13.5",
+  "reference_time": "2026-11-13T12:00:00.000Z",
+  "bands": {
+    "ALLOW": 127,
+    "REVIEW": 1244,
+    "BLOCK": 552
+  },
+  "issued_bands": {
+    "ALLOW": 127,
+    "REVIEW": 1244,
+    "BLOCK": 552
+  },
+  "freshness": {
+    "stale_limit_hours": 72,
+    "payees_stale": 1,
+    "oldest_as_of": "2026-11-09T02:57:19.701Z",
+    "newest_as_of": "2026-11-13T10:54:31.319Z",
+    "allow_capped": 0
+  },
+  "kinship": {
+    "block": 281,
+    "review": 462,
+    "review_at_fanout": 21,
+    "firing_funders": 49
+  },
+  "verdictable": {
+    "payees": 1870,
+    "pct": 97.2
+  },
+  "credits": {
+    "census_billed": 620,
+    "census_cost_per_payee_usd": 0.00193,
+    "final_pass_billed": 12,
+    "balance_after_final_pass": 1048,
+    "credit_usd": 0.006
+  },
+  "latency": {
+    "warm_p50_ms": 251,
+    "warm_measured_at": "2026-11-11T02:45:49.199Z",
+    "cold_live_ms": 10772,
+    "cold_repeat_ms": 237
+  },
+  "labels": {
+    "queried": 1907,
+    "any_row": 81,
+    "named": 42
+  },
+  "census_v4": {
+    "payees": 800,
+    "census_at": "2026-11-09T02:57:19.701Z",
+    "policy_version": "2026-11-09.4",
+    "issued_bands": {
+      "ALLOW": 49,
+      "REVIEW": 539,
+      "BLOCK": 212
+    },
+    "billed": 252
+  },
+  "prices_usd": {
+    "cached": 0.05,
+    "cold": 0.15,
+    "payee": 0.02
+  }
+}

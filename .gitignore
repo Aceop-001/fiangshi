@@ -1,6 +1,7 @@
 node_modules/
 dist/
-data/
+data/*
+!data/numbers.json
 .env
 .env.*
 !.env.example

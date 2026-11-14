@@ -410,7 +410,7 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 
 /** The document pages every page links to, in the bar and in the footer. */
 /** Where the project lives. `x` stays null until the owner gives the account: no link is shown for it until then. */
-export const SOCIAL: { github: string; x: string | null } = { github: "https://github.com/Aceop-001/fiangshi", x: null };
+export const SOCIAL: { github: string; x: string | null } = { github: "https://github.com/Aceop-001/fiangshi", x: "https://x.com/aceop_xyz" };
 /** Pages link out only to these addresses, as plain links (never an asset, a form target or a script). Tests strip them before checking. */
 export const OUTBOUND_LINKS: string[] = [SOCIAL.github, `${SOCIAL.github}/blob/main/SUBMISSION.md`, ...(SOCIAL.x ? [SOCIAL.x] : [])];
 const SOCIAL_LINKS: [href: string, label: string][] = [[SOCIAL.github, "GitHub"], ...(SOCIAL.x ? ([[SOCIAL.x, "X"]] as [string, string][]) : [])];

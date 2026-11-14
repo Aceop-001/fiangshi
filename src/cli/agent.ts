@@ -14,12 +14,13 @@
 import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { ROOT } from "../config.js";
+import { ROOT, packaged } from "../config.js";
 import { getJson } from "../mcp/server.js";
 
 export const EXIT = { ALLOW: 0, REVIEW: 10, BLOCK: 20, ERROR: 1, USAGE: 2 } as const;
 
-export const base = () => (process.env.FIANGSHI_URL ?? "http://127.0.0.1:8787").replace(/\/$/, "");
+// from the repo the default is the local dev server; from an npm install (no fixtures/) it is the public API
+export const base = () => (process.env.FIANGSHI_URL ?? (packaged() ? "https://api.fiangshi.xyz" : "http://127.0.0.1:8787")).replace(/\/$/, "");
 const isUrl = (u: string | undefined): u is string => typeof u === "string" && /^https?:\/\/\S{1,2000}$/i.test(u);
 
 /** The exit code for a verdict word. Anything that is not exactly ALLOW or BLOCK is REVIEW (fail closed). */

@@ -26,7 +26,9 @@ export const num = (k: string, d: number): number => {
 };
 
 export const isOffline = () => env("FIANGSHI_OFFLINE") === "1";
-export const snapshotSource = (): "fixture" | "live" => (env("SNAPSHOT_SOURCE", "fixture") === "live" ? "live" : "fixture");
+/** An npm install has no fixtures/ (the package ships dist only): there the defaults are live, in the repo they stay fixture. */
+export const packaged = () => !existsSync(resolve(ROOT, "fixtures"));
+export const snapshotSource = (): "fixture" | "live" => (env("SNAPSHOT_SOURCE", packaged() ? "live" : "fixture") === "live" ? "live" : "fixture");
 export const mockModels = () => env("MOCK_MODELS");
 
 export const dataDir = () => resolve(ROOT, env("FIANGSHI_DATA_DIR", "data"));

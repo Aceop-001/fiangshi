@@ -1,8 +1,8 @@
 {
   "name": "fiangshi",
   "version": "0.1.0",
-  "private": true,
   "description": "Pre-payment counterparty oracle for x402 agent payments. The model advises, the vows decide.",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -10,6 +10,25 @@
   "bin": {
     "fiangshi": "dist/src/cli/index.js"
   },
+  "files": [
+    "dist/src",
+    "dist/scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aceop-001/fiangshi.git"
+  },
+  "homepage": "https://fiangshi.xyz",
+  "keywords": [
+    "x402",
+    "agent-payments",
+    "counterparty",
+    "base",
+    "usdc",
+    "mcp"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -23,7 +42,9 @@
     "start": "node dist/src/api/server.js --host 0.0.0.0",
     "localhost-check": "tsx scripts/localhost-check.ts",
     "mcp": "tsx src/mcp/server.ts",
-    "export": "tsx scripts/export-static.ts"
+    "export": "tsx scripts/export-static.ts",
+    "build:cli": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build:cli && npm test"
   },
   "dependencies": {
     "zod": "^3.23.8"

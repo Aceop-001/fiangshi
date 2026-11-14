@@ -33,9 +33,9 @@ export function logoSvg(o: { bezel?: boolean; label?: string } = {}): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="${esc(o.label ?? "Fiangshi")}"><circle cx="200" cy="200" r="${o.bezel ? 188 : 200}" fill="#000"/>${ticks}<g fill="${RED}" font-family="'Times New Roman',Times,serif" font-size="39" text-anchor="middle">${numerals}</g><g fill="#fff" font-family="'Songti SC','Noto Serif CJK SC','Source Han Serif SC','Noto Serif SC',SimSun,serif" font-size="62" text-anchor="middle" lang="zh-Hans"><text x="200" y="190" letter-spacing="10">菲昂</text><text x="200" y="262">诗</text></g></svg>`;
 }
 
-const FAVICON = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#000"/><g stroke="${RED}" stroke-width="3">${Array.from({ length: 12 }, (_, k) => `<line x1="32" y1="5" x2="32" y2="13" transform="rotate(${k * 30} 32 32)"/>`).join("")}</g><text x="32" y="43" font-family="'Times New Roman',Times,serif" font-size="32" fill="#fff" text-anchor="middle">F</text></svg>`,
-)}`;
+/** The site's mark: a black dial, twelve red ticks and a serif F. The favicon, and the icon beside the name in the bar. */
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#000"/><g stroke="${RED}" stroke-width="3">${Array.from({ length: 12 }, (_, k) => `<line x1="32" y1="5" x2="32" y2="13" transform="rotate(${k * 30} 32 32)"/>`).join("")}</g><text x="32" y="43" font-family="'Times New Roman',Times,serif" font-size="32" fill="#fff" text-anchor="middle">F</text></svg>`;
+const FAVICON = `data:image/svg+xml,${encodeURIComponent(ICON_SVG)}`;
 
 /** One seamless tile of falling red "?" streams (deterministic, so the page is byte-stable for a given census). */
 function rainTile(seed: number, w: number, h: number, colW: number, minSize: number, maxSize: number): string {
@@ -121,6 +121,8 @@ code{font-family:var(--mono)}
 /* top bar */
 .bar{border-bottom:1px solid var(--line2);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 .bar-in{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;padding-top:11px;padding-bottom:11px}
+.mark{display:inline-flex;margin-right:-12px;line-height:0}
+.mark svg{width:26px;height:26px;border-radius:50%;box-shadow:0 0 0 1px var(--line2)}
 .brand{font:400 17px/1 var(--serif);letter-spacing:.34em;color:var(--fg);text-decoration:none;margin-right:auto}
 .bar nav{display:flex;flex-wrap:wrap;gap:4px 16px}
 .bar nav a{text-decoration:none}
@@ -450,7 +452,7 @@ export function page(s: Shell): string {
 <title>${esc(s.title)}</title>
 <link rel="icon" href="${FAVICON}">
 <style>${CSS}${s.css ?? ""}</style></head><body>
-<header class="bar"><div class="wrap bar-in"><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${mode === "static" ? esc(T("static edition")) : `${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}`}</span></div></header>
+<header class="bar"><div class="wrap bar-in"><a class="mark" href="/" aria-hidden="true" tabindex="-1">${ICON_SVG.replace("<svg ", '<svg width="26" height="26" ')}</a><a class="brand" href="/">FIANGSHI</a>${nav}${switcher}<span class="state"><i class="pulse${mode === "live" ? "" : " off"}"></i>${esc(s.status)} · ${mode === "static" ? esc(T("static edition")) : `${esc(T("providers {mode}", { mode }))} · ${esc(T("settlement dry-run"))}`}</span></div></header>
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
 <footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a>${SOCIAL_LINKS.map(([h, l]) => `<a href="${esc(h)}" rel="noopener">${esc(T(l))}</a>`).join("")}<span>${T("MIT licence")}</span></p>${s.foot}</div></footer>

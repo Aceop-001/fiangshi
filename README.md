@@ -4,6 +4,8 @@
 
 SERV Hackathon 02 — Open Track. · [Submission write-up](SUBMISSION.md)
 
+🎬 [Demo video](https://x.com/aceop_xyz/status/2121569624697512411) · 🐦 [Launch thread](https://x.com/aceop_xyz/status/2121569624697512411)
+
 **Pre-payment counterparty checks for x402 agent payments.**
 
 [**fiangshi.xyz**](https://fiangshi.xyz) · [Docs](https://fiangshi.xyz/docs) · [Architecture](https://fiangshi.xyz/architecture) · [Test report](https://fiangshi.xyz/report) · [Connect your agent](https://fiangshi.xyz/connect)

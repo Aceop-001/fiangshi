@@ -77,15 +77,4 @@ This is by design. A check that hides its error bars is not a check.
 
 The census itself cost $0.00193 per payee to build. Agents and the platforms that run them pay, per check, because one avoided payment to a dead-end wallet covers many checks.
 
-<!--
-Sources. data/numbers.json: census.payees (1,923), census.window_days (90), bands (127 / 1,244 / 552),
-freshness.payees_stale (1), freshness.stale_limit_hours (72), kinship.firing_funders (49),
-prices_usd (0.05 / 0.15 / 0.02), credits.census_cost_per_payee_usd (0.00193).
-Not in data/numbers.json, with their source:
-- $0.80 and the zero address for api.cleave.fi: live GET /v1/check, 14 Nov 2026 (receipt price 0.8, vow_fired null_payee, cost_usd 0).
-- 355 tests, 38 test files: `npm test`, 14 Nov 2026. 17 acceptance gates: README ("accept 17 / 17").
-- 0–436 of 552: artifacts/sensitivity.md policy C (BLOCK 116; 552 − 116 = 436), quoted in README.
-- "49 unnamed": artifacts/audit.md ("0 exchange, 0 relayer, 0 individual, 49 unnamed").
-- Costs $0.0019 / $0.0499 and margins 96% / 67%: artifacts/costs.md, "Pricing v3, as built" (scripts/pricing.ts).
-- Payee-record cost and margin: not published.
--->
+Every figure's source: [SUBMISSION-SOURCES.md](SUBMISSION-SOURCES.md).

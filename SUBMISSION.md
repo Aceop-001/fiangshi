@@ -73,7 +73,7 @@ This is by design. A check that hides its error bars is not a check.
 |---|---|---|---|
 | cached check | $0.05 | $0.0019 | 96% |
 | cold check (payee not in the census) | $0.15 | $0.0499 | 67% |
-| payee record | $0.02 | not published | not published |
+| payee record | $0.02 | $0.00193 | ~90% |
 
 The census itself cost $0.00193 per payee to build. Agents and the platforms that run them pay, per check, because one avoided payment to a dead-end wallet covers many checks.
 

@@ -10,7 +10,7 @@ Where every figure in the submission write-up comes from.
 - `freshness.payees_stale`: 1 · `freshness.stale_limit_hours`: 72
 - `kinship.firing_funders`: 49
 - `prices_usd`: $0.05 cached · $0.15 cold · $0.02 payee
-- `credits.census_cost_per_payee_usd`: $0.00193
+- `credits.census_cost_per_payee_usd`: $0.00193, also used as the payee-record cost (a payee record serves that census row); margin (0.02 − 0.00193) / 0.02 = 90.4%, shown as ~90%
 
 ## Not in `data/numbers.json`, with their source
 
@@ -19,4 +19,3 @@ Where every figure in the submission write-up comes from.
 - 0–436 of 552 BLOCKs: `artifacts/sensitivity.md` policy C (BLOCK 116; 552 − 116 = 436), quoted in the README.
 - "49 unnamed": `artifacts/audit.md` ("0 exchange, 0 relayer, 0 individual, 49 unnamed").
 - Costs $0.0019 / $0.0499 and margins 96% / 67%: `artifacts/costs.md`, "Pricing v3, as built" (`scripts/pricing.ts`).
-- Payee-record cost and margin: not published.

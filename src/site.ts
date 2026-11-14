@@ -462,6 +462,102 @@ ${followSection()}`;
   });
 }
 
+/* ---------------------------------------------------------------- judges ---------------------------------------- */
+
+const WRITEUP = "https://github.com/Aceop-001/fiangshi/blob/main/SUBMISSION.md";
+const BITREFILL_PAYEE = "0x480cd46e6fade651a0437deadda53d5c8e7d846a";
+
+/**
+ * /judges: three commands and what they return, then where to look next and what this build does not do.
+ * The expected results are copied from live runs against api.fiangshi.xyz on 14 Nov 2026; every other number on the
+ * page comes from the census (the same values as data/numbers.json). English only, like the documents.
+ */
+export function renderJudges(c: Census, stats: DemoStats | null): string {
+  const n = c.payees.length;
+  const bitrefill = c.payees.find((p) => p.payee === BITREFILL_PAYEE) ?? featured(c)?.payee ?? null;
+  const tries: { title: string; cmd: string; expect: string[] }[] = [
+    {
+      title: "A dead-end wallet, blocked for free",
+      cmd: `curl -s "https://api.fiangshi.xyz/v1/preview?url=https://api.cleave.fi/x402/gas"`,
+      expect: [`"verdict": "BLOCK"`, `"vow_fired": "null_payee"`, `"price_usd": 0.8`, `"pay_to": "${ZERO}"`, `"cost_usd": 0`],
+    },
+    {
+      title: "A real seller, allowed",
+      cmd: `curl -s "https://api.fiangshi.xyz/v1/preview?url=https://api.bitrefill.com/x402/gift-cards/search"`,
+      expect: [`"verdict": "ALLOW"`, `"score": 90.59`],
+    },
+    {
+      title: "The paid check asks for payment first",
+      cmd: `curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/gift-cards/search"`,
+      expect: ["HTTP/1.1 402 Payment Required", `"x402Version": 2`, `"amount": "50000"`, `"network": "eip155:8453"`],
+    },
+  ];
+  const look: [string, string, string][] = [
+    ["/v1/index.json", "The census", `${n.toLocaleString("en-US")} records: band, score, vows fired, receipt id`],
+    ...(bitrefill ? ([[`/receipt/${bitrefill.receipt_id}`, "One receipt", `${bareUrl(bitrefill.url)}, sealed and verifiable`]] as [string, string, string][]) : []),
+    ["/architecture", "Architecture", "the eight steps, live"],
+    ["/guide", "Guide", "real endpoints to try, one check walked through"],
+    [WRITEUP, "The write-up", "SUBMISSION.md on GitHub"],
+  ];
+  const body = `<section class="sec judges"><div class="wrap">
+<p class="eyebrow">SERV Hackathon 02</p>
+<h1>Fiangshi — for judges</h1>
+<p class="j-sub">Open Track. Three commands, ninety seconds, no key required.</p>
+
+<h2>The claim</h2>
+<ol class="j-claim"><li>Every guard asks how much an agent may spend.</li><li>None asks who receives it.</li><li>Fiangshi asks that first, and blocks a dead-end wallet before any data or model call.</li></ol>
+
+<h2>Try it</h2>
+<ol class="j-try">${tries
+    .map(
+      (t, i) =>
+        `<li><p class="j-t"><span>${String.fromCharCode(97 + i)}</span>${esc(t.title)}</p><pre><code>${esc(t.cmd)}</code></pre><p class="j-out"><b>expect</b>${t.expect.map((e) => `<code>${esc(e)}</code>`).join("")}</p></li>`,
+    )
+    .join("")}</ol>
+
+<h2>What else to look at</h2>
+<ul class="j-look">${look.map(([h, l, s]) => `<li><a href="${esc(h)}"${h.startsWith("http") ? ' rel="noopener"' : ""}>${esc(l)}</a><span>${esc(s)}</span></li>`).join("")}</ul>
+
+<h2>What this is not</h2>
+<p class="j-not">Settlement is dry-run: no funds move. It covers Base only, over a ${c.window_days}-day window, from a single data provider. It does not claim a false-block rate: the rate is published as a bound, not a point estimate, in <a href="${WRITEUP}" rel="noopener">the write-up</a>.</p>
+
+<p class="j-foot"><a href="${SOCIAL.github}" rel="noopener">github.com/Aceop-001/fiangshi</a> · <a href="/">fiangshi.xyz</a>${SOCIAL.x ? ` · <a href="${esc(SOCIAL.x)}" rel="noopener">X</a>` : ""}</p>
+</div></section>`;
+  return page({
+    title: "Fiangshi · for judges",
+    description: "SERV Hackathon 02, Open Track: three commands to check Fiangshi in ninety seconds, no key required.",
+    status: censusStatus(c),
+    body,
+    foot: footer(c, stats),
+    css: JUDGES_CSS,
+  });
+}
+
+const JUDGES_CSS = `
+.judges{padding-top:36px}
+.judges h1{font-size:clamp(32px,4.6vw,52px);margin:6px 0 8px}
+.j-sub{color:var(--mut);font:14px var(--mono);margin-bottom:8px}
+.judges h2{font-size:clamp(22px,2.6vw,28px);margin:24px 0 10px}
+.j-claim{padding-left:22px;color:#d6d6d6}
+.j-claim li{margin:4px 0}
+.j-claim li:last-child{color:var(--fg)}
+.j-try{list-style:none;padding:0;display:grid;gap:10px}
+.j-try li{border:1px solid var(--line2);padding:12px 14px;background:#050505;min-width:0}
+.j-t{display:flex;align-items:center;gap:10px;font:400 19px/1.3 var(--serif);margin-bottom:8px}
+.j-t span{display:inline-grid;place-items:center;width:24px;height:24px;border:1px solid var(--red);color:var(--red-text);font:600 12px var(--mono)}
+.j-try pre{margin:0;overflow-x:auto;padding:10px 12px;border:1px solid var(--line2);background:#000}
+.j-try code{font:12.5px/1.55 var(--mono);white-space:pre}
+.j-out b{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--red-text)}
+.j-out code{font:12.5px var(--mono);color:var(--fg);min-width:0;overflow-wrap:anywhere}
+.j-out{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-top:8px;padding-left:10px;border-left:3px solid var(--red)}
+.j-look{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));border-top:1px solid var(--line2);border-left:1px solid var(--line2)}
+.j-look li{display:flex;gap:12px;align-items:baseline;padding:9px 14px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.j-look a{font:400 18px var(--serif);min-width:120px}
+.j-look span{color:var(--mut);font:12.5px var(--mono)}
+.j-not{color:#d6d6d6;max-width:80ch}
+.j-foot{margin:20px 0 4px;font:12.5px var(--mono);color:var(--mut)}
+`;
+
 /* ---------------------------------------------------------------- check ---------------------------------------- */
 
 export type CheckView =

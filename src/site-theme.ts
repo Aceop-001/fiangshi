@@ -412,9 +412,9 @@ a.polaroid:hover,a.polaroid:focus-visible{transform:rotate(var(--r))}
 /** Where the project lives. `x` stays null until the owner gives the account: no link is shown for it until then. */
 export const SOCIAL: { github: string; x: string | null } = { github: "https://github.com/Aceop-001/fiangshi", x: null };
 /** Pages link out only to these addresses, as plain links (never an asset, a form target or a script). Tests strip them before checking. */
-export const OUTBOUND_LINKS: string[] = [SOCIAL.github, ...(SOCIAL.x ? [SOCIAL.x] : [])];
+export const OUTBOUND_LINKS: string[] = [SOCIAL.github, `${SOCIAL.github}/blob/main/SUBMISSION.md`, ...(SOCIAL.x ? [SOCIAL.x] : [])];
 const SOCIAL_LINKS: [href: string, label: string][] = [[SOCIAL.github, "GitHub"], ...(SOCIAL.x ? ([[SOCIAL.x, "X"]] as [string, string][]) : [])];
-export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"], ...SOCIAL_LINKS];
+export const SITE_LINKS: [href: string, label: string][] = [["/docs", "Docs"], ["/judges", "For judges"], ...SOCIAL_LINKS];
 /** footer: every documentation page */
 export const FOOT_LINKS: [href: string, label: string][] = DOC_PAGES.map((d) => [d.path, d.label]);
 

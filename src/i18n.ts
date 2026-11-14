@@ -52,6 +52,7 @@ const ROWS: [string, string, string, string][] = [
   ["Start checking", "开始检查", "チェックを始める", "확인 시작"],
   // documentation hub
   ["Docs", "文档", "ドキュメント", "문서"],
+  ["For judges", "评审专页", "審査員向け", "심사위원용"],
   // home page story (2026-11-14)
   ["GitHub", "GitHub", "GitHub", "GitHub"],
   ["X", "X", "X", "X"],

@@ -22,7 +22,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
 import { legacyCensus, loadCensus, loadDemoStats } from "../census.js";
-import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderNotFound, renderReceipt } from "../site.js";
+import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderJudges, renderNotFound, renderReceipt } from "../site.js";
 import { CSP, setPagePath } from "../site-theme.js";
 import { docByPath } from "../docs-index.js";
 import { lang, setLang, type Lang } from "../i18n.js";
@@ -239,6 +239,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
     }
     if (u.pathname === "/docs" || u.pathname === "/docs/") return html(res, 200, renderDocsHome(c, loadDemoStats()));
+    if (u.pathname === "/judges" || u.pathname === "/judges/") return html(res, 200, renderJudges(c, loadDemoStats()));
     const doc = docByPath(u.pathname);
     if (doc) return html(res, 200, renderDoc(doc.kind, c, loadDemoStats()));
     if (u.pathname === "/check") {

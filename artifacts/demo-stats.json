@@ -2,6 +2,7 @@
   "measured_at": "2026-11-11T02:45:49.199Z",
   "warm_p50_ms": 251,
   "cold_ms": 274,
-  "tests_passed": 263,
-  "accept": "15/15"
+  "tests_passed": 355,
+  "accept": "17/17",
+  "quality_measured_at": "2026-11-14T09:29:52.335Z"
 }

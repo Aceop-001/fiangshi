@@ -68,5 +68,10 @@
     "cached": 0.05,
     "cold": 0.15,
     "payee": 0.02
+  },
+  "quality": {
+    "tests": 355,
+    "accept_gates": "17/17",
+    "measured_at": "2026-11-14T09:29:52.335Z"
   }
 }

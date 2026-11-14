@@ -63,9 +63,16 @@ export function computeNumbers() {
     labels: { queried, any_row: anyRow, named },
     census_v4: { payees: v4.payees.length, census_at: v4.at, policy_version: "2026-11-09.4", issued_bands: v4Bands, billed: v4Billed },
     prices_usd: { cached: 0.05, cold: 0.15, payee: 0.02 },
+    quality: loadQuality(),
   };
 }
 export type Numbers = ReturnType<typeof computeNumbers>;
+
+/** Test and gate counts as measured by scripts/quality.ts (artifacts/quality.json); never typed by hand. */
+export function loadQuality(): { tests: number; accept_gates: string; measured_at: string } | null {
+  const p = join(ROOT, "artifacts", "quality.json");
+  return existsSync(p) ? (JSON.parse(readFileSync(p, "utf8")) as { tests: number; accept_gates: string; measured_at: string }) : null;
+}
 
 /** Every band split or headline figure stated in a document, compared with the numbers. */
 export function checkDocs(n: Numbers): string[] {
@@ -94,8 +101,33 @@ export function checkDocs(n: Numbers): string[] {
         if (Number(m[1]) !== n.credits.census_billed) bad.push(`${name}:${i + 1}: census billed ${m[1]} credits, numbers.json says ${n.credits.census_billed}`);
       for (const m of line.matchAll(/\b(\d{2,3}) kinship BLOCKs\b/g))
         if (Number(m[1]) !== n.kinship.block) bad.push(`${name}:${i + 1}: ${m[1]} kinship BLOCKs, numbers.json says ${n.kinship.block}`);
+      // the README's Quality table: today's test and gate counts
+      if (name === "README.md" && n.quality) {
+        for (const m of line.matchAll(/^\| unit and integration tests \| (\d+) passing/g))
+          if (Number(m[1]) !== n.quality.tests) bad.push(`${name}:${i + 1}: ${m[1]} tests, numbers.json quality says ${n.quality.tests}`);
+        for (const m of line.matchAll(/^\| offline acceptance gates[^|]*\| (\d+) \/ (\d+)/g))
+          if (`${m[1]}/${m[2]}` !== n.quality.accept_gates) bad.push(`${name}:${i + 1}: accept ${m[1]}/${m[2]}, numbers.json quality says ${n.quality.accept_gates}`);
+      }
     });
   }
+  // scripts/quality.ts sets this while it measures the counts it is about to record (the gate cannot check them yet)
+  if (!process.env.FIANGSHI_QUALITY_PENDING) bad.push(...checkQuality(n));
+  return bad;
+}
+
+/**
+ * The footer's counts: artifacts/demo-stats.json must agree with numbers.json "quality", and the committed
+ * data/numbers.json must be the one the scripts compute today (otherwise the site would read a stale file).
+ */
+export function checkQuality(n: Numbers): string[] {
+  const bad: string[] = [];
+  if (!n.quality) return ["artifacts/quality.json is missing: run npx tsx scripts/quality.ts"];
+  const stats = loadDemoStats();
+  if (stats && stats.tests_passed !== n.quality.tests) bad.push(`artifacts/demo-stats.json: tests_passed ${stats.tests_passed}, numbers.json quality says ${n.quality.tests}`);
+  if (stats && stats.accept !== n.quality.accept_gates) bad.push(`artifacts/demo-stats.json: accept ${stats.accept}, numbers.json quality says ${n.quality.accept_gates}`);
+  const committed = join(ROOT, "data", "numbers.json");
+  if (existsSync(committed) && readFileSync(committed, "utf8").replace(/\r\n/g, "\n") !== JSON.stringify(n, null, 2) + "\n")
+    bad.push("data/numbers.json is stale: run npx tsx scripts/numbers.ts");
   return bad;
 }
 

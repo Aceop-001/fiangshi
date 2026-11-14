@@ -12,7 +12,7 @@ import { receiptVerifyUrl } from "./receipt-url.js";
 import { censusUnknowns, freshness } from "./preview.js";
 import { POLICY_VERSION } from "./core/cap.js";
 import { sellerPayTo } from "./adapters/x402.js";
-import type { Census, CensusPayee, DemoStats } from "./census.js";
+import { loadQuality, type Census, type CensusPayee, type DemoStats } from "./census.js";
 import { USDC_BASE } from "./adapters/x402.js";
 import { VOW_NAMES, type Band, type Receipt, type Terms, type VowName } from "./core/types.js";
 import { renderMarkdown } from "./md.js";
@@ -75,8 +75,10 @@ export function cautionary(c: Census) {
 function footer(c: Census, stats: DemoStats | null): string {
   const cached = num("FIANGSHI_PRICE_CHECK", 0.05);
   const cold = num("FIANGSHI_PRICE_CHECK_COLD", 0.15);
+  // test and gate counts come from data/numbers.json ("quality"); latency keeps its own measurement date
+  const quality = loadQuality();
   const measured = stats
-    ? T("Warm p50 {ms} ms, measured {date}. {tests} tests passing · accept {accept}.", { ms: stats.warm_p50_ms, date: esc(stats.measured_at.slice(0, 10)), tests: stats.tests_passed, accept: esc(stats.accept) })
+    ? T("Warm p50 {ms} ms, measured {date}. {tests} tests passing · accept {accept}.", { ms: stats.warm_p50_ms, date: esc(stats.measured_at.slice(0, 10)), tests: quality?.tests ?? stats.tests_passed, accept: esc(quality?.accept_gates ?? stats.accept) })
     : `Latency and test counts appear here after <code>npm run localhost-check -- --live</code>.`;
   return `<p>${measured} ${T("{cached} per cached check · {cold} per cold check · six vows: {vows}.", { cached: `$${cached.toFixed(2)}`, cold: `$${cold.toFixed(2)}`, vows: VOW_NAMES.map((v) => esc(v)).join(", ") })}</p>
 <p>${T("Advisory only. Fiangshi never holds funds, signs or sends a transaction. Receipts are hash-chained, not signed. Settlement is dry-run in this build.")} ${T("Census of {n} payees taken {at} UTC.", { n: c.payees.length, at: esc(c.at.slice(0, 16).replace("T", " ")) })}</p>`;

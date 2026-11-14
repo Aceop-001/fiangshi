@@ -232,7 +232,17 @@ function loadBaseCensus(): Census {
 }
 
 /** Demo stats measured by `npm run localhost-check` (artifacts/demo-stats.json, committed). */
-export interface DemoStats { measured_at: string; warm_p50_ms: number; cold_ms: number | null; tests_passed: number; accept: string }
+export interface DemoStats { measured_at: string; warm_p50_ms: number; cold_ms: number | null; tests_passed: number; accept: string; quality_measured_at?: string }
+
+/** Test and gate counts from the committed data/numbers.json ("quality", measured by scripts/quality.ts). */
+export function loadQuality(): { tests: number; accept_gates: string; measured_at: string } | null {
+  const p = join(ROOT, "data", "numbers.json");
+  try {
+    return existsSync(p) ? ((JSON.parse(readFileSync(p, "utf8")) as { quality?: { tests: number; accept_gates: string; measured_at: string } }).quality ?? null) : null;
+  } catch {
+    return null;
+  }
+}
 export function loadDemoStats(): DemoStats | null {
   const p = join(ROOT, "artifacts", "demo-stats.json");
   return existsSync(p) ? (JSON.parse(readFileSync(p, "utf8")) as DemoStats) : null;

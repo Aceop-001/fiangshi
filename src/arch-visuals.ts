@@ -21,7 +21,9 @@ const f = (n: number) => Number(n.toFixed(4)).toString();
 /** opacity window: hidden, then shown from a to b (fractions of the loop), then hidden. */
 function show(a: number, b: number, dur: number): string {
   const e = 0.012;
-  return `<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;${f(Math.max(0.0001, a - e))};${f(a)};${f(b)};${f(Math.min(0.9999, b + e))};1" dur="${dur}s" repeatCount="indefinite"/>`;
+  // keyTimes must increase: a window that opens at 0 starts at 0.0002 so its fade-in key (>= 0.0001) still comes first
+  const a0 = Math.max(0.0002, a);
+  return `<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;${f(Math.max(0.0001, a0 - e))};${f(a0)};${f(b)};${f(Math.min(0.9999, b + e))};1" dur="${dur}s" repeatCount="indefinite"/>`;
 }
 
 /** The status mark the site uses: circle ALLOW, triangle REVIEW, square BLOCK. */

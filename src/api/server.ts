@@ -23,7 +23,7 @@ import { join } from "node:path";
 import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
 import { legacyCensus, loadCensus, loadDemoStats } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderJudges, renderNotFound, renderReceipt } from "../site.js";
-import { CSP, setPagePath } from "../site-theme.js";
+import { COPY_SCRIPT_CSP, CSP, setPagePath } from "../site-theme.js";
 import { docByPath } from "../docs-index.js";
 import { lang, setLang, type Lang } from "../i18n.js";
 import { probe } from "../adapters/probe.js";
@@ -66,11 +66,11 @@ const json = (res: ServerResponse, status: number, body: unknown, headers: Recor
 };
 
 /** HTML pages are static documents: the CSP forbids every script and every external request. */
-const html = (res: ServerResponse, status: number, body: string) => {
+const html = (res: ServerResponse, status: number, body: string, copyScript = false) => {
   res.writeHead(status, {
     "content-type": "text/html; charset=utf-8",
     "cache-control": "no-store",
-    "content-security-policy": CSP,
+    "content-security-policy": copyScript ? COPY_SCRIPT_CSP : CSP,
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
     "x-fiangshi-mode": providerMode(),
@@ -239,7 +239,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       return void res.end(readFileSync(join(ROOT, "assets", ASSETS[u.pathname]!.file)));
     }
     if (u.pathname === "/docs" || u.pathname === "/docs/") return html(res, 200, renderDocsHome(c, loadDemoStats()));
-    if (u.pathname === "/judges" || u.pathname === "/judges/") return html(res, 200, renderJudges(c, loadDemoStats()));
+    if (u.pathname === "/judges" || u.pathname === "/judges/") return html(res, 200, renderJudges(c, loadDemoStats()), true);
     const doc = docByPath(u.pathname);
     if (doc) return html(res, 200, renderDoc(doc.kind, c, loadDemoStats()));
     if (u.pathname === "/check") {

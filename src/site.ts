@@ -581,10 +581,10 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 <ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>0.100 → 0.084</b><span>USDC before → after</span></div><div><b>$0.016</b><span>paid, exact to the cent</span></div><div class="hot"><b>$0.051</b><span>refused, never spent</span></div><div><b>$0.05</b><span>hard cap per run</span></div></div>
 <h3 class="j-h3">Run it yourself</h3>
-<p class="j-note">Open Claude Code in an empty folder and paste prompt 1. It makes a fresh test wallet, waits while you send it 0.10 USDC on Base, does a dry run, and pays for real only after you type GO. When you are done, paste prompt 2 to send what is left back to your own wallet. Click inside a box, press Ctrl+A (Cmd+A on a Mac), then copy.</p>
-<label class="j-label" for="p1">Prompt 1 · the agent test (dry run, then a real run)</label>
+<p class="j-note">Open Claude Code in an empty folder and paste prompt 1. It makes a fresh test wallet, waits while you send it 0.10 USDC on Base, does a dry run, and pays for real only after you type GO. When you are done, paste prompt 2 to send what is left back to your own wallet. Press <b>Copy prompt</b>, or click inside a box and press Ctrl+A (Cmd+A on a Mac), then copy.</p>
+<div class="j-labrow"><label class="j-label" for="p1">Prompt 1 · the agent test (dry run, then a real run)</label><button type="button" class="j-copybtn" data-copy="p1" hidden>Copy prompt</button></div>
 <textarea id="p1" class="j-copy" readonly rows="16" spellcheck="false">${esc(AGENT_PROMPT)}</textarea>
-<label class="j-label" for="p2">Prompt 2 · send the rest back to your main wallet</label>
+<div class="j-labrow"><label class="j-label" for="p2">Prompt 2 · send the rest back to your main wallet</label><button type="button" class="j-copybtn" data-copy="p2" hidden>Copy prompt</button></div>
 <textarea id="p2" class="j-copy" readonly rows="12" spellcheck="false">${esc(SWEEP_PROMPT)}</textarea>
 <p class="j-note">The private key is written straight to <code>.env</code> and never shown; every stage stops for your go-ahead; the payment step never retries. Fiangshi itself never touches the money: the agent pays from its own wallet.</p>
 <p class="j-note"><strong>Not financial advice (NFA). Do your own research (DYOR).</strong> This spends real USDC from a wallet you control. Use a fresh test wallet with only a few cents, and read the dry-run table before you type GO.</p>
@@ -604,6 +604,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
     body,
     foot: footer(c, stats),
     css: JUDGES_CSS,
+    copyScript: true,
   });
 }
 
@@ -694,6 +695,11 @@ const JUDGES_CSS = `
 .j-money span{display:block;margin-top:4px;font:11.5px var(--mono);color:var(--mut)}
 .j-h3{font:400 20px/1.3 var(--serif);margin:18px 0 6px}
 .j-label{display:block;margin:14px 0 6px;font:600 12px var(--mono);letter-spacing:.06em;color:var(--red-text)}
+.j-labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:14px}
+.j-labrow .j-label{margin:0 0 6px}
+.j-copybtn{flex:none;margin-bottom:6px;background:var(--fg);color:#000;border:0;font:600 11.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;cursor:pointer}
+.j-copybtn:hover{background:var(--red);color:#fff}
+.j-copybtn[hidden]{display:none}
 .j-copy{display:block;width:100%;box-sizing:border-box;background:#050505;color:var(--fg);border:1px solid var(--line2);padding:12px 14px;font:12px/1.55 var(--mono);resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto}
 .j-copy:focus{outline:2px solid var(--fg);outline-offset:2px}
 .j-note{margin-top:10px;color:var(--mut);font:12.5px/1.6 var(--mono);max-width:90ch}

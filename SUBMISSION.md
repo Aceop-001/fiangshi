@@ -36,7 +36,7 @@ The product is chain- and partner-agnostic: its core claim, payee-side diligence
 - Hash-chained receipts and `/v1/verify`, which recomputes every sha256 and chain link.
 - The paid x402 route: 402 with real terms, then 200 with a verdict and receipt; settlement is dry-run.
 - 355 tests across 38 test files, and 17 acceptance gates.
-- The static index and site at fiangshi.xyz, with no script.
+- The static index and site at fiangshi.xyz, with no script except the Copy buttons on /judges.
 
 ## Evidence
 

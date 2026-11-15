@@ -142,7 +142,7 @@ There is no database server. There are no accounts and no user records.
 - **No custody.** Fiangshi never holds funds, signs transactions, or sends them. It has no private key. The paid routes receive payment to an address the operator sets (`FIANGSHI_PAYTO`), which must itself pass rule I.
 - **Fail closed.** Missing data, a timeout, a schema violation, a model failure or a budget refusal gives REVIEW. Nothing defaults to ALLOW. BLOCK always names a rule and quotes evidence.
 - **Rules over model.** A model answer is advice. It can lower a verdict, never raise it, and its quotes are checked word for word against stored evidence, so it cannot invent facts.
-- **No scripts on the site.** Every HTML page is sent with `Content-Security-Policy: default-src 'none'`. The site uses one functional cookie only to remember that the first-visit tour was closed (see the Legal page). There is no tracking.
+- **No scripts on the site, with one exception.** Every HTML page is sent with `Content-Security-Policy: default-src 'none'`. The only exception is `/judges`, whose two Copy prompt buttons run one inline script allowed by its sha256 hash (`script-src 'sha256-…'`); every other page has no `script-src` at all. The site uses one functional cookie only to remember that the first-visit tour was closed (see the Legal page). There is no tracking.
 - **Input handling.** Only `http(s)` URLs up to 2,000 characters are probed. Every request handler is wrapped, so one failing request cannot stop the server. Markdown pages escape all raw HTML.
 - **Reproducible numbers.** Every number in the documents comes from a committed script. `npx tsx scripts/numbers.ts --check` (accept gate G12) fails the build if a document disagrees.
 

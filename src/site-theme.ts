@@ -3,6 +3,7 @@
  * Static by construction: no script, no framework, no external request (system fonts, inline SVG, inline CSS).
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
  */
+import { createHash } from "node:crypto";
 import { liveApi, providerMode, staticSite } from "./config.js";
 import { DOC_PAGES } from "./docs-index.js";
 import { LANGS, lang, t as T } from "./i18n.js";
@@ -12,6 +13,14 @@ let pagePath = "/";
 export const setPagePath = (p: string) => void (pagePath = p);
 
 export const CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'none'";
+
+/**
+ * The site's one script, on /judges only: the Copy buttons beside the two agent prompts. It is allowed by its sha256
+ * hash, nothing else: every other page keeps a CSP with no script-src at all. The buttons start hidden and the script
+ * shows them, so a browser that blocks it simply shows the prompts in their boxes.
+ */
+export const COPY_SCRIPT = `document.querySelectorAll("[data-copy]").forEach(function(b){b.hidden=false;b.addEventListener("click",function(){var t=document.getElementById(b.getAttribute("data-copy"));var done=function(){b.textContent="Copied ✓";setTimeout(function(){b.textContent="Copy prompt"},1800)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(done,function(){t.select();document.execCommand("copy");done()})}else{t.select();document.execCommand("copy");done()}})})`;
+export const COPY_SCRIPT_CSP = `${CSP}; script-src 'sha256-${createHash("sha256").update(COPY_SCRIPT, "utf8").digest("base64")}'`;
 
 export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 export const short = (a: string, head = 10, tail = 4) => (a.length > head + tail + 1 ? `${a.slice(0, head)}…${a.slice(-tail)}` : a);
@@ -437,6 +446,8 @@ export interface Shell {
   foot: string;
   /** page-specific styles appended to the shared sheet */
   css?: string;
+  /** /judges only: include the one hash-allowed script (the Copy buttons) */
+  copyScript?: boolean;
 }
 
 export function page(s: Shell): string {
@@ -446,7 +457,7 @@ export function page(s: Shell): string {
   const switcher = `<nav class="langs" aria-label="${T("Language")}">${LANGS.map((l) => (l.code === lang() ? `<b aria-current="true">${l.label}</b>` : `<a href="${esc(l.code === "en" ? pagePath : `/${l.code}${pagePath === "/" ? "" : pagePath}`)}" hreflang="${l.html}" lang="${l.html}" data-nolang>${l.label}</a>`)).join("")}</nav>`;
   return `<!doctype html>
 <html lang="${LANGS.find((l) => l.code === lang())!.html}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${liveApi() ? CSP.replace("form-action 'self'", `form-action 'self' ${liveApi()}`) : CSP}">
+<meta http-equiv="Content-Security-Policy" content="${(() => { const base = s.copyScript ? COPY_SCRIPT_CSP : CSP; return liveApi() ? base.replace("form-action 'self'", `form-action 'self' ${liveApi()}`) : base; })()}">
 <meta name="description" content="${esc(s.description)}">
 <meta name="theme-color" content="#000000">
 <title>${esc(s.title)}</title>
@@ -456,6 +467,7 @@ export function page(s: Shell): string {
 ${MODE_NOTE[mode] ? `<div class="modebar"><p class="wrap">${T(MODE_NOTE[mode]!)}</p></div>` : ""}
 ${s.body}
 <footer><div class="wrap foot"><p class="foot-links"><a href="/docs">${esc(T("Docs"))}</a>${FOOT_LINKS.map(([h, l]) => `<a href="${h}">${esc(T(l))}</a>`).join("")}<a href="/v1/index.json">index.json</a>${SOCIAL_LINKS.map(([h, l]) => `<a href="${esc(h)}" rel="noopener">${esc(T(l))}</a>`).join("")}<span>${T("MIT licence")}</span></p>${s.foot}</div></footer>
+${s.copyScript ? `<script>${COPY_SCRIPT}</script>` : ""}
 </body></html>
 `;
 }

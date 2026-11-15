@@ -200,7 +200,7 @@ Cost basis (`npx tsx scripts/pricing.ts`, details in `artifacts/costs.md`): a ca
 
 ## Website and API
 
-The same process serves the website and the API. Pages contain no JavaScript and load nothing from other sites; a Content-Security-Policy of `default-src 'none'` enforces it (`tests/api.test.ts`). The site is available in English, Chinese, Japanese and Korean (`/zh`, `/ja`, `/ko`).
+The same process serves the website and the API. Pages contain no JavaScript and load nothing from other sites; a Content-Security-Policy of `default-src 'none'` enforces it (`tests/api.test.ts`). The one exception is `/judges`: its two Copy prompt buttons run a single inline script, allowed by its sha256 hash and nothing else. The site is available in English, Chinese, Japanese and Korean (`/zh`, `/ja`, `/ko`).
 
 | page | what it shows |
 |---|---|

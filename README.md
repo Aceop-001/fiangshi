@@ -30,6 +30,28 @@ Fiangshi answers that question before the money moves. Given a paid endpoint, it
 
 Fiangshi is advisory only. It never holds funds, signs transactions or moves money, and it fails closed: missing data, a timeout or a model failure produces REVIEW, never ALLOW.
 
+## See it work
+
+**A real agent, real money.** On 15 Nov an AI agent in Claude Code got 0.10 USDC on Base mainnet and asked Fiangshi before every payment. It refused the two sellers Fiangshi blocked and paid the two it allowed: $0.016 spent, $0.051 never spent. [Case study, with both prompts to run it yourself →](docs/AGENT-DEMO.md)
+
+<p align="center"><img src="docs/assets/agent-run.svg" alt="Replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC" width="760"></p>
+
+**One check, eight steps.** Follow the dot: a question comes in, passes eight steps inside Fiangshi, and the verdict goes back. Each step names the file that runs it; the red branch is the free BLOCK for a dead-end wallet.
+
+<p align="center"><img src="docs/assets/fig-1-map.svg" alt="The Fiangshi map: clients, the eight steps inside the server, and the services each step uses" width="760"></p>
+
+<details>
+<summary><b>Four more live figures</b> (three checks side by side, where the money goes, the lowest band wins, the receipt chain)</summary>
+
+<p align="center"><img src="docs/assets/fig-2-three-checks.svg" alt="Three checks running side by side through the eight steps" width="760"></p>
+<p align="center"><img src="docs/assets/fig-3-money.svg" alt="Who Fiangshi talks to during one check, and where the money goes" width="760"></p>
+<p align="center"><img src="docs/assets/fig-4-lowest-band.svg" alt="How the final band is chosen: the lowest of the score, the model and the rules" width="760"></p>
+<p align="center"><img src="docs/assets/fig-5-receipt-chain.svg" alt="The receipt chain: verifying, then catching an edited receipt" width="760"></p>
+
+</details>
+
+These are the same animated figures as on [fiangshi.xyz](https://fiangshi.xyz), exported by `npx tsx scripts/export-figures.ts`.
+
 ## Highlights
 
 - **Fail-closed by design.** Six fixed rules run after the model and can only lower a verdict. A model alone can never produce ALLOW or BLOCK.

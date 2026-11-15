@@ -299,7 +299,40 @@ ${ch(3, "three", T("Three requests, three answers"), T("A dead-end wallet stops 
 ${ch(4, "money", T("Money never touches Fiangshi"), T("Fiangshi sits beside the payment, not in it. The agent pays from its own wallet, and only after the verdict."), figureHtml("who talks to whom", 3) ?? "")}
 ${ch(5, "decide", T("The model advises, the vows decide."), T("The score, the model and six fixed rules each give a band. The lowest one wins, so a model can never talk its way to ALLOW."), figureHtml("lowest band wins", 4) ?? "", `<p class="ch-more"><a href="#vows">${T("See all six vows")} →</a></p>`)}
 ${ch(6, "receipts", T("Receipts that catch an edit"), T("Every verdict is sealed with sha256 and chained to the one before. Change one word and verification fails from there on."), figureHtml("the receipt chain", 5) ?? "")}
+${ch(7, "agent-run", T("A real agent, real money"), T("On 15 Nov an AI agent got 0.10 USDC on Base and asked Fiangshi before every payment. It refused two sellers and paid two: $0.016 spent, $0.051 never spent."), agentTerminal(), `<p class="ch-more"><a href="/judges">${T("Run it yourself: the prompts")} →</a></p>`)}
 </div>`;
+}
+
+/**
+ * The 15 Nov agent run, replayed as a terminal: each line types itself in, the verdicts land, the balance bar drops
+ * by each payment. CSS animation only (the CSP forbids scripts); with reduced motion every line is simply shown.
+ * Same run and figures as the "Watch an agent" section on /judges.
+ */
+function agentTerminal(): string {
+  const LOOP = 16;
+  const lines: { t: number; html: string; cls?: string }[] = [
+    { t: 0.3, html: `<span class="tp">$</span> agent run --wallet 0x2DfF…303d --cap $0.05`, cls: "at-cmd" },
+    { t: 1.3, html: `balance <b>0.1000</b> USDC · Base mainnet`, cls: "at-dim" },
+    { t: 2.3, html: `<span class="tk">?</span> kronos.forgemesh.io <span class="pr">$0.05</span> <span class="v B">■ BLOCK</span> 52.61 kinship <span class="out r">refused · $0.00</span>` },
+    { t: 3.9, html: `<span class="tk">?</span> api.nexismvp.com <span class="pr">$0.001</span> <span class="v B">■ BLOCK</span> 62.18 kinship <span class="out r">refused · $0.00</span>` },
+    { t: 5.5, html: `<span class="tk">?</span> pro-api.coinmarketcap.com <span class="pr">$0.01</span> <span class="v A">● ALLOW</span> 86.01 <span class="out">paid · −0.010</span>` },
+    { t: 7.1, html: `<span class="tk">?</span> x402.twit.sh <span class="pr">$0.006</span> <span class="v A">● ALLOW</span> 86.19 <span class="out">paid · tx 0x4e7a…3271</span>` },
+    { t: 8.9, html: `balance <b>0.0840</b> USDC · spent <b>$0.016</b> · refused <b class="r">$0.051</b>`, cls: "at-sum" },
+  ];
+  const pct = (s: number) => +((100 * s) / LOOP).toFixed(2);
+  const kf = lines
+    .map((l, i) => `@keyframes at${i}{0%,${pct(l.t)}%{opacity:0;clip-path:inset(0 100% 0 0)}${pct(l.t + 0.05)}%{opacity:1}${pct(l.t + 0.9)}%,94%{opacity:1;clip-path:inset(0 0 0 0)}100%{opacity:0;clip-path:inset(0 0 0 0)}}.at .l${i}{animation:at${i} ${LOOP}s linear infinite}`)
+    .join("");
+  // the balance bar: 100% until each payment line lands, then drops by that payment (0.010, then 0.006)
+  const bar = `@keyframes atbar{0%,${pct(6.2)}%{width:100%}${pct(6.6)}%,${pct(7.8)}%{width:90%}${pct(8.2)}%,94%{width:84%}100%{width:100%}}.at .bal i{animation:atbar ${LOOP}s ease-in-out infinite}`;
+  return `<figure class="fxfig at-fig"><figcaption><span class="eyebrow">Figure 6 · live replay</span><b>An agent asks first, then pays</b></figcaption>
+<style>${kf}${bar}</style>
+<div class="at" role="img" aria-label="Terminal replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC">
+<div class="at-bar"><i></i><i></i><i></i><span>agent · Base mainnet · USDC</span></div>
+<div class="at-body">${lines.map((l, i) => `<div class="l l${i}${l.cls ? ` ${l.cls}` : ""}">${l.html}</div>`).join("")}<div class="l cur"><span class="tp">$</span><span class="caret"></span></div></div>
+<div class="bal"><span>wallet</span><b><i></i></b><span class="bal-v">0.100 → 0.084 USDC</span></div>
+</div>
+<p>Replay of the real run on 15 Nov 2026, from a fresh test wallet. The twit.sh payment is on chain as <code>0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271</code> (linked on <a href="/judges">/judges</a>). CoinMarketCap returned no hash; the wallet dropped exactly 0.010. Fiangshi never touched the money.</p></figure>`;
 }
 
 function followSection(): string {
@@ -358,7 +391,33 @@ const STORY_CSS = `
 .alpha>div:nth-child(3){border-left:0;padding-left:0}
 .alpha>div:nth-child(n+3){border-top:1px solid var(--line2)}
 }
-@media(prefers-reduced-motion:reduce){.rv{animation:none!important}.cue{animation:none}}
+.at{border:1px solid var(--line2);background:#050505;font:12.5px/1.75 var(--mono)}
+.at-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line2);color:var(--mut);font-size:11px;letter-spacing:.08em}
+.at-bar i{width:9px;height:9px;border-radius:50%;background:#2a2a2a}
+.at-bar i:first-child{background:var(--red)}
+.at-bar span{margin-left:8px}
+.at-body{padding:12px 14px 4px;min-height:236px}
+.at .l{white-space:nowrap;overflow:hidden;color:#d6d6d6}
+.at .at-cmd{color:var(--fg)}
+.at .at-dim{color:var(--mut)}
+.at .at-sum{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2);color:var(--fg)}
+.at .tp{color:var(--red-text);margin-right:6px}
+.at .tk{color:var(--mut);margin-right:4px}
+.at .pr{color:var(--mut);margin:0 6px}
+.at .v{font-weight:700;letter-spacing:.06em;margin-right:6px}
+.at .v.B{color:var(--red-text)}
+.at .v.A{color:var(--fg)}
+.at .out{margin-left:8px;color:var(--fg)}
+.at .r{color:var(--red-text)}
+.at .caret{display:inline-block;width:8px;height:14px;background:var(--fg);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.at .bal{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--mut)}
+.at .bal b{flex:1;height:6px;background:#1a1a1a;position:relative}
+.at .bal b i{position:absolute;inset:0 auto 0 0;width:84%;background:var(--fg)}
+.at .bal-v{color:var(--fg);white-space:nowrap}
+.at-fig .at-body{overflow-x:auto}
+@media(max-width:700px){.at{font-size:11px}.at-body{min-height:0}}
+@media(prefers-reduced-motion:reduce){.rv{animation:none!important}.cue{animation:none}.at .l,.at .bal i{animation:none!important;opacity:1!important;clip-path:none!important}.at .caret{animation:none}}
 `;
 
 export function renderIndex(c: Census, stats: DemoStats | null, o: { tour?: boolean } = {}): string {

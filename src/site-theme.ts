@@ -2,6 +2,7 @@
  * Shared look of the HTML pages: tokens, the Fiangshi mark, the "?" rain and the page shell.
  * Static by construction: no script, no framework, no external request (system fonts, inline SVG, inline CSS).
  * The Content-Security-Policy below forbids scripts outright, so "no JS" is enforced by the browser, not by convention.
+ * One exception: /judges runs COPY_SCRIPT (its two Copy prompt buttons), allowed by that script's sha256 hash only.
  */
 import { createHash } from "node:crypto";
 import { liveApi, providerMode, staticSite } from "./config.js";

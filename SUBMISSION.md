@@ -36,7 +36,7 @@ The product is chain- and partner-agnostic: its core claim, payee-side diligence
 - Hash-chained receipts and `/v1/verify`, which recomputes every sha256 and chain link.
 - The paid x402 route: 402 with real terms, then 200 with a verdict and receipt; settlement is dry-run.
 - 355 tests across 38 test files, and 17 acceptance gates.
-- The static index and site at fiangshi.xyz, with no script except the Copy buttons on /judges.
+- The static index and site at fiangshi.xyz.
 
 ## Evidence
 
@@ -55,7 +55,7 @@ curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/g
 
 - Repo: https://github.com/Aceop-001/fiangshi
 - Live site: https://fiangshi.xyz
-- Video: https://x.com/aceop_xyz/status/2121569624697512411 (the demo video is attached to the launch post)
+- Video: https://x.com/aceop_xyz/status/2121569624697512411 (video in the launch post)
 - X post: https://x.com/aceop_xyz/status/2121569624697512411
 
 ## Honest limits

@@ -517,6 +517,18 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
     )
     .join("")}</ol>
 
+<h2>Watch an agent use it with real money</h2>
+<p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet.</p>
+<ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
+<div class="j-money"><div><b>0.100 → 0.084</b><span>USDC before → after</span></div><div><b>$0.016</b><span>paid, exact to the cent</span></div><div class="hot"><b>$0.051</b><span>refused, never spent</span></div><div><b>$0.05</b><span>hard cap per run</span></div></div>
+<h3 class="j-h3">Run it yourself</h3>
+<p class="j-note">Open Claude Code in an empty folder and paste prompt 1. It makes a fresh test wallet, waits while you send it 0.10 USDC on Base, does a dry run, and pays for real only after you type GO. When you are done, paste prompt 2 to send what is left back to your own wallet. Click inside a box, press Ctrl+A (Cmd+A on a Mac), then copy.</p>
+<label class="j-label" for="p1">Prompt 1 · the agent test (dry run, then a real run)</label>
+<textarea id="p1" class="j-copy" readonly rows="16" spellcheck="false">${esc(AGENT_PROMPT)}</textarea>
+<label class="j-label" for="p2">Prompt 2 · send the rest back to your main wallet</label>
+<textarea id="p2" class="j-copy" readonly rows="12" spellcheck="false">${esc(SWEEP_PROMPT)}</textarea>
+<p class="j-note">The private key is written straight to <code>.env</code> and never shown; every stage stops for your go-ahead; the payment step never retries. Fiangshi itself never touches the money: the agent pays from its own wallet.</p>
+
 <h2>What else to look at</h2>
 <ul class="j-look">${look.map(([h, l, s]) => `<li><a href="${esc(h)}"${h.startsWith("http") ? ' rel="noopener"' : ""}>${esc(l)}</a><span>${esc(s)}</span></li>`).join("")}</ul>
 
@@ -535,7 +547,97 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
   });
 }
 
+/**
+ * The buyer-side live run of 15 Nov (4th test wallet, 0x2DfF…303d): an agent asked Fiangshi first, then paid the ALLOWs.
+ * Verdicts and scores are what /v1/preview answers; the twit.sh payment was looked up on Base (block 57,794,100,
+ * status success, 0.006 USDC). CoinMarketCap returned no settlement hash; its payment shows as the wallet's -0.010.
+ */
+const TWIT_TX = "0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271";
+const AGENT_RUN: { band: Band; host: string; score: string; paid: boolean; what: string }[] = [
+  { band: "BLOCK", host: "kronos.forgemesh.io", score: "52.61", paid: false, what: "refused · $0.00 spent (would have cost $0.05) · kinship" },
+  { band: "BLOCK", host: "api.nexismvp.com", score: "62.18", paid: false, what: "refused · $0.00 spent (would have cost $0.001) · kinship" },
+  { band: "ALLOW", host: "pro-api.coinmarketcap.com", score: "86.01", paid: true, what: "paid $0.010 · settled; the seller returned no tx hash, the balance dropped exactly 0.010" },
+  { band: "ALLOW", host: "x402.twit.sh", score: "86.19", paid: true, what: `paid $0.006 · <a href="https://basescan.org/tx/${TWIT_TX}" rel="noopener">tx ${short(TWIT_TX, 6, 4)}</a>` },
+];
+const AGENT_PROMPT = `Set up a fresh burner wallet and run the full live demo. Follow the stages in order and STOP at each gate.
+
+ABSOLUTE RULES
+- BURNER_PK must NEVER be printed, echoed, logged, or shown in any output. Generate it inside a script that writes it straight to .env. Print ONLY the address.
+- .env must be in .gitignore before anything else.
+
+STAGE 1 - WALLET
+1. npm init -y; npm i viem dotenv tsx @x402/core @x402/fetch @x402/evm
+2. Write genwallet.mjs: generate a new private key, append BURNER_PK= and DRY=1 to .env (never echo the key), print ONLY the address and "fund this address with 0.10 USDC on Base".
+3. Run it, then print the USDC balance of that address.
+4. STOP and wait for me to confirm funding.
+
+STAGE 2 - VERIFY (after I say "funded")
+Print the address, the DRY value and the USDC balance (4 dp). If the balance is 0, stop.
+
+STAGE 3 - DRY RUN
+Build agent.ts:
+- targets, in this order:
+  https://kronos.forgemesh.io/api/kronos/forecast 0.05
+  https://api.nexismvp.com/forecast/btc 0.001
+  https://pro-api.coinmarketcap.com/x402/v1/dex/search 0.01
+  https://x402.twit.sh/tweets/search 0.006
+- per target: GET https://api.fiangshi.xyz/v1/preview?url= -> verdict, score, vow_fired
+- verdict != ALLOW -> "REFUSED - $0.00 spent (would have cost $X)", skip
+- ALLOW -> one unpaid preflight; eligible only if 402 + a decodable payment-required with x402Version 2; else "not payable", skip
+- DRY=1 -> "would pay $X"
+- DRY=0 -> pay ONCE. The payment step is NON-RETRYABLE: any error after the payment header is sent is terminal ("may have settled - not retrying").
+- Re-read the balance before and after each payment; abort if it moved unexpectedly.
+- Hard cap $0.05 of settled payments, counted only on success.
+- Append every line with ISO timestamps to demo-run.log.
+- End with a table: url | price | verdict | score | preflight | paid | tx, plus balance before, balance after, exact delta, total avoided.
+Run with DRY=1, print the table, STOP and wait for GO.
+
+STAGE 4 - ON "GO"
+Set DRY=0, run once unedited. Print the table, both balances, the exact delta, total avoided, and the first and last 5 lines of demo-run.log.
+
+STAGE 5 - SAFETY
+Set DRY=1, confirm the value, and confirm BURNER_PK never appeared in any output.`;
+const SWEEP_PROMPT = `Send everything out of this burner to my main wallet. The burner is retired after this.
+DESTINATION: <paste your main wallet address here>
+
+Steps
+1. Set DRY=1 in .env first: no accidental payment during a sweep.
+2. Print the burner's USDC balance on Base and its ETH balance.
+3. Send the FULL USDC balance (exact amount, no rounding) to DESTINATION.
+4. Then send the ETH balance minus a small gas reserve to DESTINATION. If ETH is too small for both, do USDC first and report the leftover.
+5. Wait for confirmation and print both tx hashes.
+6. Print the final balance of BOTH wallets.
+
+Rules
+- NEVER print, echo or log BURNER_PK. Write 0x*** if referenced.
+- Send only to DESTINATION.
+- If a transfer reverts, stop and report. Do not retry blindly.
+
+Note: x402 payments are gasless, but a plain USDC transfer needs a little ETH on Base for gas. If the burner has none, send it about 0.000005 ETH first.`;
+
 const JUDGES_CSS = `
+.j-lede{color:#d6d6d6;max-width:80ch;margin-bottom:12px}
+.j-run{list-style:none;padding:0;border:1px solid var(--line2)}
+.j-run li{display:grid;grid-template-columns:auto minmax(0,13em) 4em minmax(0,1fr);gap:6px 14px;align-items:baseline;padding:10px 14px;border-top:1px solid var(--line2);border-left:3px solid var(--c)}
+.j-run li:first-child{border-top:0}
+.j-run li.refused{--c:var(--block)}
+.j-run li.paid{--c:var(--allow)}
+.j-host{font:12.5px var(--mono);overflow-wrap:anywhere}
+.j-score{font:12.5px var(--mono);color:var(--mut);text-align:right}
+.j-what{font:12.5px var(--mono);color:#d6d6d6}
+.j-run li.refused .j-what{color:var(--red-text)}
+.j-money{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line2);border-top:0;margin-bottom:12px}
+.j-money>div{padding:12px 14px;border-left:1px solid var(--line2)}
+.j-money>div:first-child{border-left:0}
+.j-money b{display:block;font:400 24px/1.1 var(--serif);white-space:nowrap}
+.j-money .hot b{color:var(--red-text)}
+.j-money span{display:block;margin-top:4px;font:11.5px var(--mono);color:var(--mut)}
+.j-h3{font:400 20px/1.3 var(--serif);margin:18px 0 6px}
+.j-label{display:block;margin:14px 0 6px;font:600 12px var(--mono);letter-spacing:.06em;color:var(--red-text)}
+.j-copy{display:block;width:100%;box-sizing:border-box;background:#050505;color:var(--fg);border:1px solid var(--line2);padding:12px 14px;font:12px/1.55 var(--mono);resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto}
+.j-copy:focus{outline:2px solid var(--fg);outline-offset:2px}
+.j-note{margin-top:10px;color:var(--mut);font:12.5px/1.6 var(--mono);max-width:90ch}
+@media(max-width:700px){.j-run li{grid-template-columns:auto minmax(0,1fr) auto}.j-what{grid-column:1/-1}.j-money{grid-template-columns:repeat(2,minmax(0,1fr))}.j-money>div:nth-child(3){border-left:0}.j-money>div:nth-child(n+3){border-top:1px solid var(--line2)}}
 .judges{padding-top:36px}
 .judges h1{font-size:clamp(32px,4.6vw,52px);margin:6px 0 8px}
 .j-sub{color:var(--mut);font:14px var(--mono);margin-bottom:8px}

@@ -52,6 +52,34 @@ There are four layers, and each one must be green before a commit.
 
 A fifth check runs once per release: a fresh copy of the repository with no keys, then `npm ci`, `npm test`, `npm run accept` and `npm run localhost-check`. It has passed every time since 9 Nov.
 
+### Real payments on Base mainnet (buyer side, 15 Nov)
+
+Fiangshi's own fee stays a dry run. To test the other side, a demo agent run from Claude Code asked Fiangshi about each seller first and then paid the allowed ones in real USDC on Base mainnet (chain 8453, USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), from four small test wallets used one after another.
+
+**Paid, after a check.** Each wallet paid twit.sh $0.006 and CoinMarketCap $0.010. The twit.sh payments are on chain; each hash below was looked up on Base and returned `status: success`, 0.006 USDC from the test wallet to the seller (`0x9dba414637c611a16bea6f0796bfcbcbdc410df8`):
+
+| wallet | block | twit.sh payment |
+|---|---|---|
+| `0xa3aACEe8CCe50209491D5136A64E1893718715d0` | 57,744,391 | `0xd1d22f0896ecaf07acc5add6b413d16c1487f6ce35cf03bca19f77beeb3a6fbf` |
+| `0xDcfEbb90f90452b4236a086696929AD5748007cD` | 57,756,190 | `0x8b7e948c8e7fcb3f39797a3b1dd1efb7e0ea7919c557a97e49a21790611f8dbb` |
+| `0x39803061119B5911f48dbAdFD3740c4E361fDa4F` | 57,765,181 | `0x01bd49c051d7175cf8ee64761d9d074cc67af840e65edf8f9a2c84785f269330` |
+| `0x2DfF8fB467D8968d95d6eE6311CE9c4d9171303d` | 57,794,100 | `0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271` |
+
+CoinMarketCap returned no transaction hash in its response; its payments are confirmed by each wallet's balance change, not by a hash.
+
+**Refused before paying, at $0.00.** Two BTC forecast sellers came back BLOCK on the kinship rule (their first funder also funded about 20 other sellers), so nothing was paid:
+
+| seller | price | Fiangshi |
+|---|---|---|
+| `kronos.forgemesh.io/api/kronos/forecast` | $0.05 | BLOCK, score 52.61, kinship |
+| `api.nexismvp.com/forecast/btc` | $0.001 | BLOCK, score 62.18, kinship |
+
+Each run therefore avoided $0.051. Two other sellers (2s.io, x402financialdata) rejected the request's parameters (HTTP 400 and 422) and took no USDC.
+
+**A bug found live:** a retry paid one seller twice. It is F25 below, with its fix.
+
+All four test wallets are retired and hold 0 USDC (read from the chain on 15 Nov).
+
 ## Timeline
 
 | date | phase | what was built | commit |
@@ -247,6 +275,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Cause.** The ledger was the only copy, and payload verification reused the wording of a ledger lookup.
 - **Fix.** The paid answer now carries its full receipt and a `receipt_verify_url` (also in `X-RECEIPT-VERIFY`). Verification reports `source` and `chain_linkage`, and from a payload it says plainly that the link to the previous receipt cannot be checked. A forgotten id answers 404 with a hint. An optional ledger mirror restores ids on start; export and import scripts move a ledger and refuse entries that do not link.
 - **Proof.** Gate G17 restarts a server with its ledger deleted: the id answers 404, the payload verifies with `band_matches: true` and `chain_linkage: "unverified"`, and one changed byte fails. `tests/receipt-durable.test.ts` covers the rest.
+
+### F25. A retry paid a seller twice (15 Nov)
+
+- **Seen.** In the buyer-side mainnet test (see "Real payments on Base mainnet" above), one run with the second wallet spent 0.026 USDC where the two paid calls should have cost 0.016. The CoinMarketCap call had been paid twice.
+- **Cause.** The demo agent retried a request after it had already sent the payment header. The first payment had gone through, so the retry paid again.
+- **Fix.** The payment step in the demo agent is no longer retried: any error after the payment header is sent ends the call ("may have settled, not retrying"). Balances are read before and after every payment.
+- **Proof.** The next run with the same wallet spent exactly 0.016 USDC for the same two calls. The fix is in the demo agent, not in this repository; Fiangshi itself never pays.
 
 ## Rule changes, each one measured
 

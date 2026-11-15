@@ -98,6 +98,7 @@ The [architecture page](https://fiangshi.xyz/architecture) shows this as an anim
 | end to end on a live local server | 10 / 10 (`npm run localhost-check`) |
 | adversarial lab, expectations committed before each run | 8 pass, 1 superseded by a documented rule change |
 | numbers in documents vs. the data | enforced by gate G12 (`npx tsx scripts/numbers.ts --check`) |
+| real payments on Base mainnet (buyer side) | a demo agent checked sellers first, paid real USDC to the allowed ones (4 twit.sh payments, each hash verified on chain) and paid nothing to 2 kinship BLOCKs; Fiangshi's own fee stays dry-run ([details](https://fiangshi.xyz/report)) |
 
 The [test report](https://fiangshi.xyz/report) lists every failure found while building Fiangshi, with its cause, fix and proof, and what is still open.
 

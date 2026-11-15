@@ -495,7 +495,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
     },
   ];
   const look: [string, string, string][] = [
-    ["/v1/index.json", "The census", `${n.toLocaleString("en-US")} records: band, score, vows fired, receipt id`],
+    ["https://api.fiangshi.xyz/v1/index.json", "The census", `${n.toLocaleString("en-US")} records, live from the API: band, score, vows fired, receipt id`],
     ...(bitrefill ? ([[`/receipt/${bitrefill.receipt_id}`, "One receipt", `${bareUrl(bitrefill.url)}, sealed and verifiable`]] as [string, string, string][]) : []),
     ["/architecture", "Architecture", "the eight steps, live"],
     ["/guide", "Guide", "real endpoints to try, one check walked through"],

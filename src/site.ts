@@ -300,39 +300,76 @@ ${ch(4, "money", T("Money never touches Fiangshi"), T("Fiangshi sits beside the 
 ${ch(5, "decide", T("The model advises, the vows decide."), T("The score, the model and six fixed rules each give a band. The lowest one wins, so a model can never talk its way to ALLOW."), figureHtml("lowest band wins", 4) ?? "", `<p class="ch-more"><a href="#vows">${T("See all six vows")} →</a></p>`)}
 ${ch(6, "receipts", T("Receipts that catch an edit"), T("Every verdict is sealed with sha256 and chained to the one before. Change one word and verification fails from there on."), figureHtml("the receipt chain", 5) ?? "")}
 ${ch(7, "agent-run", T("A real agent, real money"), T("On 15 Nov an AI agent got 0.10 USDC on Base and asked Fiangshi before every payment. It refused two sellers and paid two: $0.016 spent, $0.051 never spent."), agentTerminal(), `<p class="ch-more"><a href="/judges">${T("Run it yourself: the prompts")} →</a></p>`)}
+${ch(8, "no-wallet", T("No wallet? Still protected."), T("The checks themselves are free. With no wallet and no funds, the same questions still refuse three sellers, including one that would have sent $0.80 to an address nobody owns."), freeTerminal(), `<p class="ch-more"><a href="/judges#no-wallet">${T("Try it free: the no-wallet prompt")} →</a></p>`)}
 </div>`;
 }
 
+/** One terminal line of a replay: when it starts typing (seconds into the loop), its HTML, an optional class. */
+type TermLine = { t: number; html: string; cls?: string };
 /**
- * The 15 Nov agent run, replayed as a terminal: each line types itself in, the verdicts land, the balance bar drops
- * by each payment. CSS animation only (the CSP forbids scripts); with reduced motion every line is simply shown.
- * Same run and figures as the "Watch an agent" section on /judges.
+ * A terminal replay (CSS animation only; the CSP forbids scripts): each line types itself in, then the loop restarts.
+ * `id` scopes the keyframes and classes so two replays can sit on one page. With reduced motion every line is shown.
  */
-function agentTerminal(): string {
-  const LOOP = 16;
-  const lines: { t: number; html: string; cls?: string }[] = [
-    { t: 0.3, html: `<span class="tp">$</span> agent run --wallet 0x2DfF…303d --cap $0.05`, cls: "at-cmd" },
-    { t: 1.3, html: `balance <b>0.1000</b> USDC · Base mainnet`, cls: "at-dim" },
-    { t: 2.3, html: `<span class="tk">?</span> kronos.forgemesh.io <span class="pr">$0.05</span> <span class="v B">■ BLOCK</span> 52.61 kinship <span class="out r">refused · $0.00</span>` },
-    { t: 3.9, html: `<span class="tk">?</span> api.nexismvp.com <span class="pr">$0.001</span> <span class="v B">■ BLOCK</span> 62.18 kinship <span class="out r">refused · $0.00</span>` },
-    { t: 5.5, html: `<span class="tk">?</span> pro-api.coinmarketcap.com <span class="pr">$0.01</span> <span class="v A">● ALLOW</span> 86.01 <span class="out">paid · −0.010</span>` },
-    { t: 7.1, html: `<span class="tk">?</span> x402.twit.sh <span class="pr">$0.006</span> <span class="v A">● ALLOW</span> 86.19 <span class="out">paid · tx 0x4e7a…3271</span>` },
-    { t: 8.9, html: `balance <b>0.0840</b> USDC · spent <b>$0.016</b> · refused <b class="r">$0.051</b>`, cls: "at-sum" },
-  ];
+function termReplay(o: { id: string; lines: TermLine[]; fig: string; title: string; label: string; bar: string; foot?: string; caption: string; loop?: number }): string {
+  const LOOP = o.loop ?? 16;
   const pct = (s: number) => +((100 * s) / LOOP).toFixed(2);
-  const kf = lines
-    .map((l, i) => `@keyframes at${i}{0%,${pct(l.t)}%{opacity:0;clip-path:inset(0 100% 0 0)}${pct(l.t + 0.05)}%{opacity:1}${pct(l.t + 0.9)}%,94%{opacity:1;clip-path:inset(0 0 0 0)}100%{opacity:0;clip-path:inset(0 0 0 0)}}.at .l${i}{animation:at${i} ${LOOP}s linear infinite}`)
+  const kf = o.lines
+    .map((l, i) => `@keyframes ${o.id}${i}{0%,${pct(l.t)}%{opacity:0;clip-path:inset(0 100% 0 0)}${pct(l.t + 0.05)}%{opacity:1}${pct(l.t + 0.9)}%,94%{opacity:1;clip-path:inset(0 0 0 0)}100%{opacity:0;clip-path:inset(0 0 0 0)}}.at.${o.id} .l${i}{animation:${o.id}${i} ${LOOP}s linear infinite}`)
     .join("");
-  // the balance bar: 100% until each payment line lands, then drops by that payment (0.010, then 0.006)
-  const bar = `@keyframes atbar{0%,${pct(6.2)}%{width:100%}${pct(6.6)}%,${pct(7.8)}%{width:90%}${pct(8.2)}%,94%{width:84%}100%{width:100%}}.at .bal i{animation:atbar ${LOOP}s ease-in-out infinite}`;
-  return `<figure class="fxfig at-fig"><figcaption><span class="eyebrow">Figure 6 · live replay</span><b>An agent asks first, then pays</b></figcaption>
-<style>${kf}${bar}</style>
-<div class="at" role="img" aria-label="Terminal replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC">
-<div class="at-bar"><i></i><i></i><i></i><span>agent · Base mainnet · USDC</span></div>
-<div class="at-body">${lines.map((l, i) => `<div class="l l${i}${l.cls ? ` ${l.cls}` : ""}">${l.html}</div>`).join("")}<div class="l cur"><span class="tp">$</span><span class="caret"></span></div></div>
-<div class="bal"><span>wallet</span><b><i></i></b><span class="bal-v">0.100 → 0.084 USDC</span></div>
+  return `<figure class="fxfig at-fig"><figcaption><span class="eyebrow">${o.fig}</span><b>${o.title}</b></figcaption>
+<style>${kf}${o.foot ? o.foot.replace(/\{ID\}/g, o.id).replace(/\{LOOP\}/g, String(LOOP)).replace(/\{P:([\d.]+)\}/g, (_m, x: string) => String(pct(Number(x)))) : ""}</style>
+<div class="at ${o.id}" role="img" aria-label="${esc(o.label)}">
+<div class="at-bar"><i></i><i></i><i></i><span>${o.bar}</span></div>
+<div class="at-body">${o.lines.map((l, i) => `<div class="l l${i}${l.cls ? ` ${l.cls}` : ""}">${l.html}</div>`).join("")}<div class="l cur"><span class="tp">$</span><span class="caret"></span></div></div>
+${o.foot ? `<div class="bal"><span>wallet</span><b><i></i></b><span class="bal-v">0.100 → 0.084 USDC</span></div>` : ""}
 </div>
-<p>Replay of the real run on 15 Nov 2026, from a fresh test wallet. The twit.sh payment is on chain as <code>0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271</code> (linked on <a href="/judges">/judges</a>). CoinMarketCap returned no hash; the wallet dropped exactly 0.010. Fiangshi never touched the money.</p></figure>`;
+<p>${o.caption}</p></figure>`;
+}
+
+/** The 15 Nov agent run (same run and figures as the "Watch an agent" section on /judges). */
+function agentTerminal(): string {
+  return termReplay({
+    id: "ar",
+    fig: "Figure 6 · live replay",
+    title: "An agent asks first, then pays",
+    bar: "agent · Base mainnet · USDC",
+    label: "Terminal replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC",
+    lines: [
+      { t: 0.3, html: `<span class="tp">$</span> agent run --wallet 0x2DfF…303d --cap $0.05`, cls: "at-cmd" },
+      { t: 1.3, html: `balance <b>0.1000</b> USDC · Base mainnet`, cls: "at-dim" },
+      { t: 2.3, html: `<span class="tk">?</span> kronos.forgemesh.io <span class="pr">$0.05</span> <span class="v B">■ BLOCK</span> 52.61 kinship <span class="out r">refused · $0.00</span>` },
+      { t: 3.9, html: `<span class="tk">?</span> api.nexismvp.com <span class="pr">$0.001</span> <span class="v B">■ BLOCK</span> 62.18 kinship <span class="out r">refused · $0.00</span>` },
+      { t: 5.5, html: `<span class="tk">?</span> pro-api.coinmarketcap.com <span class="pr">$0.01</span> <span class="v A">● ALLOW</span> 86.01 <span class="out">paid · −0.010</span>` },
+      { t: 7.1, html: `<span class="tk">?</span> x402.twit.sh <span class="pr">$0.006</span> <span class="v A">● ALLOW</span> 86.19 <span class="out">paid · tx 0x4e7a…3271</span>` },
+      { t: 8.9, html: `balance <b>0.0840</b> USDC · spent <b>$0.016</b> · refused <b class="r">$0.051</b>`, cls: "at-sum" },
+    ],
+    // the balance bar: 100% until each payment line lands, then drops by that payment (0.010, then 0.006)
+    foot: `@keyframes {ID}bar{0%,{P:6.2}%{width:100%}{P:6.6}%,{P:7.8}%{width:90%}{P:8.2}%,94%{width:84%}100%{width:100%}}.at.{ID} .bal i{animation:{ID}bar {LOOP}s ease-in-out infinite}`,
+    caption: `Replay of the real run on 15 Nov 2026, from a fresh test wallet. The twit.sh payment is on chain as <code>0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271</code> (linked on <a href="/judges">/judges</a>). CoinMarketCap returned no hash; the wallet dropped exactly 0.010. Fiangshi never touched the money.`,
+  });
+}
+
+/** The no-wallet run of 15 Nov: five free previews and one unpaid check (live answers from api.fiangshi.xyz). */
+function freeTerminal(): string {
+  return termReplay({
+    id: "fr",
+    fig: "Figure 7 · live replay",
+    title: "No wallet, no funds, still protected",
+    bar: "curl · no wallet · no key",
+    label: "Terminal replay of the no-wallet run: three sellers BLOCK, two ALLOW, every check $0.00, $0.851 that would have been spent on the blocked ones",
+    lines: [
+      { t: 0.3, html: `<span class="tp">$</span> curl -s api.fiangshi.xyz/v1/preview?url=…`, cls: "at-cmd" },
+      { t: 1.4, html: `<span class="tk">?</span> kronos.forgemesh.io <span class="pr">$0.05</span> <span class="v B">■ BLOCK</span> 52.61 kinship <span class="out">cost $0</span>` },
+      { t: 2.6, html: `<span class="tk">?</span> api.nexismvp.com <span class="pr">$0.001</span> <span class="v B">■ BLOCK</span> 62.18 kinship <span class="out">cost $0</span>` },
+      { t: 3.8, html: `<span class="tk">?</span> api.cleave.fi <span class="pr">$0.80</span> <span class="v B">■ BLOCK</span> null_payee <span class="out">cost $0</span>` },
+      { t: 5.0, html: `<span class="tk">?</span> pro-api.coinmarketcap.com <span class="pr">$0.01</span> <span class="v A">● ALLOW</span> 86.01 <span class="out">cost $0</span>` },
+      { t: 6.2, html: `<span class="tk">?</span> x402.twit.sh <span class="pr">$0.006</span> <span class="v A">● ALLOW</span> 86.19 <span class="out">cost $0</span>` },
+      { t: 7.6, html: `would have spent on the blocked ones: <b class="r">$0.851</b>`, cls: "at-sum" },
+      { t: 8.8, html: `<span class="tp">$</span> curl -si …/v1/check (bitrefill) <span class="out">402 · x402 v2 · 50000 · base</span>`, cls: "at-dim" },
+      { t: 10.2, html: `No wallet. No funds. Nothing paid. Fiangshi's checks are free.`, cls: "at-cmd" },
+    ],
+    caption: `Replay of a real run against the live API on 15 Nov 2026: every preview cost $0, and the paid check answered 402 without anyone paying. The prompt to run it yourself is on <a href="/judges">/judges</a>.`,
+  });
 }
 
 function followSection(): string {
@@ -589,6 +626,13 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 <p class="j-note">The private key is written straight to <code>.env</code> and never shown; every stage stops for your go-ahead; the payment step never retries. Fiangshi itself never touches the money: the agent pays from its own wallet.</p>
 <p class="j-note"><strong>Not financial advice (NFA). Do your own research (DYOR).</strong> This spends real USDC from a wallet you control. Use a fresh test wallet with only a few cents, and read the dry-run table before you type GO.</p>
 
+<h2 id="no-wallet">No wallet? Try it free</h2>
+<p class="j-lede">The checks themselves cost nothing, so you can see the refusals without a wallet, a key or a cent. This is a real run against the live API on 15 Nov:</p>
+<ol class="j-run">${FREE_RUN.map((r) => `<li class="${r.band === "BLOCK" ? "refused" : "paid"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
+<div class="j-money"><div><b>$0.00</b><span>cost of all five checks</span></div><div class="hot"><b>$0.851</b><span>would have gone to the 3 blocked sellers</span></div><div><b>402</b><span>the paid check asks first, nothing paid</span></div><div><b>0</b><span>wallets, keys or transactions</span></div></div>
+<div class="j-labrow"><label class="j-label" for="p3">Prompt 3 · the free test (no wallet, no funds)</label><button type="button" class="j-copybtn" data-copy="p3" hidden>Copy prompt</button></div>
+<textarea id="p3" class="j-copy" readonly rows="12" spellcheck="false">${esc(NOWALLET_PROMPT)}</textarea>
+
 <h2>What else to look at</h2>
 <ul class="j-look">${look.map(([h, l, s]) => `<li><a href="${esc(h)}"${h.startsWith("http") ? ' rel="noopener"' : ""}>${esc(l)}</a><span>${esc(s)}</span></li>`).join("")}</ul>
 
@@ -658,6 +702,37 @@ Set DRY=0, run once unedited. Print the table, both balances, the exact delta, t
 
 STAGE 5 - SAFETY
 Set DRY=1, confirm the value, and confirm BURNER_PK never appeared in any output.`;
+/** The no-wallet run, 15 Nov 2026: five free previews against the live API (cost_usd 0 each). */
+const FREE_RUN: { band: Band; host: string; score: string; what: string }[] = [
+  { band: "BLOCK", host: "kronos.forgemesh.io", score: "52.61", what: "kinship · $0.05 asked · check cost $0" },
+  { band: "BLOCK", host: "api.nexismvp.com", score: "62.18", what: "kinship · $0.001 asked · check cost $0" },
+  { band: "BLOCK", host: "api.cleave.fi", score: "–", what: "null_payee · $0.80 asked, to the zero address · check cost $0" },
+  { band: "ALLOW", host: "pro-api.coinmarketcap.com", score: "86.01", what: "$0.01 asked · check cost $0" },
+  { band: "ALLOW", host: "x402.twit.sh", score: "86.19", what: "$0.006 asked · check cost $0" },
+];
+const NOWALLET_PROMPT = `Run a Fiangshi demo with no wallet and no funds. Nothing should be paid and no key should be created.
+
+1. For each URL below, call the free preview endpoint and print verdict, score, vow_fired, terms.price_usd and cost_usd:
+   curl -s "https://api.fiangshi.xyz/v1/preview?url=<URL>"
+   https://kronos.forgemesh.io/api/kronos/forecast
+   https://api.nexismvp.com/forecast/btc
+   https://api.cleave.fi/x402/gas
+   https://pro-api.coinmarketcap.com/x402/v1/dex/search
+   https://x402.twit.sh/tweets/search
+
+2. Print a table: url | price | verdict | score | vow_fired | would have cost
+   Then print the total that WOULD have been spent if it had paid the blocked ones.
+
+3. Show the paid check without paying:
+   a) curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.cleave.fi/x402/gas"
+      A dead-end wallet is blocked before any payment is asked: print the status line, band, vow_fired and cost_usd.
+   b) curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/gift-cards/search"
+      Print the status line and the payment-required fields (x402Version, amount, network).
+   Do not construct or send a payment header.
+
+4. End with one line: "No wallet. No funds. Nothing paid. Fiangshi's checks are free."
+
+Do not create a wallet, do not read any private key, do not send a transaction.`;
 const SWEEP_PROMPT = `Send everything out of this burner to my main wallet. The burner is retired after this.
 DESTINATION: <paste your main wallet address here>
 

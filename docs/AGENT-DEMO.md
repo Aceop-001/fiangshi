@@ -116,3 +116,52 @@ Note: x402 payments are gasless, but a plain USDC transfer needs a little ETH on
 </details>
 
 Seller prices and verdicts can change after 15 Nov: run the dry run first and read its table before typing GO.
+
+## No wallet? Try it free
+
+The checks themselves cost nothing. With no wallet, no key and no funds you still see the refusals, which are the point. This is a real run against the live API on 15 Nov 2026:
+
+<p align="center"><img src="assets/free-run.svg" alt="Replay of the no-wallet run: three sellers BLOCK, two ALLOW, every check $0, $0.851 that would have gone to the blocked ones" width="760"></p>
+
+| seller | price | Fiangshi | check cost |
+|---|---|---|---|
+| `kronos.forgemesh.io/api/kronos/forecast` | $0.05 | BLOCK, 52.61, kinship | $0 |
+| `api.nexismvp.com/forecast/btc` | $0.001 | BLOCK, 62.18, kinship | $0 |
+| `api.cleave.fi/x402/gas` | $0.80 | BLOCK, null_payee (pays the zero address) | $0 |
+| `pro-api.coinmarketcap.com/x402/v1/dex/search` | $0.01 | ALLOW, 86.01 | $0 |
+| `x402.twit.sh/tweets/search` | $0.006 | ALLOW, 86.19 | $0 |
+
+- The three blocked sellers would have taken **$0.851**.
+- The paid check for cleave.fi answered **200 BLOCK at $0.00**: a dead-end wallet is blocked before Fiangshi asks for payment.
+- The paid check for Bitrefill answered **402 Payment Required** (x402Version 2, amount 50000, eip155:8453). Nothing was paid.
+
+<details>
+<summary><b>Prompt 3: the free test (no wallet, no funds)</b></summary>
+
+```text
+Run a Fiangshi demo with no wallet and no funds. Nothing should be paid and no key should be created.
+
+1. For each URL below, call the free preview endpoint and print verdict, score, vow_fired, terms.price_usd and cost_usd:
+   curl -s "https://api.fiangshi.xyz/v1/preview?url=<URL>"
+   https://kronos.forgemesh.io/api/kronos/forecast
+   https://api.nexismvp.com/forecast/btc
+   https://api.cleave.fi/x402/gas
+   https://pro-api.coinmarketcap.com/x402/v1/dex/search
+   https://x402.twit.sh/tweets/search
+
+2. Print a table: url | price | verdict | score | vow_fired | would have cost
+   Then print the total that WOULD have been spent if it had paid the blocked ones.
+
+3. Show the paid check without paying:
+   a) curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.cleave.fi/x402/gas"
+      A dead-end wallet is blocked before any payment is asked: print the status line, band, vow_fired and cost_usd.
+   b) curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/gift-cards/search"
+      Print the status line and the payment-required fields (x402Version, amount, network).
+   Do not construct or send a payment header.
+
+4. End with one line: "No wallet. No funds. Nothing paid. Fiangshi's checks are free."
+
+Do not create a wallet, do not read any private key, do not send a transaction.
+```
+
+</details>

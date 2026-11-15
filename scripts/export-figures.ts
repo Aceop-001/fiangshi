@@ -70,4 +70,38 @@ ${body}
 </svg>
 `;
 writeFileSync(join(OUT, "agent-run.svg"), agent);
-console.log(`wrote ${Object.keys(names).length + 1} SVGs to docs/assets`);
+
+/* ---------------------------------------------------------------- the no-wallet run --------------------------------- */
+// Five free previews and two unpaid checks against the live API on 15 Nov 2026 (cost_usd 0 each; cleave.fi's /v1/check
+// answered 200 BLOCK null_payee at $0, Bitrefill's answered 402 with x402Version 2, amount 50000, eip155:8453).
+const free: { t: number; segs: Seg[] }[] = [
+  { t: 0.3, segs: [["$ ", REDT], ["curl -s api.fiangshi.xyz/v1/preview?url=…   (no wallet, no key)", FG]] },
+  { t: 1.4, segs: [["? ", MUT], ["kronos.forgemesh.io ", FG], ["$0.05  ", MUT], ["■ BLOCK ", REDT, true], ["52.61 kinship  ", FG], ["cost $0", MUT]] },
+  { t: 2.6, segs: [["? ", MUT], ["api.nexismvp.com ", FG], ["$0.001  ", MUT], ["■ BLOCK ", REDT, true], ["62.18 kinship  ", FG], ["cost $0", MUT]] },
+  { t: 3.8, segs: [["? ", MUT], ["api.cleave.fi ", FG], ["$0.80  ", MUT], ["■ BLOCK ", REDT, true], ["null_payee  ", FG], ["cost $0", MUT]] },
+  { t: 5.0, segs: [["? ", MUT], ["pro-api.coinmarketcap.com ", FG], ["$0.01  ", MUT], ["● ALLOW ", FG, true], ["86.01  ", FG], ["cost $0", MUT]] },
+  { t: 6.2, segs: [["? ", MUT], ["x402.twit.sh ", FG], ["$0.006  ", MUT], ["● ALLOW ", FG, true], ["86.19  ", FG], ["cost $0", MUT]] },
+  { t: 7.6, segs: [["would have spent on the blocked ones: ", FG], ["$0.851", REDT, true]] },
+  { t: 8.8, segs: [["$ ", REDT], ["curl -si …/v1/check?url=…bitrefill…  ", MUT], ["402 · x402Version 2 · 50000 · eip155:8453", FG]] },
+  { t: 10.2, segs: [["No wallet. No funds. Nothing paid. Fiangshi's checks are free.", FG, true]] },
+];
+let fb = "";
+free.forEach((l, i) => {
+  const y = 64 + i * 26 + (i >= 6 ? 10 : 0);
+  const a = kt(l.t), b = kt(l.t + 0.9);
+  fb += `<clipPath id="f${i}"><rect x="0" y="${y - 16}" height="24" width="${W}"><animate attributeName="width" values="0;0;${W};${W};0" keyTimes="0;${a};${b};0.96;1" dur="${LOOP}s" repeatCount="indefinite"/></rect></clipPath>`;
+  fb += `<text x="22" y="${y}" font-size="13" ${MONO} clip-path="url(#f${i})" class="ln">${l.segs.map(([t, c, bold]) => `<tspan fill="${c}"${bold ? ' font-weight="700"' : ""}>${t.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</tspan>`).join("")}</text>`;
+});
+const fh = 64 + free.length * 26 + 20;
+const freeSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${fh}" width="${W}" height="${fh}" role="img" aria-label="Replay of the no-wallet run: three sellers BLOCK, two ALLOW, every check $0, $0.851 that would have gone to the blocked ones, and a paid check that answered 402 without anyone paying">
+<style>@media(prefers-reduced-motion:reduce){.ln{clip-path:none}}</style>
+<rect width="${W}" height="${fh}" fill="#050505" stroke="${LINE}"/>
+<rect width="${W}" height="30" fill="#000" stroke="${LINE}"/>
+<circle cx="18" cy="15" r="5" fill="${RED}"/><circle cx="34" cy="15" r="5" fill="#2a2a2a"/><circle cx="50" cy="15" r="5" fill="#2a2a2a"/>
+<text x="68" y="19" font-size="11" letter-spacing="1" fill="${MUT}" ${MONO}>curl · no wallet · no key · replay of 15 Nov 2026</text>
+<line x1="22" y1="${64 + 6 * 26 - 8}" x2="${W - 22}" y2="${64 + 6 * 26 - 8}" stroke="${LINE}" stroke-dasharray="3 4"/>
+${fb}
+</svg>
+`;
+writeFileSync(join(OUT, "free-run.svg"), freeSvg);
+console.log(`wrote ${Object.keys(names).length + 2} SVGs to docs/assets`);

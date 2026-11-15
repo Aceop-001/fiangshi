@@ -38,6 +38,10 @@ Fiangshi is advisory only. It never holds funds, signs transactions or moves mon
 
 <p align="center"><img src="docs/assets/agent-run.svg" alt="Replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC" width="760"></p>
 
+**No wallet? Still protected.** The checks themselves are free. With no wallet, no key and no funds, the same questions refuse three sellers (one of them asks $0.80 for an address nobody owns) and show the paid check answering 402 without anyone paying. [The free prompt →](docs/AGENT-DEMO.md#no-wallet-try-it-free)
+
+<p align="center"><img src="docs/assets/free-run.svg" alt="Replay of the no-wallet run: three sellers BLOCK, two ALLOW, every check $0, $0.851 that would have gone to the blocked ones" width="760"></p>
+
 **One check, eight steps.** Follow the dot: a question comes in, passes eight steps inside Fiangshi, and the verdict goes back. Each step names the file that runs it; the red branch is the free BLOCK for a dead-end wallet.
 
 <p align="center"><img src="docs/assets/fig-1-map.svg" alt="The Fiangshi map: clients, the eight steps inside the server, and the services each step uses" width="760"></p>

@@ -32,6 +32,8 @@ Fiangshi is advisory only. It never holds funds, signs transactions or moves mon
 
 ## See it work
 
+> **Not financial advice (NFA). Do your own research (DYOR).** Fiangshi's verdicts are advisory: they say whether a payee looks safe to pay, not whether anything is a good investment.
+
 **A real agent, real money.** On 15 Nov an AI agent in Claude Code got 0.10 USDC on Base mainnet and asked Fiangshi before every payment. It refused the two sellers Fiangshi blocked and paid the two it allowed: $0.016 spent, $0.051 never spent. [Case study, with both prompts to run it yourself →](docs/AGENT-DEMO.md)
 
 <p align="center"><img src="docs/assets/agent-run.svg" alt="Replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC" width="760"></p>

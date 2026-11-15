@@ -81,7 +81,7 @@ function footer(c: Census, stats: DemoStats | null): string {
     ? T("Warm p50 {ms} ms, measured {date}. {tests} tests passing · accept {accept}.", { ms: stats.warm_p50_ms, date: esc(stats.measured_at.slice(0, 10)), tests: quality?.tests ?? stats.tests_passed, accept: esc(quality?.accept_gates ?? stats.accept) })
     : `Latency and test counts appear here after <code>npm run localhost-check -- --live</code>.`;
   return `<p>${measured} ${T("{cached} per cached check · {cold} per cold check · six vows: {vows}.", { cached: `$${cached.toFixed(2)}`, cold: `$${cold.toFixed(2)}`, vows: VOW_NAMES.map((v) => esc(v)).join(", ") })}</p>
-<p>${T("Advisory only. Fiangshi never holds funds, signs or sends a transaction. Receipts are hash-chained, not signed. Settlement is dry-run in this build.")} ${T("Census of {n} payees taken {at} UTC.", { n: c.payees.length, at: esc(c.at.slice(0, 16).replace("T", " ")) })}</p>`;
+<p><strong>${T("Not financial advice (NFA). Do your own research (DYOR).")}</strong> ${T("Advisory only. Fiangshi never holds funds, signs or sends a transaction. Receipts are hash-chained, not signed. Settlement is dry-run in this build.")} ${T("Census of {n} payees taken {at} UTC.", { n: c.payees.length, at: esc(c.at.slice(0, 16).replace("T", " ")) })}</p>`;
 }
 
 /* ---------------------------------------------------------------- index ---------------------------------------- */
@@ -587,6 +587,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 <label class="j-label" for="p2">Prompt 2 · send the rest back to your main wallet</label>
 <textarea id="p2" class="j-copy" readonly rows="12" spellcheck="false">${esc(SWEEP_PROMPT)}</textarea>
 <p class="j-note">The private key is written straight to <code>.env</code> and never shown; every stage stops for your go-ahead; the payment step never retries. Fiangshi itself never touches the money: the agent pays from its own wallet.</p>
+<p class="j-note"><strong>Not financial advice (NFA). Do your own research (DYOR).</strong> This spends real USDC from a wallet you control. Use a fresh test wallet with only a few cents, and read the dry-run table before you type GO.</p>
 
 <h2>What else to look at</h2>
 <ul class="j-look">${look.map(([h, l, s]) => `<li><a href="${esc(h)}"${h.startsWith("http") ? ' rel="noopener"' : ""}>${esc(l)}</a><span>${esc(s)}</span></li>`).join("")}</ul>

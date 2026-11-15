@@ -1,5 +1,7 @@
 # Case study: an AI agent that checks before it pays
 
+> **Not financial advice (NFA). Do your own research (DYOR).** Fiangshi gives an advisory verdict about a payee; it is not investment advice. The prompts below spend real USDC from a wallet you control: use a fresh test wallet with only a few cents.
+
 On 15 Nov 2026 an AI agent running in Claude Code was given a fresh test wallet with 0.10 USDC on Base mainnet and four paid x402 sellers to buy from. Before every payment it asked Fiangshi. It refused the two sellers Fiangshi blocked and paid the two it allowed. This page is the record of that run, and the prompts to repeat it yourself.
 
 <p align="center"><img src="assets/agent-run.svg" alt="Replay of the 15 Nov agent run: two sellers refused with BLOCK at $0.00, two paid after ALLOW, balance 0.1000 to 0.0840 USDC" width="760"></p>

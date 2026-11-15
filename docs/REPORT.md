@@ -76,6 +76,8 @@ CoinMarketCap returned no transaction hash in its response; its payments are con
 
 Each run therefore avoided $0.051. Two other sellers (2s.io, x402financialdata) rejected the request's parameters (HTTP 400 and 422) and took no USDC.
 
+**Volume.** 11 real payments, 0.090 USDC in total, over 5 runs and 4 wallets: four runs of twit.sh + CoinMarketCap at 0.016 USDC each, and one run at 0.026 USDC that included the duplicate CoinMarketCap payment from F25. 4 of the 11 (0.024 USDC) are confirmed by transaction hash on chain, as listed above; the other 7 (0.066 USDC) by the wallets' balance changes, because CoinMarketCap returns no hash and the second run with the second wallet recorded none for twit.sh.
+
 **A bug found live:** a retry paid one seller twice. It is F25 below, with its fix.
 
 All four test wallets are retired and hold 0 USDC (read from the chain on 15 Nov).

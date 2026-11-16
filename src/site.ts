@@ -605,6 +605,9 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 <h2>The claim</h2>
 <ol class="j-claim"><li>Every guard asks how much an agent may spend.</li><li>None asks who receives it.</li><li>Fiangshi asks that first, and blocks a dead-end wallet before any data or model call.</li></ol>
 
+<h2>The stack</h2>
+<p class="j-not">SERV reasons. Dolphin (DeepSeek V4.1 Flash) turns the seller's own prose into typed identity fields, and has no say on the verdict: if it fails, the band stays the same. Six deterministic vows decide, and SERV can only lower a band, never raise one.</p>
+
 <h2>Try it</h2>
 <ol class="j-try">${tries
     .map(

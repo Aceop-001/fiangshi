@@ -103,6 +103,8 @@ npm run --silent fiangshi -- preview "https://api.cleave.fi/x402/gas"
 
 ## How it works
 
+**The stack.** SERV reasons. Dolphin (DeepSeek V4.1 Flash) turns the seller's own prose into typed identity fields, and has no say on the verdict: if it fails, the band stays the same. Six deterministic vows decide, and SERV can only lower a band, never raise one.
+
 ```
 probe the 402  →  null-payee gate  →  wallet signals  →  score  →  model advice  →  six rules  →  lowest band wins  →  sealed receipt
 ```

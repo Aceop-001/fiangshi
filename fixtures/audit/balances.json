@@ -1,44 +1,58 @@
 {
-  "note": "Surf account balance readings (surf me-credits), the billed source of truth: meta.credits_used overstates SQL (5 vs 4) and understates labels (1 vs 4). Census readings from data/census-w90.log and data/labels-w90.log (2026-11-09); final-pass readings printed by scripts/label-cluster-funders.ts and scripts/cold-live.ts (2026-11-11, artifacts/cold-live.md).",
-  "census": {
-    "census_start": 324,
-    "payees_done": 188,
-    "funder_refused": 184,
-    "labels_stopped": 72,
-    "label_calls": 27
-  },
-  "final_pass": {
-    "start": 1060,
-    "after_funder_labels": 1056,
-    "after_cold_live": 1048,
-    "surf_calls": 3
-  },
-  "cold_live": {
-    "url": "https://api.bitrefill.com/x402/gift-cards/search",
-    "before": 1056,
-    "after": 1048,
-    "ms": 10772,
-    "repeat_ms": 237,
-    "band": "ALLOW",
-    "score": 86.36
-  },
-  "refresh": {
-    "start": 2048,
-    "cap": 620,
-    "floor": 1428,
-    "at": "2026-11-13T10:44:08.518Z",
-    "after_gate": 2044,
-    "after_payees": 1732,
-    "after_labels": 1428,
-    "spent": 620,
-    "payee_sql_calls": 68,
-    "label_calls": 76,
-    "gate_calls": 1,
-    "billed_refusals": 0,
-    "payees_collected": 1922,
-    "v6_blocked_before_any_call": 1,
-    "labels_reused": 482,
-    "labels_new": 1444,
-    "stopped": "credit floor 1428 (2048 − 620 cap) reached during labels"
-  }
+ "note": "Surf account balance readings (surf me-credits), the billed source of truth: meta.credits_used overstates SQL (5 vs 4) and understates labels (1 vs 4). Census readings from data/census-w90.log and data/labels-w90.log (2026-11-09); final-pass readings printed by scripts/label-cluster-funders.ts and scripts/cold-live.ts (2026-11-11, artifacts/cold-live.md).",
+ "census": {
+  "census_start": 324,
+  "payees_done": 188,
+  "funder_refused": 184,
+  "labels_stopped": 72,
+  "label_calls": 27
+ },
+ "final_pass": {
+  "start": 1060,
+  "after_funder_labels": 1056,
+  "after_cold_live": 1048,
+  "surf_calls": 3
+ },
+ "cold_live": {
+  "url": "https://api.bitrefill.com/x402/gift-cards/search",
+  "before": 1056,
+  "after": 1048,
+  "ms": 10772,
+  "repeat_ms": 237,
+  "band": "ALLOW",
+  "score": 86.36
+ },
+ "refresh": {
+  "start": 2048,
+  "cap": 620,
+  "floor": 1428,
+  "at": "2026-11-13T10:44:08.518Z",
+  "after_gate": 2044,
+  "after_payees": 1732,
+  "after_labels": 1428,
+  "spent": 620,
+  "payee_sql_calls": 68,
+  "label_calls": 76,
+  "gate_calls": 1,
+  "billed_refusals": 0,
+  "payees_collected": 1922,
+  "v6_blocked_before_any_call": 1,
+  "labels_reused": 482,
+  "labels_new": 1444,
+  "stopped": "credit floor 1428 (2048 − 620 cap) reached during labels"
+ },
+ "refresh_r3": {
+  "start": 1428,
+  "after_payees": 1112,
+  "after_labels": 888,
+  "cap": 620,
+  "floor": 808,
+  "at": "2026-11-17T02:44:39Z",
+  "note": "second refresh (sample-census-r3), labels seeded from the r2 checkpoint; readings from surf me-credits before the run, after the payee pass (data/census-r3.log) and after --finish",
+  "payee_sql_calls": 78,
+  "label_calls": 56,
+  "billed_refusals": 0,
+  "payees_collected": 1922,
+  "baseline": "artifacts/index-2026-11-13.json (live /v1/index.json, sha256 fe6539afe9a0e1f4209ea6cc0cb5dac8dd738e61b0026170fc934887e5bd19da)"
+ }
 }

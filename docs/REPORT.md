@@ -19,7 +19,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
 | paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies; settlement dry-run | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
-| freshness | every census record carries its own `as_of`; data older than 72 h caps ALLOW at REVIEW (policy `2026-11-13.5`) | `artifacts/refresh.md`, gate G16 |
+| freshness | every census record carries its own `as_of`; data older than 72 h caps ALLOW at REVIEW (policy `2026-11-13.5`); the static site rebuilds hourly so its pages cap stale records too (F26) | `artifacts/refresh.md`, gate G16, `.github/workflows/pages.yml` |
 
 ## How we test
 
@@ -284,6 +284,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Cause.** The demo agent retried a request after it had already sent the payment header. The first payment had gone through, so the retry paid again.
 - **Fix.** The payment step in the demo agent is no longer retried: any error after the payment header is sent ends the call ("may have settled, not retrying"). Balances are read before and after every payment.
 - **Proof.** The next run with the same wallet spent exactly 0.016 USDC for the same two calls. The fix is in the demo agent, not in this repository; Fiangshi itself never pays.
+
+### F26. The static pages said the census was fresh after it went stale (17 Nov)
+
+- **Seen.** On 17 Nov the 13 Nov census was 87.5 hours old, past the 72-hour limit. The live API answered correctly: every record stale, 0 ALLOW, Bitrefill REVIEW with `band_cap` "data_stale". The static site still said "1 of 1,923 verdicts past the window" and "ALLOW 127", and `/judges` promised Bitrefill ALLOW.
+- **Cause.** The static site is built only when code is pushed, and its freshness is computed at build time. With no push after 13 Nov, the pages kept the freshness of their last build while the API, which reads the clock on every request, moved on.
+- **Fix.** The census was refreshed (17 Nov, 540 credits; `artifacts/refresh.md`) and every page regenerated. The Pages workflow now also runs every hour (`.github/workflows/pages.yml`, cron `17 * * * *`): each run rebuilds the site from the committed census against the real clock, so stale records are capped on the pages within the hour, as they are in the API. The hourly run makes no Surf call, spends no credits and commits nothing; only a refresh fetches new data.
+- **Proof.** After the deploy, the live API and the pages agree: `/v1/index.json` and the home page both show 160 ALLOW / 1,227 REVIEW / 536 BLOCK with 1 stale record, and the Bitrefill preview and the `/judges` example both read ALLOW 90.59.
 
 ## Rule changes, each one measured
 

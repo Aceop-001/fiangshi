@@ -616,8 +616,11 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
     )
     .join("")}</ol>
 
+<h2 id="videos">Watch the demos</h2>
+<ul class="j-look">${DEMO_VIDEOS.map(([h, l, s]) => `<li><a href="${esc(h)}" rel="noopener">${esc(l)}</a><span>${esc(s)}</span></li>`).join("")}</ul>
+
 <h2>Watch an agent use it with real money</h2>
-<p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet. Since the 17 Nov census refresh CoinMarketCap answers REVIEW (kinship), so the same run today would pay only twit.sh.</p>
+<p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet. <a href="https://x.com/aceop_xyz/status/2122006007232757951" rel="noopener">Watch the run</a>. Since the 17 Nov census refresh CoinMarketCap answers REVIEW (kinship), so the same run today would pay only twit.sh.</p>
 <ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>0.100 → 0.084</b><span>USDC before → after</span></div><div><b>$0.016</b><span>paid, exact to the cent</span></div><div class="hot"><b>$0.051</b><span>refused, never spent</span></div><div><b>$0.05</b><span>hard cap per run</span></div></div>
 <h3 class="j-h3">Run it yourself</h3>
@@ -661,6 +664,13 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
  * status success, 0.006 USDC). CoinMarketCap returned no settlement hash; its payment shows as the wallet's -0.010.
  */
 const TWIT_TX = "0x4e7ad56c71d084453e3a2e5271210c0f4634e143ae80cbb87c6f078031463271";
+/** The demo videos, posted on X by the author. [url, title, what it shows]. */
+const DEMO_VIDEOS: [string, string, string][] = [
+  ["https://x.com/aceop_xyz/status/2121569624697512411", "Launch demo", "what Fiangshi does, from probe to receipt"],
+  ["https://x.com/aceop_xyz/status/2122006007232757951", "Agent test with real money, 15 Nov", "Claude Code with a 0.10 USDC test wallet: 2 sellers refused, 2 paid on Base mainnet"],
+  ["https://x.com/aceop_xyz/status/2122534495362678902", "Census refresh, 17 Nov", "1,923 Base sellers re-checked: 160 ALLOW, 1,227 REVIEW, 536 BLOCK"],
+];
+
 const AGENT_RUN: { band: Band; host: string; score: string; paid: boolean; what: string }[] = [
   { band: "BLOCK", host: "kronos.forgemesh.io", score: "52.61", paid: false, what: "refused · $0.00 spent (would have cost $0.05) · kinship" },
   { band: "BLOCK", host: "api.nexismvp.com", score: "62.18", paid: false, what: "refused · $0.00 spent (would have cost $0.001) · kinship" },

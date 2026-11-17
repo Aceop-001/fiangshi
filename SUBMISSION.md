@@ -55,8 +55,7 @@ curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/g
 
 - Repo: https://github.com/Aceop-001/fiangshi
 - Live site: https://fiangshi.xyz
-- Video: https://x.com/aceop_xyz/status/2121569624697512411 (video in the launch post)
-- X post: https://x.com/aceop_xyz/status/2121569624697512411
+- Videos: https://x.com/aceop_xyz/status/2121569624697512411 (launch), https://x.com/aceop_xyz/status/2122006007232757951 (agent test), https://x.com/aceop_xyz/status/2122534495362678902 (census refresh)
 
 ## Honest limits
 

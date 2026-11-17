@@ -4,7 +4,7 @@
 
 SERV Hackathon 02 — Open Track. · [Submission write-up](SUBMISSION.md)
 
-🎬 [Demo video](https://x.com/aceop_xyz/status/2121569624697512411) · 🐦 [Launch thread](https://x.com/aceop_xyz/status/2121569624697512411) · 📊 [Live census (index.json)](https://api.fiangshi.xyz/v1/index.json)
+🎬 [Demo video](https://x.com/aceop_xyz/status/2121569624697512411) · 🤖 [Agent test with real money](https://x.com/aceop_xyz/status/2122006007232757951) · 🔄 [17 Nov census refresh](https://x.com/aceop_xyz/status/2122534495362678902) · 📊 [Live census (index.json)](https://api.fiangshi.xyz/v1/index.json)
 
 **Pre-payment counterparty checks for x402 agent payments.**
 

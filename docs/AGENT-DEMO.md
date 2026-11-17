@@ -115,7 +115,7 @@ Note: x402 payments are gasless, but a plain USDC transfer needs a little ETH on
 
 </details>
 
-Seller prices and verdicts can change after 15 Nov: run the dry run first and read its table before typing GO.
+Seller prices and verdicts can change after 15 Nov: run the dry run first and read its table before typing GO. Since the 17 Nov census refresh, CoinMarketCap answers REVIEW (kinship), so the same run today pays only twit.sh.
 
 ## No wallet? Try it free
 

@@ -617,7 +617,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
     .join("")}</ol>
 
 <h2>Watch an agent use it with real money</h2>
-<p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet.</p>
+<p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet. Since the 17 Nov census refresh CoinMarketCap answers REVIEW (kinship), so the same run today would pay only twit.sh.</p>
 <ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>0.100 → 0.084</b><span>USDC before → after</span></div><div><b>$0.016</b><span>paid, exact to the cent</span></div><div class="hot"><b>$0.051</b><span>refused, never spent</span></div><div><b>$0.05</b><span>hard cap per run</span></div></div>
 <h3 class="j-h3">Run it yourself</h3>
@@ -630,7 +630,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 <p class="j-note"><strong>Not financial advice (NFA). Do your own research (DYOR).</strong> This spends real USDC from a wallet you control. Use a fresh test wallet with only a few cents, and read the dry-run table before you type GO.</p>
 
 <h2 id="no-wallet">No wallet? Try it free</h2>
-<p class="j-lede">The checks themselves cost nothing, so you can see the refusals without a wallet, a key or a cent. This is a real run against the live API on 15 Nov:</p>
+<p class="j-lede">The checks themselves cost nothing, so you can see the refusals without a wallet, a key or a cent. This is a real run against the live API on 15 Nov (since the 17 Nov refresh CoinMarketCap answers REVIEW, so a run today refuses four):</p>
 <ol class="j-run">${FREE_RUN.map((r) => `<li class="${r.band === "BLOCK" ? "refused" : "paid"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>$0.00</b><span>cost of all five checks</span></div><div class="hot"><b>$0.851</b><span>would have gone to the 3 blocked sellers</span></div><div><b>402</b><span>the paid check asks first, nothing paid</span></div><div><b>0</b><span>wallets, keys or transactions</span></div></div>
 <div class="j-labrow"><label class="j-label" for="p3">Prompt 3 · the free test (no wallet, no funds)</label><button type="button" class="j-copybtn" data-copy="p3" hidden>Copy prompt</button></div>

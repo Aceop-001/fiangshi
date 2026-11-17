@@ -76,7 +76,7 @@ A sealed receipt cannot be edited: that is what makes receipts verifiable. A cor
 
 ### What Fiangshi stores
 
-- One receipt per check: the URL checked, the payee wallet, the price asked, a hash of the payment terms, the verdict, the quoted evidence and the time. Receipts are kept in an append-only ledger. Anyone who has a receipt id can read that receipt.
+- One receipt per check: the URL checked, the payee wallet, the price asked, a hash of the payment terms, the verdict, the quoted evidence and the time. Receipts are appended to a ledger. On the hosted API that ledger is ephemeral: it resets when the server is redeployed, so an id can stop resolving. A receipt never depends on it: keep the receipt (or its verify URL) and it verifies from its own payload at any time.
 - Cached model replies about a payee, so the same question is not paid for twice.
 
 The software does not store the paying wallet address, your IP address or any identifier for you, and it keeps no request log. The company that hosts a given copy may keep its own server logs.

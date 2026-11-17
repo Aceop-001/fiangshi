@@ -621,7 +621,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 
 <h2>Watch an agent use it with real money</h2>
 <p class="j-lede">On 15 Nov an AI agent in Claude Code got a fresh test wallet with 0.10 USDC on Base, asked Fiangshi about four sellers, and paid only the two that came back ALLOW. Real USDC, Base mainnet. <a href="https://x.com/aceop_xyz/status/2122006007232757951" rel="noopener">Watch the run</a>. Since the 17 Nov census refresh CoinMarketCap answers REVIEW (kinship), so the same run today would pay only twit.sh.</p>
-<ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
+<ol class="j-run">${AGENT_RUN.map((r) => `<li class="${r.paid ? "paid" : "refused"}"><span class="j-v">${chip(r.band)}${r.asOf ? ` <span class="j-asof">(${r.asOf})</span>` : ""}</span><span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>0.100 → 0.084</b><span>USDC before → after</span></div><div><b>$0.016</b><span>paid, exact to the cent</span></div><div class="hot"><b>$0.051</b><span>refused, never spent</span></div><div><b>$0.05</b><span>hard cap per run</span></div></div>
 <h3 class="j-h3">Run it yourself</h3>
 <p class="j-note">Open Claude Code in an empty folder and paste prompt 1. It makes a fresh test wallet, waits while you send it 0.10 USDC on Base, does a dry run, and pays for real only after you type GO. When you are done, paste prompt 2 to send what is left back to your own wallet. Press <b>Copy prompt</b>, or click inside a box and press Ctrl+A (Cmd+A on a Mac), then copy.</p>
@@ -634,7 +634,7 @@ export function renderJudges(c: Census, stats: DemoStats | null): string {
 
 <h2 id="no-wallet">No wallet? Try it free</h2>
 <p class="j-lede">The checks themselves cost nothing, so you can see the refusals without a wallet, a key or a cent. This is a real run against the live API on 15 Nov (since the 17 Nov refresh CoinMarketCap answers REVIEW, so a run today refuses four):</p>
-<ol class="j-run">${FREE_RUN.map((r) => `<li class="${r.band === "BLOCK" ? "refused" : "paid"}">${chip(r.band)}<span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
+<ol class="j-run">${FREE_RUN.map((r) => `<li class="${r.band === "BLOCK" ? "refused" : "paid"}"><span class="j-v">${chip(r.band)}${r.asOf ? ` <span class="j-asof">(${r.asOf})</span>` : ""}</span><span class="j-host">${esc(r.host)}</span><span class="j-score">${r.score}</span><span class="j-what">${r.what}</span></li>`).join("")}</ol>
 <div class="j-money"><div><b>$0.00</b><span>cost of all five checks</span></div><div class="hot"><b>$0.851</b><span>would have gone to the 3 blocked sellers</span></div><div><b>402</b><span>the paid check asks first, nothing paid</span></div><div><b>0</b><span>wallets, keys or transactions</span></div></div>
 <div class="j-labrow"><label class="j-label" for="p3">Prompt 3 · the free test (no wallet, no funds)</label><button type="button" class="j-copybtn" data-copy="p3" hidden>Copy prompt</button></div>
 <textarea id="p3" class="j-copy" readonly rows="12" spellcheck="false">${esc(NOWALLET_PROMPT)}</textarea>
@@ -671,11 +671,11 @@ const DEMO_VIDEOS: [string, string, string][] = [
   ["https://x.com/aceop_xyz/status/2122534495362678902", "Census refresh, 17 Nov", "1,923 Base sellers re-checked: 160 ALLOW, 1,227 REVIEW, 536 BLOCK"],
 ];
 
-const AGENT_RUN: { band: Band; host: string; score: string; paid: boolean; what: string }[] = [
+const AGENT_RUN: { band: Band; asOf?: string; host: string; score: string; paid: boolean; what: string }[] = [
   { band: "BLOCK", host: "kronos.forgemesh.io", score: "52.61", paid: false, what: "refused · $0.00 spent (would have cost $0.05) · kinship" },
   { band: "BLOCK", host: "api.nexismvp.com", score: "62.18", paid: false, what: "refused · $0.00 spent (would have cost $0.001) · kinship" },
-  { band: "ALLOW", host: "pro-api.coinmarketcap.com", score: "86.01", paid: true, what: "paid $0.010 · settled; the seller returned no tx hash, the balance dropped exactly 0.010" },
-  { band: "ALLOW", host: "x402.twit.sh", score: "86.19", paid: true, what: `paid $0.006 · <a href="https://basescan.org/tx/${TWIT_TX}" rel="noopener">tx ${short(TWIT_TX, 6, 4)}</a>` },
+  { band: "ALLOW", asOf: "15 Nov", host: "pro-api.coinmarketcap.com", score: "86.01", paid: true, what: "paid $0.010 · settled; the seller returned no tx hash, the balance dropped exactly 0.010" },
+  { band: "ALLOW", asOf: "15 Nov", host: "x402.twit.sh", score: "86.19", paid: true, what: `paid $0.006 · <a href="https://basescan.org/tx/${TWIT_TX}" rel="noopener">tx ${short(TWIT_TX, 6, 4)}</a>` },
 ];
 const AGENT_PROMPT = `Set up a fresh burner wallet and run the full live demo. Follow the stages in order and STOP at each gate.
 
@@ -716,12 +716,12 @@ Set DRY=0, run once unedited. Print the table, both balances, the exact delta, t
 STAGE 5 - SAFETY
 Set DRY=1, confirm the value, and confirm BURNER_PK never appeared in any output.`;
 /** The no-wallet run, 15 Nov 2026: five free previews against the live API (cost_usd 0 each). */
-const FREE_RUN: { band: Band; host: string; score: string; what: string }[] = [
+const FREE_RUN: { band: Band; asOf?: string; host: string; score: string; what: string }[] = [
   { band: "BLOCK", host: "kronos.forgemesh.io", score: "52.61", what: "kinship · $0.05 asked · check cost $0" },
   { band: "BLOCK", host: "api.nexismvp.com", score: "62.18", what: "kinship · $0.001 asked · check cost $0" },
   { band: "BLOCK", host: "api.cleave.fi", score: "–", what: "null_payee · $0.80 asked, to the zero address · check cost $0" },
-  { band: "ALLOW", host: "pro-api.coinmarketcap.com", score: "86.01", what: "$0.01 asked · check cost $0" },
-  { band: "ALLOW", host: "x402.twit.sh", score: "86.19", what: "$0.006 asked · check cost $0" },
+  { band: "ALLOW", asOf: "15 Nov", host: "pro-api.coinmarketcap.com", score: "86.01", what: "$0.01 asked · check cost $0" },
+  { band: "ALLOW", asOf: "15 Nov", host: "x402.twit.sh", score: "86.19", what: "$0.006 asked · check cost $0" },
 ];
 const NOWALLET_PROMPT = `Run a Fiangshi demo with no wallet and no funds. Nothing should be paid and no key should be created.
 
@@ -772,6 +772,7 @@ const JUDGES_CSS = `
 .j-run li.refused{--c:var(--block)}
 .j-run li.paid{--c:var(--allow)}
 .j-host{font:12.5px var(--mono);overflow-wrap:anywhere}
+.j-asof{font:11.5px var(--mono);color:var(--mut);white-space:nowrap}
 .j-score{font:12.5px var(--mono);color:var(--mut);text-align:right}
 .j-what{font:12.5px var(--mono);color:#d6d6d6}
 .j-run li.refused .j-what{color:var(--red-text)}

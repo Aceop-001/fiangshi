@@ -679,8 +679,9 @@ export function auditReport(inp: ReportInputs): string {
   const credits = cp.calls.filter((c) => !reask(c as { at?: string })).reduce((a, c) => a + (c.credits ?? 0), 0);
   // the 13 Nov refresh (its checkpoint reused 9 Nov labels) has its own balance readings; the 9 Nov census keeps its own
   const balances = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
-  const refresh = (cp as { labels_reused_from?: unknown }).labels_reused_from && balances.refresh;
-  const bal = (refresh ? { census_start: balances.refresh.start, labels_stopped: balances.refresh.after_labels } : balances.census) as { census_start: number; labels_stopped: number };
+  const rb = (cp as { sample?: string }).sample === "sample-census-r3.json" ? balances.refresh_r3 : balances.refresh;
+  const refresh = (cp as { labels_reused_from?: unknown }).labels_reused_from && rb;
+  const bal = (refresh ? { census_start: rb.start, labels_stopped: rb.after_labels } : balances.census) as { census_start: number; labels_stopped: number };
   const billed = bal.census_start - bal.labels_stopped;
   const sqlCredits = [...new Set(sqlCalls.map((c) => c.credits))];
   const slowest = sqlCalls.length ? Math.max(...sqlCalls.map((c) => c.ms)) : 0;

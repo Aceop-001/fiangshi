@@ -9,7 +9,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, dataDir } from "../src/config.js";
-import { CENSUS_R2_SAMPLE, CENSUS_V4_SAMPLE, legacyCensus, loadCensus, loadDemoStats } from "../src/census.js";
+import { CENSUS_R3_SAMPLE, CENSUS_V4_SAMPLE, currentRefreshSample, legacyCensus, loadCensus, loadDemoStats } from "../src/census.js";
 import { checkpointPath } from "./audit.js";
 import { evaluateVows, KINSHIP_REVIEW_AT } from "../src/core/vows.js";
 import { pinReferenceTime } from "../src/reference-time.js";
@@ -21,9 +21,10 @@ export function computeNumbers() {
   const reference = pinReferenceTime();
   const c = loadCensus();
   const bal = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
-  // the census being served: the 13 Nov refresh when its checkpoint is committed, else the 9 Nov census
-  const refreshed = existsSync(checkpointPath(CENSUS_R2_SAMPLE, 90));
-  const cp = JSON.parse(readFileSync(checkpointPath(refreshed ? CENSUS_R2_SAMPLE : CENSUS_V4_SAMPLE, 90), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
+  // the census being served: the newest complete refresh (17 Nov r3, else 13 Nov r2), else the 9 Nov census
+  const refreshSample = currentRefreshSample(90);
+  const refreshed = refreshSample !== null;
+  const cp = JSON.parse(readFileSync(checkpointPath(refreshSample ?? CENSUS_V4_SAMPLE, 90), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
   let kBlock = 0;
   let kReview = 0;
   let verdictable = 0;
@@ -34,7 +35,9 @@ export function computeNumbers() {
     if (!rows.find((r) => r.vow === "silence")!.fired) verdictable++;
   }
   const v4Billed = bal.census.census_start - bal.census.labels_stopped;
-  const censusBilled = refreshed ? bal.refresh.start - bal.refresh.after_labels : v4Billed;
+  // billed by balance: the refresh being served has its own readings in fixtures/audit/balances.json
+  const rb = refreshSample === CENSUS_R3_SAMPLE ? bal.refresh_r3 : bal.refresh;
+  const censusBilled = refreshed ? rb.start - rb.after_labels : v4Billed;
   const v4 = legacyCensus();
   const v4Bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<"ALLOW" | "REVIEW" | "BLOCK", number>;
   for (const p of v4.payees) v4Bands[p.issued_band]++;
@@ -88,13 +91,16 @@ export function checkDocs(n: Numbers): string[] {
       if ((name === "artifacts/sensitivity.md" || name === "artifacts/refresh.md") && /^\| (A|C) \|/.test(line)) return;
       // refresh.md's projection of the bands once every record is past the freshness window is not today's census
       if (name === "artifacts/refresh.md" && line.includes("served once the newest record is past")) return;
+      // a dated archive (e.g. artifacts/refresh-2026-11-13.md) records an earlier census as it was: history throughout
+      if (/-\d{4}-\d{2}-\d{2}\.md$/.test(name)) return;
+      // an earlier census's figure is allowed only where the line says which census it is (9 Nov v4, or the 13 Nov
+      // refresh), or in a dated build-log entry: those lines are history, not claims about today's census
+      const historic = /9 Nov|2026-11-09|13 Nov|2026-11-13T|v4|policy 2026-11-09\.4|first census/.test(line) || /^- \*\*2026-11-\d\d /.test(line);
+      if (historic) return;
       for (const m of line.matchAll(triple)) {
         const [a, b, c] = [int(m[1]!), int(m[2]!), int(m[3]!)];
         if (a + b + c === n.census.payees && `${a}/${b}/${c}` !== want) bad.push(`${name}:${i + 1}: band split ${a}/${b}/${c}, numbers.json says ${want}`);
       }
-      // a 9 Nov figure is allowed only where the line says it is the 9 Nov census (v4)
-      const historic = /9 Nov|2026-11-09|v4|policy 2026-11-09\.4|first census/.test(line) || /^- \*\*2026-11-\d\d /.test(line);
-      if (historic) return;
       for (const m of line.matchAll(/(?<![\d,])(\d{3}|\d,\d{3}) of (1,923|1923) Base payees/g))
         if (int(m[1]!) !== n.census.payees) bad.push(`${name}:${i + 1}: census size ${m[1]}, numbers.json says ${n.census.payees}`);
       for (const m of line.matchAll(/Billed: \*\*(\d+) credits\*\* for ([\d,]+) payees/g))

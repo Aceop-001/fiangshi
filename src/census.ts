@@ -111,6 +111,21 @@ const AUDIT_DIR = join(ROOT, "fixtures", "audit");
 export const CENSUS_V4_SAMPLE = join(AUDIT_DIR, "sample-census.json");
 /** The refresh (2026-11-13, policy v5, per-record as_of). Used when its checkpoint is committed. */
 export const CENSUS_R2_SAMPLE = join(AUDIT_DIR, "sample-census-r2.json");
+/** The second refresh (2026-11-17, same 1,923 payees, labels reused from r2). Served once its checkpoint is complete. */
+export const CENSUS_R3_SAMPLE = join(AUDIT_DIR, "sample-census-r3.json");
+
+/**
+ * The newest complete refresh, or null (then the 9 Nov census is served). r3 counts only when its payee pass and its
+ * funders are done, so a run that stopped half-way never replaces a complete census.
+ */
+export function currentRefreshSample(days = 90): string | null {
+  const r3 = checkpointPath(CENSUS_R3_SAMPLE, days);
+  if (existsSync(r3)) {
+    const cp = JSON.parse(readFileSync(r3, "utf8")) as { payee_rows: Record<string, unknown>; funders_done?: boolean };
+    if (Object.keys(cp.payee_rows).length >= 1922 && cp.funders_done) return CENSUS_R3_SAMPLE;
+  }
+  return existsSync(checkpointPath(CENSUS_R2_SAMPLE, days)) ? CENSUS_R2_SAMPLE : null;
+}
 
 /**
  * Score one sample + checkpoint and seal one receipt per payee. v4: as before (checked_at = run time, no policy fields),
@@ -124,7 +139,7 @@ function issue(samplePath: string, version: "v4" | "v5"): Issued {
   const asOfOf = (cp.payee_as_of ?? {}) as Record<string, string>;
   const set = scoredSet(sample, cp, at);
   const meta = new Map(sample.payees.map((p) => [p.payee, p]));
-  const snapshotId = version === "v4" ? hashOf({ census: "w90", at, payees: set.scored.length }) : hashOf({ census: "w90-r2", at, payees: set.scored.length });
+  const snapshotId = version === "v4" ? hashOf({ census: "w90", at, payees: set.scored.length }) : hashOf({ census: samplePath === CENSUS_R3_SAMPLE ? "w90-r3" : "w90-r2", at, payees: set.scored.length });
   const ledger: Receipt[] = [];
   const receipts = new Map<string, Receipt>();
   const payees: CensusPayee[] = [];
@@ -163,6 +178,10 @@ function issue(samplePath: string, version: "v4" | "v5"): Issued {
   return { at, sample, set, payees, receipts, ledger };
 }
 
+let r2Issued: Issued | null = null;
+/** The 13 Nov refresh, issued once, kept only so its receipts still verify after a newer refresh is served. */
+const issueCached = (samplePath: string): Issued => (r2Issued ??= issue(samplePath, "v5"));
+
 let legacy: Issued | null = null;
 /** The v4 census (2026-11-09): its receipts, chain and issued bands, for verification only. */
 export function legacyCensus(): Issued {
@@ -174,8 +193,9 @@ function loadBaseCensus(): Census {
   if (base) return base;
   setWindowDays(CENSUS_DAYS);
   // fixture mode replays model answers recorded against the 9 Nov census: it serves that census, never the refresh
-  const refreshed = !replayMode() && existsSync(checkpointPath(CENSUS_R2_SAMPLE, CENSUS_DAYS));
-  const cur = refreshed ? issue(CENSUS_R2_SAMPLE, "v5") : legacyCensus();
+  const refreshSample = replayMode() ? null : currentRefreshSample(CENSUS_DAYS);
+  const refreshed = refreshSample !== null;
+  const cur = refreshSample ? issue(refreshSample, "v5") : legacyCensus();
   const { at, sample, set } = cur;
   const payees = [...cur.payees];
   const receipts = new Map(cur.receipts);
@@ -185,6 +205,10 @@ function loadBaseCensus(): Census {
     const old = legacyCensus();
     for (const p of old.payees) if (!have.has(p.payee)) payees.push(p);
     for (const [k, r] of old.receipts) receipts.set(k, r);
+    // serving r3: the 13 Nov (r2) receipts keep verifying by id too; they are already published and linked
+    if (refreshSample === CENSUS_R3_SAMPLE && existsSync(checkpointPath(CENSUS_R2_SAMPLE, CENSUS_DAYS))) {
+      for (const [k, r] of issueCached(CENSUS_R2_SAMPLE).receipts) if (!receipts.has(k)) receipts.set(k, r);
+    }
   }
   const ledger = cur.ledger;
   const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;

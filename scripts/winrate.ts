@@ -3,9 +3,10 @@
  * Usage: npx tsx scripts/winrate.ts [--write]   (--write: artifacts/winrate.md)
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { ROOT } from "../src/config.js";
-import { loadCensus } from "../src/census.js";
+import { currentRefreshSample, loadCensus } from "../src/census.js";
+import { checkpointPath } from "./audit.js";
 import { evaluateVows } from "../src/core/vows.js";
 import { sensitivity } from "./sensitivity.js";
 
@@ -45,7 +46,7 @@ const countDelta = (100 * (surfCount - bs.observed.erc20_transfer_count)) / bs.o
 
 // label coverage, before and after this pass's re-ask (checkpoint)
 // the served census's checkpoint: the 13 Nov refresh when committed, else 9 Nov
-const cpFile = existsSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-r2-w90.json")) ? "checkpoint-sample-census-r2-w90.json" : "checkpoint-sample-census-w90.json";
+const cpFile = basename(checkpointPath(currentRefreshSample(90) ?? join(ROOT, "fixtures", "audit", "sample-census.json"), 90));
 const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", cpFile), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
 const queried = new Set(cp.labels_done.map((a) => a.toLowerCase()));
 const named = new Set(cp.labels.filter((l) => l.entity_name || l.entity_type).map((l) => l.address.toLowerCase()));

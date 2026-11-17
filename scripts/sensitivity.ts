@@ -7,9 +7,10 @@
  * Usage: npx tsx scripts/sensitivity.ts [--json]  ->  prints the table; --write also writes artifacts/sensitivity.md
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { ROOT } from "../src/config.js";
-import { loadCensus } from "../src/census.js";
+import { currentRefreshSample, loadCensus } from "../src/census.js";
+import { checkpointPath } from "./audit.js";
 import { pinReferenceTime } from "../src/reference-time.js";
 pinReferenceTime();
 import { components, score } from "../src/core/score.js";
@@ -78,7 +79,7 @@ if (process.argv[1]?.endsWith("sensitivity.ts")) {
 /** Computed from the served census and its checkpoint: which kinship funders Surf was asked about, and what it said. */
 function funderNote(): string {
   const c = loadCensus();
-  const cpFile = existsSync(join(ROOT, "fixtures", "audit", "checkpoint-sample-census-r2-w90.json")) ? "checkpoint-sample-census-r2-w90.json" : "checkpoint-sample-census-w90.json";
+  const cpFile = basename(checkpointPath(currentRefreshSample(90) ?? join(ROOT, "fixtures", "audit", "sample-census.json"), 90));
   const cp = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", cpFile), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
   const asked = new Set(cp.labels_done.map((a) => a.toLowerCase()));
   const named = new Set(cp.labels.filter((l) => l.entity_name || l.entity_type).map((l) => l.address.toLowerCase()));

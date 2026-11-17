@@ -1,10 +1,15 @@
 # Builds the static edition of the site (scripts/export-static.ts) and publishes it to GitHub Pages at fiangshi.xyz.
-# Runs on every push to main. The export fails, and nothing is published, if any page links to a missing page.
+# Runs on every push to main, and every hour: the export reads the real clock, so each run recomputes which census
+# records are past the 72-hour freshness window and caps those ALLOWs at REVIEW, exactly as the live API does. Without
+# the hourly run a static page would keep the freshness it had at its last push. The export fails, and nothing is
+# published, if any page links to a missing page.
 name: Pages
 
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:

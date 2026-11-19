@@ -6,6 +6,7 @@
  * Only free-tier data is shown: what /v1/index.json and /v1/receipt/:id already return, plus the public 402 terms.
  */
 import { readFileSync, readdirSync } from "node:fs";
+import type { Signal } from "./signals.js";
 import { join } from "node:path";
 import { ROOT, checkHref, env, liveApi, num, policyTtlHours, staticSite } from "./config.js";
 import { receiptVerifyUrl } from "./receipt-url.js";
@@ -821,7 +822,7 @@ const JUDGES_CSS = `
 
 export type CheckView =
   | { kind: "invalid"; input: string }
-  | { kind: "probe_failed"; url: string; error: string }
+  | { kind: "probe_failed"; url: string; error: string; cls?: "PAYMENT_TERMS_UNPARSEABLE" | "UNVERIFIED_ENDPOINT"; signals?: Signal[] }
   | { kind: "blocked"; url: string; terms: Terms; payTo: string; reason: string; receipt: Receipt }
   | { kind: "census"; url: string; terms: Terms; payTo: string; payee: CensusPayee }
   | { kind: "unknown"; url: string; terms: Terms; payTo: string };
@@ -861,7 +862,12 @@ export function renderCheck(v: CheckView, c: Census, self: string, stats: DemoSt
   if (v.kind === "invalid") {
     verdict = `<div class="verdict NONE"><span class="stamp">NO URL</span><div><h2>${T("That is not an http or https URL.")}</h2><p>Paste the full address of a paid endpoint, for example https://api.example.com/paid.</p></div></div>`;
   } else if (v.kind === "probe_failed") {
-    verdict = `<div class="verdict NONE"><span class="stamp">NO VERDICT</span><div><h2>${T("The probe did not get usable payment terms.")}</h2><p>${esc(v.error)}</p><p>Fiangshi fails closed: without a parsed 402 it gives no verdict, and a paid check would answer REVIEW.</p></div></div>`;
+    const sig = (v.signals ?? []).filter((s) => s.name !== "headers");
+    const sigList = sig.length
+      ? `<dl class="sig">${sig.map((s) => `<dt>${esc(s.name.replace(/_/g, " "))}</dt><dd>${esc(typeof s.value === "object" && s.value !== null ? JSON.stringify(s.value) : String(s.value))}${s.detail ? ` <span class="mut">${esc(s.detail)}</span>` : ""}</dd>`).join("")}</dl>`
+      : "";
+    const label = v.cls === "PAYMENT_TERMS_UNPARSEABLE" ? "TERMS UNPARSEABLE" : v.cls === "UNVERIFIED_ENDPOINT" ? "UNVERIFIED" : "NO VERDICT";
+    verdict = `<div class="verdict NONE"><span class="stamp">${label}</span><div><h2>${T("The probe did not get usable payment terms.")}</h2><p>${esc(v.error)}</p><p>Fiangshi fails closed: without a parsed 402 it gives no verdict, and a paid check would answer REVIEW.</p>${sigList ? `<p class="mut">What the endpoint is instead (deterministic signals, no model call):</p>${sigList}` : ""}</div></div>`;
   } else if (v.kind === "blocked") {
     const r = v.receipt;
     verdict = `<div class="verdict BLOCK"><span class="stamp">BLOCK</span><div><h2>${T("Blocked at probe time by vow I, null_payee.")}</h2><p>${esc(v.reason)}.</p><p>${T("No data or model call was made. Cost: $0.00.")}</p></div></div>`;

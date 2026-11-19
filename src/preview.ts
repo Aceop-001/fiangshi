@@ -10,6 +10,7 @@ import { nowMs, staleHours } from "./config.js";
 import { POLICY_VERSION, staleCap, type BandCap } from "./core/cap.js";
 import { VOW_NAMES } from "./core/types.js";
 import type { Census, CensusPayee } from "./census.js";
+import type { Signal } from "./signals.js";
 
 export const PREVIEW_KEYS = [
   "url",
@@ -32,7 +33,19 @@ export const PREVIEW_KEYS = [
   "band_cap",
   "verdict_confidence",
   "policy_version",
+  // post-deadline (2026-11-19), additive: what kind of answer this is, the deterministic signals behind it, and
+  // how many model calls it took (always 0 here: the preview never calls a model)
+  "class",
+  "signals",
+  "model_calls",
 ] as const;
+
+/**
+ * What kind of answer this is. VERDICT: a band (census record, or null payee at probe time). NO_RECORD: terms parsed,
+ * payee not in the census. PAYMENT_TERMS_UNPARSEABLE: a 402 with no usable terms. UNVERIFIED_ENDPOINT: not a 402 at
+ * all, explained by `signals`. Only VERDICT carries a band; the others are never ALLOW.
+ */
+export type AnswerClass = "VERDICT" | "NO_RECORD" | "PAYMENT_TERMS_UNPARSEABLE" | "UNVERIFIED_ENDPOINT";
 
 export type Terms = { price_usd: number | null; network: string; asset: string; pay_to: string; terms_hash: string };
 export type PreviewAnswer = {
@@ -58,6 +71,9 @@ export type PreviewAnswer = {
   band_cap: BandCap | null;
   verdict_confidence: "normal" | "degraded" | null;
   policy_version: string;
+  class: AnswerClass;
+  signals: Signal[];
+  model_calls: 0;
 };
 
 /** The most severe fired vow, by the frozen precedence order. */
@@ -113,6 +129,9 @@ export function nullPayeeAnswer(url: string, terms: Terms, reason: string, recei
     band_cap: null,
     verdict_confidence: "normal",
     policy_version: POLICY_VERSION,
+    class: "VERDICT",
+    signals: [],
+    model_calls: 0,
   };
 }
 
@@ -139,6 +158,9 @@ export function censusAnswer(url: string, terms: Terms, c: Census, p: CensusPaye
     band_cap: cap.band_cap,
     verdict_confidence: cap.verdict_confidence,
     policy_version: POLICY_VERSION,
+    class: "VERDICT",
+    signals: [],
+    model_calls: 0,
   };
 }
 
@@ -163,10 +185,17 @@ export function noRecordAnswer(url: string, terms: Terms, c: Census, paid: PaidS
     band_cap: null,
     verdict_confidence: null,
     policy_version: POLICY_VERSION,
+    class: "NO_RECORD",
+    signals: [],
+    model_calls: 0,
   };
 }
 
-export function noVerdictAnswer(url: string, error: string, paid: PaidStatus): PreviewAnswer {
+/**
+ * No band. `cls` says why: PAYMENT_TERMS_UNPARSEABLE (a 402 without usable terms; its redacted headers ride in
+ * `signals`) or UNVERIFIED_ENDPOINT (not a 402; the deterministic endpoint signals say what it is instead).
+ */
+export function noVerdictAnswer(url: string, error: string, paid: PaidStatus, cls: "PAYMENT_TERMS_UNPARSEABLE" | "UNVERIFIED_ENDPOINT" = "UNVERIFIED_ENDPOINT", signals: Signal[] = []): PreviewAnswer {
   return {
     url,
     verdict: "no_verdict",
@@ -187,5 +216,8 @@ export function noVerdictAnswer(url: string, error: string, paid: PaidStatus): P
     band_cap: null,
     verdict_confidence: null,
     policy_version: POLICY_VERSION,
+    class: cls,
+    signals,
+    model_calls: 0,
   };
 }

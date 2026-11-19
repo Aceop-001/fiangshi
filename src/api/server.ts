@@ -21,7 +21,7 @@ import { pathToFileURL } from "node:url";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
-import { legacyCensus, loadCensus, loadDemoStats } from "../census.js";
+import { legacyCensus, loadCensus, loadDemoStats, type Census } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderJudges, renderNotFound, renderReceipt } from "../site.js";
 import { COPY_SCRIPT_CSP, CSP, setPagePath } from "../site-theme.js";
 import { docByPath } from "../docs-index.js";
@@ -33,6 +33,7 @@ import { paymentRequired, paymentResponse, sellerPayTo, verifyXPayment, currentS
 import { check, emptySignals, evaluateFull } from "../check.js";
 import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
 import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
+import { endpointSignals, signalsReason, tlsInfo, type Signal } from "../signals.js";
 import { coldCacheHit, coldSignals, type ColdFetcher } from "../cold.js";
 import { surfColdFetcher } from "../cold-surf.js";
 
@@ -56,6 +57,16 @@ const tourDone = (req: IncomingMessage) => (req.headers.cookie ?? "").split(";")
 export function safeNext(raw: string | null): string {
   const n = (raw ?? "/").trim();
   return /^\/(?![/\\])[\w\-./#?=&%]{0,200}$/.test(n) ? n : "/";
+}
+
+/**
+ * Deterministic signals for a URL that is not a 402 (post-deadline): status chain, redirects, TLS, content type,
+ * terms, payee. Live mode only; fixture and mock modes never touch the network, so they say so instead.
+ */
+async function whyNot402(url: string, c: Census): Promise<{ signals: Signal[]; reason: string | null }> {
+  if (providerMode() !== "live") return { signals: [{ name: "offline", value: true, detail: `${providerMode()} mode: no network probe for signals` }], reason: null };
+  const signals = await endpointSignals(url, { fetch: globalThis.fetch, tls: tlsInfo, isCensusPayee: (p) => c.payees.some((x) => x.payee === p) });
+  return { signals, reason: signalsReason(signals) };
 }
 
 /** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
@@ -248,7 +259,11 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const page = (status: number, v: Parameters<typeof renderCheck>[0]) => html(res, status, renderCheck(v, c, self, loadDemoStats()));
       if (!/^https?:\/\/\S{1,2000}$/i.test(input)) return page(400, { kind: "invalid", input: input.slice(0, 200) });
       const pr = await probe(input);
-      if (!pr.ok) return page(200, { kind: "probe_failed", url: input, error: pr.error });
+      if (!pr.ok) {
+        if (pr.class === "PAYMENT_TERMS_UNPARSEABLE") return page(200, { kind: "probe_failed", url: input, error: pr.error, cls: "PAYMENT_TERMS_UNPARSEABLE" });
+        const sig = await whyNot402(input, c);
+        return page(200, { kind: "probe_failed", url: input, error: sig.reason ?? pr.error, cls: "UNVERIFIED_ENDPOINT", signals: sig.signals });
+      }
       if (v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
         const r = await check(input, { probe: pr }); // same probe: the sealed receipt is for exactly what was shown
         return page(200, { kind: "blocked", url: input, terms: pr.terms, payTo: pr.payTo_raw, reason: r.decision.verdict.citations[0]?.quote ?? "null payee", receipt: r.receipt });
@@ -269,7 +284,12 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const pr = await probe(input);
       const seller = sellerPayTo();
       const paid: PaidStatus = seller.ok ? { ok: true, url: `${self}/v1/check?url=${encodeURIComponent(input)}` } : { ok: false, why: "the operator has not set a receiving wallet (FIANGSHI_PAYTO), so the paid route answers 503" };
-      if (!pr.ok) return json(res, 200, noVerdictAnswer(input, pr.error, paid));
+      if (!pr.ok) {
+        if (pr.class === "PAYMENT_TERMS_UNPARSEABLE")
+          return json(res, 200, noVerdictAnswer(input, pr.error, paid, "PAYMENT_TERMS_UNPARSEABLE", [{ name: "http_status", value: 402 }, { name: "headers", value: pr.headers ?? {}, detail: "as the 402 sent them; cookies and credentials redacted" }]));
+        const sig = await whyNot402(input, c);
+        return json(res, 200, noVerdictAnswer(input, sig.reason ?? pr.error, paid, "UNVERIFIED_ENDPOINT", sig.signals));
+      }
       const terms = { price_usd: pr.terms.price, network: pr.terms.network, asset: pr.terms.asset, pay_to: pr.payTo_raw, terms_hash: pr.terms.terms_hash };
       if (v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
         const r = await check(input, { probe: pr });

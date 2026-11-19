@@ -310,6 +310,7 @@ details.led>.scroll{border-top:1px solid var(--line2);max-height:560px;overflow:
 .verdict p{color:var(--mut);max-width:70ch;overflow-wrap:anywhere}
 .kvs{display:grid;gap:2px}
 .kv{display:flex;align-items:baseline;gap:8px;padding:5px 0}
+.sig{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:8px 0 0;font-size:12.5px}.sig dt{color:var(--mut)}.sig dd{margin:0;overflow-wrap:anywhere}
 .kv dt{flex:none;color:var(--mut);text-transform:uppercase;letter-spacing:.12em;font-size:11.5px}
 .kv i{flex:1;min-width:14px;border-bottom:1px dotted var(--line2);transform:translateY(-4px)}
 .kv dd{text-align:right;overflow-wrap:anywhere;min-width:0}

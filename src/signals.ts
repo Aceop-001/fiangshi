@@ -16,7 +16,8 @@ export type Signal = { name: string; value: string | number | boolean | null | R
 
 export interface SignalDeps {
   fetch: typeof fetch;
-  tls: (host: string, timeoutMs: number) => Promise<{ valid: boolean; issuer: string | null; days_to_expiry: number | null; error?: string }>;
+  /** valid is false only when a certificate fails verification; null when no handshake completed (timeout, reset) */
+  tls: (host: string, timeoutMs: number) => Promise<{ valid: boolean | null; issuer: string | null; days_to_expiry: number | null; error?: string }>;
   isCensusPayee: (payee: string) => boolean;
 }
 
@@ -40,8 +41,8 @@ export function tlsInfo(host: string, timeoutMs: number): ReturnType<SignalDeps[
         error: s.authorized ? undefined : String(s.authorizationError ?? "unverified"),
       });
     });
-    s.once("timeout", () => done({ valid: false, issuer: null, days_to_expiry: null, error: "timeout" }));
-    s.once("error", (e) => done({ valid: false, issuer: null, days_to_expiry: null, error: e.message }));
+    s.once("timeout", () => done({ valid: null, issuer: null, days_to_expiry: null, error: "timeout: not checked" }));
+    s.once("error", (e) => done({ valid: null, issuer: null, days_to_expiry: null, error: `not checked: ${e.message}` })); // a failed connection is not a certificate verdict
   });
 }
 
@@ -78,7 +79,11 @@ export async function endpointSignals(url: string, deps: SignalDeps, budgetMs = 
     } catch (e) {
       const err = e as Error;
       if (err.name === "TimeoutError" || err.name === "AbortError") timedOut = true;
-      else unreachable = err.message;
+      else {
+        // undici says only "fetch failed"; the cause names it (ENOTFOUND, ECONNREFUSED, ECONNRESET, a TLS error)
+        const cause = (err as Error & { cause?: { code?: string; message?: string } }).cause;
+        unreachable = cause ? `${err.message}: ${cause.code ?? cause.message ?? "unknown cause"}` : err.message;
+      }
       break;
     }
   }

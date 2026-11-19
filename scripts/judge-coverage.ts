@@ -75,7 +75,7 @@ const md = [
   "",
   "## Not done on this branch",
   "",
-  "- **Census self-coverage (workstream D):** skipped. The service's own payTo is not in the census; adding it needs fresh Surf credits.",
+  "- **Census self-coverage (workstream D):** skipped. The service's own payTo is not in the census; adding it needs fresh Surf credits. It is reported separately instead, from Base logs with no Surf call: the `self_coverage` block of `/v1/index.json` (`scripts/self-coverage.ts`, `fixtures/self-coverage.json`).",
   "- **OpenServ marketplace (workstream C):** skipped. None of the 151 listings at `https://api.openserv.ai/x402-services` names a payee wallet (see `docs/judge-gap-baseline.md`).",
   "",
   "## Every endpoint",

@@ -2,7 +2,7 @@
 
 Post-deadline work (branch `post-deadline/coverage`). The judged entry is commit `59b4712` as of 15 Nov 23:59 UTC.
 
-Measured 2026-11-19T03:10:26Z by `npx tsx scripts/judge-coverage.ts`: this branch's server in live mode, asked `GET /v1/preview` for each of the 38 hackathon endpoints in `fixtures/judge/endpoints-38.txt`. Free route only: no payment, no model call, no Surf call. Results depend on the endpoints at that moment.
+Measured 2026-11-19T10:09:13Z by `npx tsx scripts/judge-coverage.ts`: this branch's server in live mode, asked `GET /v1/preview` for each of the 38 hackathon endpoints in `fixtures/judge/endpoints-38.txt`. Free route only: no payment, no model call, no Surf call. Results depend on the endpoints at that moment.
 
 ## Summary
 
@@ -18,7 +18,7 @@ Target: every endpoint gets a structured record. Met: 38 of 38.
 
 ## Not done on this branch
 
-- **Census self-coverage (workstream D):** skipped. The service's own payTo is not in the census; adding it needs fresh Surf credits.
+- **Census self-coverage (workstream D):** skipped. The service's own payTo is not in the census; adding it needs fresh Surf credits. It is reported separately instead, from Base logs with no Surf call: the `self_coverage` block of `/v1/index.json` (`scripts/self-coverage.ts`, `fixtures/self-coverage.json`).
 - **OpenServ marketplace (workstream C):** skipped. None of the 151 listings at `https://api.openserv.ai/x402-services` names a payee wallet (see `docs/judge-gap-baseline.md`).
 
 ## Every endpoint
@@ -54,7 +54,7 @@ Target: every endpoint gets a structured record. Met: 38 of 38.
 | https://reins-zeta.vercel.app | `UNVERIFIED_ENDPOINT` | 200 | reins-zeta.vercel.app | absent | true | probe failed: not an x402 endpoint as given: 200 at reins-zeta.vercel.app (text/html), no machine-readable payment terms |
 | https://frontend-mocha-chi-59.vercel.app/desk | `UNVERIFIED_ENDPOINT` | 200 | frontend-mocha-chi-59.vercel.app | absent | true | probe failed: not an x402 endpoint as given: 200 at frontend-mocha-chi-59.vercel.app (text/html), no machine-readable payment terms |
 | https://pawlr.vercel.app/ | `UNVERIFIED_ENDPOINT` | 200 | pawlr.vercel.app | absent | true | probe failed: not an x402 endpoint as given: 200 at pawlr.vercel.app (text/html), no machine-readable payment terms |
-| https://proofpilot-ai-xxj8.onrender.com | `UNVERIFIED_ENDPOINT` | 200 | proofpilot-ai-xxj8.onrender.com | absent | true | probe failed: not an x402 endpoint as given: 200 at proofpilot-ai-xxj8.onrender.com (text/html), no machine-readable payment terms |
+| https://proofpilot-ai-xxj8.onrender.com | `UNVERIFIED_ENDPOINT` | timeout |  |  | true | probe failed: unreachable: timeout |
 | https://quoteseal.ozc.fr | `UNVERIFIED_ENDPOINT` | 200 | quoteseal.ozc.fr | absent | true | probe failed: not an x402 endpoint as given: 200 at quoteseal.ozc.fr (text/html), no machine-readable payment terms |
 | https://devils-advocate-hazel.vercel.app | `UNVERIFIED_ENDPOINT` | 200 | devils-advocate-hazel.vercel.app | absent | true | probe failed: not an x402 endpoint as given: 200 at devils-advocate-hazel.vercel.app (text/html), no machine-readable payment terms |
 | https://hiremind-orpin.vercel.app | `UNVERIFIED_ENDPOINT` | 200 | hiremind-orpin.vercel.app | absent | true | probe failed: not an x402 endpoint as given: 200 at hiremind-orpin.vercel.app (text/html), no machine-readable payment terms |

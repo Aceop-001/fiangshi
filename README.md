@@ -1,4 +1,6 @@
 > **Post-submission work.** The judged entry is commit [`59b4712`](https://github.com/Aceop-001/fiangshi/tree/59b4712) as of 15 Nov 23:59 UTC. This branch (`post-deadline/coverage`) adds tolerant 402 parsing, explained answers for endpoints Fiangshi cannot judge, and live-by-default config; see `docs/judge-coverage.md`.
+>
+> **Known limits:** what Fiangshi does not do, measured 19 Nov: [`docs/KNOWN_LIMITS.md`](docs/KNOWN_LIMITS.md).
 
 <div align="center">
 

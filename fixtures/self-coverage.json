@@ -1,0 +1,112 @@
+{
+  "payee": "0x0FdEe24dbc6EDCa4316312C7461658F4A26e6007",
+  "chain": "eip155:8453",
+  "asset": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  "source": "base-logs",
+  "rpc": "https://base-rpc.publicnode.com",
+  "as_of": "2026-11-19T10:02:56.000Z",
+  "window_days": 72.81,
+  "window_start": "2026-09-07T14:42:29.000Z",
+  "window_limited_by": "the RPC serves no older history (archive requests need a token): 72.81 of 90 days scanned",
+  "archive_rpc": "https://mainnet.base.org",
+  "prior_nonce": 0,
+  "prior_usdc": 0,
+  "from_block": 51001401,
+  "to_block": 59461004,
+  "chunk_blocks": 50000,
+  "rpc_calls": 381,
+  "has_code": false,
+  "nonce": 12,
+  "inbound": [
+    {
+      "block": 56897474,
+      "time": "2026-11-13T11:37:50.000Z",
+      "counterparty": "0xd6145b2d3f379919e8cdeda7b97e37c4b2ca9c40",
+      "usd": 1.365995,
+      "tx": "0x98b3456beed5e85ad4541e56e27082d56aea72c3fc5649ac9c47ac17c68b46ad",
+      "log_index": 8
+    },
+    {
+      "block": 57738938,
+      "time": "2026-11-15T10:22:43.000Z",
+      "counterparty": "0xd6145b2d3f379919e8cdeda7b97e37c4b2ca9c40",
+      "usd": 1.094719,
+      "tx": "0xb2c0ce18052a9f734da7bae7f09d8914a13654caf3baad682d3a79d23421f1b5",
+      "log_index": 8
+    },
+    {
+      "block": 57761716,
+      "time": "2026-11-15T11:38:38.000Z",
+      "counterparty": "0xdcfebb90f90452b4236a086696929ad5748007cd",
+      "usd": 1.99895,
+      "tx": "0xaa5db19fc1194d61ee1f2993e69c2fc6ac5bf79d6b17d574179da5511eb8979d",
+      "log_index": 166
+    },
+    {
+      "block": 57768394,
+      "time": "2026-11-15T12:00:54.000Z",
+      "counterparty": "0x39803061119b5911f48dbadfd3740c4e361fda4f",
+      "usd": 0.084,
+      "tx": "0x8349439be4943fd97edf6d84bbe3ca6ed0507e1930383bb2dba3dc6f89d2a345",
+      "log_index": 2
+    },
+    {
+      "block": 57788828,
+      "time": "2026-11-15T13:09:01.000Z",
+      "counterparty": "0x309553056cb031b65e40b7971c78c7c9ab2db0c8",
+      "usd": 0.084,
+      "tx": "0x90771867a55bfda97e6cd6e542e0fa6a0ec9e92f0347379ac64466f20914c2ca",
+      "log_index": 47
+    },
+    {
+      "block": 57795234,
+      "time": "2026-11-15T13:30:22.000Z",
+      "counterparty": "0x2dff8fb467d8968d95d6ee6311ce9c4d9171303d",
+      "usd": 0.084,
+      "tx": "0x631dcbebacefda4b8ae641ef2b8f753d78c82728ee4242140987f3f84780155d",
+      "log_index": 24
+    }
+  ],
+  "outbound": [
+    {
+      "block": 57740078,
+      "time": "2026-11-15T10:26:31.000Z",
+      "counterparty": "0xa3aacee8cce50209491d5136a64e1893718715d0",
+      "usd": 2.09895,
+      "tx": "0x178fd79a45a5d29bfacc792d3044c1207bb74604f2ba649cec31020b91440f0f",
+      "log_index": 16
+    },
+    {
+      "block": 57740563,
+      "time": "2026-11-15T10:28:08.000Z",
+      "counterparty": "0xa3aa0f847eb200f467fccc447e3c1c81a43e15d0",
+      "usd": 0,
+      "tx": "0xa0b9cd236618ac95e919a640b55da65c4ebac983eb9e4277e423b39711d2836d",
+      "log_index": 32
+    },
+    {
+      "block": 57764611,
+      "time": "2026-11-15T11:48:17.000Z",
+      "counterparty": "0x39803061119b5911f48dbadfd3740c4e361fda4f",
+      "usd": 0.1,
+      "tx": "0x270df55a987f5a9e7b41efdf0fd36509aad63ae959561a3934f461910778cb4c",
+      "log_index": 12
+    },
+    {
+      "block": 57774311,
+      "time": "2026-11-15T12:20:37.000Z",
+      "counterparty": "0x309553056cb031b65e40b7971c78c7c9ab2db0c8",
+      "usd": 0.1,
+      "tx": "0xa53b6c821083a03fd47a857031788be41aa700985ab0fb4488977d61972d6320",
+      "log_index": 22
+    },
+    {
+      "block": 57793647,
+      "time": "2026-11-15T13:25:05.000Z",
+      "counterparty": "0x2dff8fb467d8968d95d6ee6311ce9c4d9171303d",
+      "usd": 0.1,
+      "tx": "0xb260b12934c6fe584aacbea61202d2e1dbed0007c5add5e9a02492ab1f2e3d3b",
+      "log_index": 11
+    }
+  ]
+}

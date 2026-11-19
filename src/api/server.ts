@@ -44,6 +44,7 @@ import { hashOf } from "../core/canonical.js";
 import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
+import { selfCoverageNow } from "../self-coverage.js";
 import { appendReceipt, currentEpoch, ledgerDurability, ledgerPath, readLedger, restoreFromMirror } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
@@ -323,6 +324,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         bands: c.bands,
         chain: "eip155:8453",
         payees: c.payees.map((p) => ({ chain: p.chain, payee: p.payee, url: p.url, band: p.band, issued_band: p.issued_band, band_cap: p.band_cap, verdict_confidence: p.verdict_confidence, score: p.score, vows: p.vows, as_of: p.as_of, data_age_hours: p.data_age_hours, stale: p.stale, receipt_id: p.receipt_id })),
+        // the service's own payTo, from Base logs: a separate block, never counted in payees_total or coverage
+        self_coverage: selfCoverageNow(c),
       });
     let m = /^\/v1\/badge\/(0x[0-9a-fA-F]{40})\.svg$/.exec(u.pathname);
     if (m) {

@@ -2,11 +2,24 @@
 // so the old claim that the API never does must not come back in any tracked doc.
 import { describe, it, expect } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { ROOT } from "../src/config.js";
 
-const DOCS = execFileSync("git", ["ls-files", "*.md", ".env.example"], { cwd: ROOT, encoding: "utf8" }).split(/\r?\n/).filter(Boolean);
+/** Tracked docs from git; outside a checkout (a tarball, a zip) the same set by walking the tree. */
+function docs(): string[] {
+  try {
+    return execFileSync("git", ["ls-files", "*.md", ".env.example"], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split(/\r?\n/).filter(Boolean);
+  } catch {
+    const SKIP = new Set(["node_modules", ".git", "data", "dist", "coverage"]);
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+        e.isDirectory() ? (SKIP.has(e.name) ? [] : walk(join(dir, e.name))) : e.name.endsWith(".md") || e.name === ".env.example" ? [relative(ROOT, join(dir, e.name))] : [],
+      );
+    return walk(ROOT);
+  }
+}
+const DOCS = docs();
 const STALE = [/\bAPI never calls Surf\b/i, /scripts only; the API/i, /server never calls Surf\b(?! for the census)/i];
 
 describe("doc claims match the code", () => {

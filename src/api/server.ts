@@ -288,7 +288,14 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const paid: PaidStatus = seller.ok ? { ok: true, url: `${self}/v1/check?url=${encodeURIComponent(input)}` } : { ok: false, why: "the operator has not set a receiving wallet (FIANGSHI_PAYTO), so the paid route answers 503" };
       if (!pr.ok) {
         if (pr.class === "PAYMENT_TERMS_UNPARSEABLE")
-          return json(res, 200, noVerdictAnswer(input, pr.error, paid, "PAYMENT_TERMS_UNPARSEABLE", [{ name: "http_status", value: 402 }, { name: "headers", value: pr.headers ?? {}, detail: "as the 402 sent them; cookies and credentials redacted" }]));
+          return json(res, 200, noVerdictAnswer(input, pr.error, paid, "PAYMENT_TERMS_UNPARSEABLE", [
+            { name: "http_status", value: pr.evidence?.status ?? 402 },
+            { name: "content_type", value: pr.evidence?.content_type ?? null },
+            { name: "headers", value: pr.headers ?? {}, detail: "as the 402 sent them; cookies and credentials redacted" },
+            { name: "headers_seen", value: (pr.evidence?.headers_seen ?? []).join(", ") },
+            { name: "attempts", value: (pr.evidence?.attempts ?? []).join("; "), detail: "every place the parser looked, in order" },
+            { name: "body_excerpt", value: pr.evidence?.body_excerpt ?? "", detail: "first 2 KB, credentials, keys and emails redacted" },
+          ]));
         const sig = await whyNot402(input, c);
         return json(res, 200, noVerdictAnswer(input, sig.reason ?? pr.error, paid, "UNVERIFIED_ENDPOINT", sig.signals));
       }

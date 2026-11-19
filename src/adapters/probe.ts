@@ -2,8 +2,9 @@
  * Probe: unpaid GET, parse the 402, terms_hash = sha256(canonical terms).
  * Parses x402 PaymentRequirements: v1 (`maxAmountRequired`, short network) and v2 (`amount`, CAIP-2 network),
  * from the JSON body `accepts[]`, the `payment-required` or `x-payment-required` header (base64 or raw JSON),
- * `www-authenticate`, or JSON embedded in a 402 HTML page (post-deadline, 2026-11-19). A 402 that yields no terms is
- * a structured PAYMENT_TERMS_UNPARSEABLE failure with the reason and the redacted headers, never a bare error.
+ * `www-authenticate`, JSON (or nested JSON-LD) embedded in a 402 HTML page, or an x402 `<meta>` tag (post-deadline,
+ * 2026-11-19). A 402 that yields no terms is a structured PAYMENT_TERMS_UNPARSEABLE failure carrying evidence
+ * (status, content type, headers seen, a redacted 2 KB body excerpt, every attempt), never a bare error.
  * Verified against 12 real responses recorded in fixtures/402/real (2026-11-08).
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -100,6 +101,35 @@ function fromHtml(text: unknown): unknown[] {
   return out;
 }
 
+const ENTITIES: Record<string, string> = { "&quot;": '"', "&#34;": '"', "&#39;": "'", "&apos;": "'", "&lt;": "<", "&gt;": ">", "&amp;": "&" };
+const unescapeAttr = (s: string) => s.replace(/&(?:quot|#34|#39|apos|lt|gt|amp);/g, (e) => ENTITIES[e]!);
+
+/**
+ * A 402 HTML page that carries its terms in a `<meta>` tag whose name (or property) is `x402`, `payment-required` or
+ * `x-payment-required` (the header names, nothing invented); content is (base64) JSON, HTML-escaped as attributes are.
+ */
+function fromMeta(text: unknown): unknown[] {
+  if (typeof text !== "string" || !/<meta/i.test(text)) return [];
+  const out: unknown[] = [];
+  for (const m of text.matchAll(/<meta\b[^>]*>/gi)) {
+    const attr = (n: string) => new RegExp(`\\b${n}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(m[0]);
+    const name = attr("name") ?? attr("property");
+    const key = (name?.[1] ?? name?.[2] ?? "").toLowerCase();
+    if (!["x402", "payment-required", "x-payment-required"].includes(key)) continue;
+    const content = attr("content");
+    const v = jsonValue(unescapeAttr(content?.[1] ?? content?.[2] ?? ""));
+    if (v !== undefined) out.push(v);
+  }
+  return out;
+}
+
+/** JSON-LD nests: a terms object may sit inside an Offer or under any key. Find objects with `accepts`, depth 4. */
+function nestedTerms(v: unknown, depth = 0): unknown[] {
+  if (!v || typeof v !== "object" || depth > 4) return [];
+  if (!Array.isArray(v) && "accepts" in (v as object)) return [v];
+  return Object.values(v as Record<string, unknown>).flatMap((x) => nestedTerms(x, depth + 1));
+}
+
 /** Shapes seen in the wild, normalised to { x402Version, accepts[] }: accepts as one object, or a bare requirement list. */
 function normalise(c: unknown): unknown {
   if (Array.isArray(c)) return { x402Version: 0, accepts: c };
@@ -130,11 +160,29 @@ function unparseableReason(raw: RawResponse): string {
   return `402 has no valid x402 accepts[] in body or payment-required header (body ${ct}; also looked in x-payment-required, www-authenticate and embedded JSON)`;
 }
 
+export const BODY_EXCERPT_BYTES = 2048;
+/** The body as evidence: credentials, JWTs, keys and emails replaced, cut to 2 KB on a character boundary. */
+export function redactBody(body: unknown): string {
+  const s = typeof body === "string" ? body : body === undefined || body === null ? "" : JSON.stringify(body);
+  const red = s
+    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi, "$1 [redacted]")
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g, "[redacted-jwt]")
+    .replace(/\b(sk|pk|rk)[-_](live|test)?[-_]?[A-Za-z0-9]{12,}/g, "[redacted-key]")
+    .replace(/\b0x[0-9a-fA-F]{64}\b/g, "[redacted-hex64]")
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "[redacted-email]")
+    .replace(/("(?:password|secret|token|api[_-]?key|private[_-]?key)"\s*:\s*)"[^"]*"/gi, '$1"[redacted]"');
+  const buf = Buffer.from(red, "utf8");
+  return buf.length <= BODY_EXCERPT_BYTES ? red : buf.subarray(0, BODY_EXCERPT_BYTES).toString("utf8").replace(/�+$/, "");
+}
+
+/** What an unparseable 402 actually sent, and every place the parser looked (in order, with what it found). */
+export type UnparseableEvidence = { status: number; content_type: string | null; headers_seen: string[]; body_excerpt: string; attempts: string[] };
+
 /** payTo_raw keeps the case exactly as the 402 sent it (Terms.payee is lowercased); V6 needs it for EIP-55. */
 export type ProbeFailureClass = "PAYMENT_TERMS_UNPARSEABLE" | "NOT_402" | "UNREACHABLE";
 export type ProbeResult =
   | { ok: true; terms: Terms; raw: RawResponse; payTo_raw: string }
-  | { ok: false; error: string; raw: RawResponse | null; class?: ProbeFailureClass; headers?: Record<string, string> };
+  | { ok: false; error: string; raw: RawResponse | null; class?: ProbeFailureClass; headers?: Record<string, string>; evidence?: UnparseableEvidence };
 
 export function priceUsd(network: string, asset: string, atomic: string): number | null {
   const a = ASSETS[`${network}:${asset.toLowerCase()}`];
@@ -159,19 +207,41 @@ export function parse402(raw: RawResponse): ProbeResult {
   // Body first (v1 and many v2 servers), then the v2 `payment-required` header (base64 or raw JSON), then the forms
   // other servers use: `x-payment-required`, `www-authenticate`, and JSON embedded in a 402 HTML page.
   let req: Req | null = null;
-  const candidates = [
-    body,
-    jsonValue(header(raw.headers, "payment-required")),
-    jsonValue(header(raw.headers, "x-payment-required")),
-    fromWwwAuthenticate(header(raw.headers, "www-authenticate")),
-    ...fromHtml(raw.body),
+  const attempts: string[] = [];
+  const html = fromHtml(raw.body);
+  const sources: [string, () => unknown[], string][] = [
+    ["body", () => (body === undefined ? [] : [body]), typeof raw.body === "string" && raw.body.length ? "not JSON" : "empty"],
+    ["payment-required", () => [jsonValue(header(raw.headers, "payment-required"))].filter((x) => x !== undefined), header(raw.headers, "payment-required") ? "not JSON" : "absent"],
+    ["x-payment-required", () => [jsonValue(header(raw.headers, "x-payment-required"))].filter((x) => x !== undefined), header(raw.headers, "x-payment-required") ? "not JSON" : "absent"],
+    ["www-authenticate", () => [fromWwwAuthenticate(header(raw.headers, "www-authenticate"))].filter((x) => x !== undefined), header(raw.headers, "www-authenticate") ? "no terms in token68 or params" : "absent"],
+    ["html <script> json", () => html, "no JSON script block"],
+    ["json-ld nested", () => html.flatMap((h) => nestedTerms(h)).filter((h) => !html.includes(h)), "no nested accepts"],
+    ["<meta>", () => fromMeta(raw.body), "no x402 meta tag with JSON content"],
   ];
-  for (const candidate of candidates) {
-    const parsed = Body402.safeParse(normalise(candidate));
-    if (parsed.success) req = pickRequirement(parsed.data.accepts);
+  for (const [name, get, none] of sources) {
+    const found = get();
+    if (!found.length) {
+      attempts.push(`${name}: ${none}`);
+      continue;
+    }
+    for (const candidate of found) {
+      const parsed = Body402.safeParse(normalise(candidate));
+      if (parsed.success) req = pickRequirement(parsed.data.accepts);
+      if (req) break;
+    }
     if (req) break;
+    attempts.push(`${name}: JSON without a valid x402 requirement`);
   }
-  if (!req) return { ok: false, error: unparseableReason(raw), raw, class: "PAYMENT_TERMS_UNPARSEABLE", headers: redactHeaders(raw.headers) };
+  if (!req) {
+    const evidence: UnparseableEvidence = {
+      status: raw.status,
+      content_type: header(raw.headers, "content-type") ?? null,
+      headers_seen: Object.keys(raw.headers).map((k) => k.toLowerCase()).sort(),
+      body_excerpt: redactBody(raw.body),
+      attempts,
+    };
+    return { ok: false, error: unparseableReason(raw), raw, class: "PAYMENT_TERMS_UNPARSEABLE", headers: redactHeaders(raw.headers), evidence };
+  }
   const network = normalizeNetwork(req.network);
   const base = {
     url: raw.url,

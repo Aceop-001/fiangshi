@@ -1,7 +1,9 @@
 /**
  * Probe: unpaid GET, parse the 402, terms_hash = sha256(canonical terms).
  * Parses x402 PaymentRequirements: v1 (`maxAmountRequired`, short network) and v2 (`amount`, CAIP-2 network),
- * from the JSON body `accepts[]` or, for v2, the base64 `payment-required` header.
+ * from the JSON body `accepts[]`, the `payment-required` or `x-payment-required` header (base64 or raw JSON),
+ * `www-authenticate`, or JSON embedded in a 402 HTML page (post-deadline, 2026-11-19). A 402 that yields no terms is
+ * a structured PAYMENT_TERMS_UNPARSEABLE failure with the reason and the redacted headers, never a bare error.
  * Verified against 12 real responses recorded in fixtures/402/real (2026-11-08).
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -48,19 +50,91 @@ export function pickRequirement(accepts: unknown[]): Req | null {
   return valid.find((r) => r.scheme === "exact" && known(r)) ?? valid.find((r) => r.scheme === "exact") ?? valid[0] ?? null;
 }
 
-/** v2 servers send requirements base64-encoded in the `payment-required` header (body may be empty). */
-function fromHeader(headers: Record<string, string>): unknown {
-  const h = Object.entries(headers).find(([k]) => k.toLowerCase() === "payment-required")?.[1];
-  if (!h) return undefined;
-  try {
-    return JSON.parse(Buffer.from(h, "base64").toString("utf8"));
-  } catch {
-    return undefined;
+const header = (headers: Record<string, string>, name: string) => Object.entries(headers).find(([k]) => k.toLowerCase() === name)?.[1];
+
+/** A header value that is JSON, either raw or base64-encoded (servers do both). */
+function jsonValue(v: string | undefined): unknown {
+  if (!v) return undefined;
+  const t = v.trim();
+  for (const s of [t, (() => { try { return Buffer.from(t, "base64").toString("utf8"); } catch { return ""; } })()]) {
+    if (!s || !/^[[{]/.test(s.trim())) continue;
+    try {
+      return JSON.parse(s);
+    } catch {
+      /* next form */
+    }
   }
+  return undefined;
+}
+
+/**
+ * `WWW-Authenticate` carrying terms. Two forms are read: a token68 that is (base64) JSON with `accepts[]`, and
+ * auth-params naming the requirement fields themselves (payTo, amount or maxAmountRequired, network, asset). Field
+ * names are the x402 PaymentRequirements names; nothing else is guessed.
+ */
+function fromWwwAuthenticate(v: string | undefined): unknown {
+  if (!v) return undefined;
+  const m = /^\s*[A-Za-z0-9_-]+\s+(.*)$/s.exec(v);
+  const rest = (m?.[1] ?? v).trim();
+  const token = jsonValue(rest);
+  if (token) return token;
+  const params: Record<string, string> = {};
+  for (const p of rest.matchAll(/([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"([^"]*)"|([^\s,]+))/g)) params[p[1]!] = p[2] ?? p[3] ?? "";
+  for (const k of ["accepts", "payment_required", "paymentRequired"]) if (params[k]) return jsonValue(params[k]);
+  if (params.payTo && (params.amount || params.maxAmountRequired) && params.network && params.asset)
+    return { x402Version: Number(params.x402Version) || 0, accepts: [{ scheme: params.scheme || "exact", network: params.network, amount: params.amount, maxAmountRequired: params.maxAmountRequired, payTo: params.payTo, asset: params.asset }] };
+  return undefined;
+}
+
+/** A 402 HTML page that embeds its terms in `<script type="application/json">` blocks. */
+function fromHtml(text: unknown): unknown[] {
+  if (typeof text !== "string" || !/<script/i.test(text)) return [];
+  const out: unknown[] = [];
+  for (const m of text.matchAll(/<script[^>]*type\s*=\s*["']application\/(?:ld\+)?json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      out.push(JSON.parse(m[1]!));
+    } catch {
+      /* not JSON */
+    }
+  }
+  return out;
+}
+
+/** Shapes seen in the wild, normalised to { x402Version, accepts[] }: accepts as one object, or a bare requirement list. */
+function normalise(c: unknown): unknown {
+  if (Array.isArray(c)) return { x402Version: 0, accepts: c };
+  if (c && typeof c === "object") {
+    const o = c as Record<string, unknown>;
+    if (o.accepts && !Array.isArray(o.accepts) && typeof o.accepts === "object") return { ...o, x402Version: typeof o.x402Version === "number" ? o.x402Version : 0, accepts: [o.accepts] };
+    if (Array.isArray(o.accepts) && typeof o.x402Version !== "number") return { ...o, x402Version: 0 };
+  }
+  return c;
+}
+
+/** Headers kept on an unparseable record: everything that could say who is behind it, never cookies or credentials. */
+export function redactHeaders(h: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(h)) {
+    const key = k.toLowerCase();
+    if (/^(set-cookie|cookie|authorization|proxy-authorization)$/.test(key) || /token|secret|session/.test(key)) out[key] = "[redacted]";
+    else out[key] = v.length > 300 ? `${v.slice(0, 300)}…` : v;
+  }
+  return out;
+}
+
+/** Why a 402 had no usable terms, said plainly. A hosting platform's own 402 is not a payment offer. */
+function unparseableReason(raw: RawResponse): string {
+  const vercel = header(raw.headers, "x-vercel-error");
+  if (vercel) return `host-level 402 from Vercel (${vercel}): the hosting platform is refusing the deployment; this is not an x402 offer`;
+  const ct = header(raw.headers, "content-type") ?? "no content-type";
+  return `402 has no valid x402 accepts[] in body or payment-required header (body ${ct}; also looked in x-payment-required, www-authenticate and embedded JSON)`;
 }
 
 /** payTo_raw keeps the case exactly as the 402 sent it (Terms.payee is lowercased); V6 needs it for EIP-55. */
-export type ProbeResult = { ok: true; terms: Terms; raw: RawResponse; payTo_raw: string } | { ok: false; error: string; raw: RawResponse | null };
+export type ProbeFailureClass = "PAYMENT_TERMS_UNPARSEABLE" | "NOT_402" | "UNREACHABLE";
+export type ProbeResult =
+  | { ok: true; terms: Terms; raw: RawResponse; payTo_raw: string }
+  | { ok: false; error: string; raw: RawResponse | null; class?: ProbeFailureClass; headers?: Record<string, string> };
 
 export function priceUsd(network: string, asset: string, atomic: string): number | null {
   const a = ASSETS[`${network}:${asset.toLowerCase()}`];
@@ -73,7 +147,7 @@ export function termsHash(t: Omit<Terms, "terms_hash">): string {
 }
 
 export function parse402(raw: RawResponse): ProbeResult {
-  if (raw.status !== 402) return { ok: false, error: `status ${raw.status}, expected 402`, raw };
+  if (raw.status !== 402) return { ok: false, error: `status ${raw.status}, expected 402`, raw, class: "NOT_402" };
   let body = raw.body;
   if (typeof body === "string") {
     try {
@@ -82,14 +156,22 @@ export function parse402(raw: RawResponse): ProbeResult {
       body = undefined;
     }
   }
-  // Body first (v1 and many v2 servers), then the v2 `payment-required` header.
+  // Body first (v1 and many v2 servers), then the v2 `payment-required` header (base64 or raw JSON), then the forms
+  // other servers use: `x-payment-required`, `www-authenticate`, and JSON embedded in a 402 HTML page.
   let req: Req | null = null;
-  for (const candidate of [body, fromHeader(raw.headers)]) {
-    const parsed = Body402.safeParse(candidate);
+  const candidates = [
+    body,
+    jsonValue(header(raw.headers, "payment-required")),
+    jsonValue(header(raw.headers, "x-payment-required")),
+    fromWwwAuthenticate(header(raw.headers, "www-authenticate")),
+    ...fromHtml(raw.body),
+  ];
+  for (const candidate of candidates) {
+    const parsed = Body402.safeParse(normalise(candidate));
     if (parsed.success) req = pickRequirement(parsed.data.accepts);
     if (req) break;
   }
-  if (!req) return { ok: false, error: "402 has no valid x402 accepts[] in body or payment-required header", raw };
+  if (!req) return { ok: false, error: unparseableReason(raw), raw, class: "PAYMENT_TERMS_UNPARSEABLE", headers: redactHeaders(raw.headers) };
   const network = normalizeNetwork(req.network);
   const base = {
     url: raw.url,
@@ -132,6 +214,6 @@ export async function probe(url: string): Promise<ProbeResult> {
   try {
     return parse402(await fetchUnpaid(url));
   } catch (e) {
-    return { ok: false, error: (e as Error).message, raw: null };
+    return { ok: false, error: (e as Error).message, raw: null, class: "UNREACHABLE" };
   }
 }

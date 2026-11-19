@@ -11,6 +11,7 @@ import { diffE } from "../src/policy.js";
 import { buildSnapshot } from "../src/snapshot.js";
 
 import { ROOT } from "../src/config.js";
+process.env.FIANGSHI_ALLOW_FIXTURE = "1";
 process.env.SNAPSHOT_SOURCE = "fixture";
 
 const { snapshot } = await buildSnapshot();

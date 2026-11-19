@@ -12,6 +12,7 @@ import { ROOT } from "../src/config.js";
 
 const TMP = mkdtempSync(join(tmpdir(), "fiangshi-accept-"));
 Object.assign(process.env, {
+  FIANGSHI_ALLOW_FIXTURE: "1", // fixtures are opt-in (live by default since 2026-11-19)
   FIANGSHI_OFFLINE: "1",
   SNAPSHOT_SOURCE: "fixture",
   MOCK_MODELS: "good",

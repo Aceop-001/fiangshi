@@ -81,6 +81,7 @@ async function startServer(): Promise<ChildProcess> {
     : {
         ...SHELL_ENV,
         ...common,
+        FIANGSHI_ALLOW_FIXTURE: "1",
         FIANGSHI_REPLAY: "1",
         FIANGSHI_OFFLINE: "1",
         FIANGSHI_NOW: process.env.FIANGSHI_NOW ?? FIXTURE_TIME, // fixture mode replays a recorded moment
@@ -236,5 +237,5 @@ if (LIVE && pass === 10 && warmP50 !== null) {
   writeFileSync(join(ROOT, "artifacts", "demo-stats.json"), JSON.stringify(stats, null, 2) + "\n");
   console.log("wrote artifacts/demo-stats.json");
 }
-console.log(`\nTry it yourself (npm run dev serves http://127.0.0.1:8787; fixture mode with the default .env):\n  npm run dev\n  curl "http://127.0.0.1:8787/v1/check?url=${encodeURIComponent(CLEAVE)}"`);
+console.log(`\nTry it yourself (npm run dev serves http://127.0.0.1:8787; live by default; FIANGSHI_ALLOW_FIXTURE=1 FIANGSHI_REPLAY=1 for fixture mode):\n  npm run dev\n  curl "http://127.0.0.1:8787/v1/check?url=${encodeURIComponent(CLEAVE)}"`);
 process.exit(pass === 10 ? 0 : 1);

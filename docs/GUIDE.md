@@ -56,6 +56,7 @@ Fiangshi makes one unpaid request to the endpoint, reads the payment terms from 
 ```json check-block
 {
   "mode": "live",
+  "provenance": "live",
   "band": "BLOCK",
   "vow_fired": "null_payee",
   "vows_fired": ["null_payee"],
@@ -93,6 +94,7 @@ Fiangshi makes one unpaid request to the endpoint, reads the payment terms from 
 ```json check-402
 {
   "mode": "live",
+  "provenance": "live",
   "x402Version": 2,
   "error": "X-PAYMENT header is required",
   "resource": {
@@ -172,6 +174,7 @@ The verdict (evidence list shortened here):
 ```json check-paid
 {
   "mode": "live",
+  "provenance": "live",
   "band": "ALLOW",
   "band_cap": null,
   "verdict_confidence": "normal",
@@ -260,6 +263,7 @@ curl "http://127.0.0.1:8787/v1/verify?id=b4175805765067e81538ed8367d6edbc23ae3c2
 ```json verify
 {
   "mode": "live",
+  "provenance": "live",
   "id": "b4175805765067e81538ed8367d6edbc23ae3c2f7fba53fa5e83ebe3f8aea504",
   "valid": true,
   "source": "id",
@@ -385,6 +389,6 @@ npm run localhost-check
 npm run dev
 ```
 
-All of this works with no keys. By default the server runs in fixture mode: recorded 402s and recorded model replies are replayed through the real parser, vows and receipt chain, and every response says `"mode": "fixture"`. For live providers, add `SERV_REASONING_API_KEY` to `.env`, set `FIANGSHI_REPLAY=0`, `FIANGSHI_OFFLINE=0` and `MOCK_MODELS=`, and run `npm run localhost-check -- --live`.
+By default the server runs live: it probes real endpoints, and a paid check calls SERV when `SERV_REASONING_API_KEY` is set (without a key, the model step fails closed to REVIEW). Every response says `"mode"` and `"provenance"`. To demo with no keys and no network, opt in to fixture mode with `FIANGSHI_ALLOW_FIXTURE=1` and `FIANGSHI_REPLAY=1`: recorded 402s and model replies are replayed through the real parser, vows and receipt chain, and every response says `"provenance": "fixture"`. `npm run localhost-check` does this for you; `-- --live` runs it against real providers.
 
 Before running an instance for other people, set `FIANGSHI_PAYTO` (your own wallet) and `FIANGSHI_CONTACT` (how sellers and users can reach you). See [Legal](LEGAL.md).

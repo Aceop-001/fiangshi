@@ -151,7 +151,8 @@ curl "http://127.0.0.1:8787/v1/check?url=https%3A%2F%2Fapi.cleave.fi%2Fx402%2Fga
 ```
 
 Everything above needs **no keys** and touches no network beyond 127.0.0.1:
-- `npm test` and `npm run accept` run on committed fixtures under a no-network preload.
+- `npm run dev` is live by default. Fixtures are opt-in: `FIANGSHI_ALLOW_FIXTURE=1` is required before any fixture or mock setting is honoured, and every JSON response says `provenance: "live"` or `"fixture"`.
+- `npm test` and `npm run accept` run on committed fixtures under a no-network preload (they opt in themselves).
 - `npm run localhost-check` defaults to **fixture mode**. Recorded 402s (`fixtures/402/real`) and recorded SERV and Dolphin replies (`fixtures/recorded`, made by `npx tsx scripts/record-replay.ts`) are replayed through the real parser, vows and receipt chain. The server runs under the no-network preload, and every response is marked `mode: "fixture"`. A missing recording fails closed; it never falls back to the network.
 - `npm run localhost-check -- --live` uses real providers and needs `SERV_REASONING_API_KEY` in `.env`.
 - `npm run build && npm start` serves the compiled app on `0.0.0.0:$PORT` for production. `npm run export` builds the static edition published at fiangshi.xyz.

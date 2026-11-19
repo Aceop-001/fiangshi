@@ -25,11 +25,27 @@ export const num = (k: string, d: number): number => {
   return Number.isFinite(v) && process.env[k] !== "" && process.env[k] !== undefined ? v : d;
 };
 
-export const isOffline = () => env("FIANGSHI_OFFLINE") === "1";
-/** An npm install has no fixtures/ (the package ships dist only): there the defaults are live, in the repo they stay fixture. */
+/**
+ * Live by default (post-deadline, 2026-11-19). Recorded or mocked providers are honoured only with an explicit
+ * FIANGSHI_ALLOW_FIXTURE=1, so a fresh clone (or a copied .env) can never demo from recorded bytes by accident.
+ * Tests and the accept gate opt in; the offline path itself is unchanged.
+ */
+export const fixtureAllowed = () => env("FIANGSHI_ALLOW_FIXTURE") === "1";
+/** Fixture settings present in the environment but ignored because FIANGSHI_ALLOW_FIXTURE is not 1. */
+export const fixtureIgnored = (): string[] =>
+  fixtureAllowed()
+    ? []
+    : [
+        env("FIANGSHI_OFFLINE") === "1" ? "FIANGSHI_OFFLINE=1" : "",
+        env("FIANGSHI_REPLAY") === "1" ? "FIANGSHI_REPLAY=1" : "",
+        env("SNAPSHOT_SOURCE") === "fixture" ? "SNAPSHOT_SOURCE=fixture" : "",
+        env("MOCK_MODELS") ? `MOCK_MODELS=${env("MOCK_MODELS")}` : "",
+      ].filter(Boolean);
+export const isOffline = () => fixtureAllowed() && env("FIANGSHI_OFFLINE") === "1";
+/** An npm install has no fixtures/ (the package ships dist only). */
 export const packaged = () => !existsSync(resolve(ROOT, "fixtures"));
-export const snapshotSource = (): "fixture" | "live" => (env("SNAPSHOT_SOURCE", packaged() ? "live" : "fixture") === "live" ? "live" : "fixture");
-export const mockModels = () => env("MOCK_MODELS");
+export const snapshotSource = (): "fixture" | "live" => (fixtureAllowed() && env("SNAPSHOT_SOURCE") === "fixture" ? "fixture" : "live");
+export const mockModels = () => (fixtureAllowed() ? env("MOCK_MODELS") : "");
 
 export const dataDir = () => resolve(ROOT, env("FIANGSHI_DATA_DIR", "data"));
 export const artifactsDir = () => resolve(ROOT, env("FIANGSHI_ARTIFACTS_DIR", "artifacts"));
@@ -39,10 +55,9 @@ export const fixturesDir = () => resolve(ROOT, "fixtures");
  * responses (fixtures/recorded/{serv,dolphin}) through the real validators, vows and receipt chain. A missing recording
  * fails closed exactly like a provider failure; nothing ever falls through to the network.
  */
-export const replayMode = () => env("FIANGSHI_REPLAY") === "1";
+export const replayMode = () => fixtureAllowed() && env("FIANGSHI_REPLAY") === "1";
 export const replayDir = () => resolve(fixturesDir(), "recorded");
-export const providerMode = (): "fixture" | "mock" | "live" =>
-  replayMode() ? "fixture" : env("FIANGSHI_OFFLINE") === "1" || env("MOCK_MODELS") !== "" ? "mock" : "live";
+export const providerMode = (): "fixture" | "mock" | "live" => (replayMode() ? "fixture" : isOffline() || mockModels() !== "" ? "mock" : "live");
 export const policyTtlHours = () => num("FIANGSHI_POLICY_TTL_HOURS", 72);
 /** Records older than this are capped at REVIEW (band cap, not a vow). */
 export const staleHours = () => num("FIANGSHI_STALE_HOURS", 72);

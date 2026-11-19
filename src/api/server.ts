@@ -20,7 +20,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { pathToFileURL } from "node:url";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
+import { ROOT, fixtureIgnored, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
 import { legacyCensus, loadCensus, loadDemoStats, type Census } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderJudges, renderNotFound, renderReceipt } from "../site.js";
 import { COPY_SCRIPT_CSP, CSP, setPagePath } from "../site-theme.js";
@@ -70,9 +70,11 @@ async function whyNot402(url: string, c: Census): Promise<{ signals: Signal[]; r
 }
 
 /** Every JSON response says which providers produced it: "fixture" (recorded replies replayed) or "live". */
+const provenance = () => (providerMode() === "live" ? "live" : "fixture");
 const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) => {
   res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-fiangshi-mode": providerMode(), ...headers });
-  const out = body && typeof body === "object" && !Array.isArray(body) ? { mode: providerMode(), ...(body as object) } : body;
+  // mode: fixture | mock | live (unchanged); provenance (post-deadline): live, or fixture for anything recorded or mocked
+  const out = body && typeof body === "object" && !Array.isArray(body) ? { mode: providerMode(), provenance: provenance(), ...(body as object) } : body;
   res.end(JSON.stringify(out, null, 2));
 };
 
@@ -437,6 +439,9 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
 }
 
 export function startServer(port = num("PORT", 8787), host = process.env.HOST ?? "127.0.0.1") {
+  const ignored = fixtureIgnored();
+  if (ignored.length) process.stderr.write(`WARNING: ${ignored.join(", ")} ignored: fixtures need FIANGSHI_ALLOW_FIXTURE=1. Serving LIVE.
+`);
   if (process.env.FIANGSHI_REPLAY === "1") process.env.FIANGSHI_OFFLINE = "1"; // fixture mode: recorded 402s, never the network
   if (process.env.FIANGSHI_OFFLINE !== "1") process.env.SNAPSHOT_SOURCE = "live"; // probe live endpoints
   process.env.MOCK_MODELS ??= "";

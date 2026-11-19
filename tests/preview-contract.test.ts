@@ -30,7 +30,7 @@ const TERMS: Terms = { price_usd: 0.01, network: "base", asset: "0x833589fcd6edb
 const SORTED = [...PREVIEW_KEYS].sort();
 
 function shapeOk(a: PreviewAnswer | Record<string, unknown>, label: string) {
-  const { mode: _mode, ...rest } = a as Record<string, unknown>;
+  const { mode: _mode, provenance: _provenance, ...rest } = a as Record<string, unknown>;
   expect(Object.keys(rest).sort(), label).toEqual(SORTED);
   expect(Array.isArray(rest.vows_fired), `${label} vows_fired`).toBe(true);
   expect(typeof rest.cost_usd, `${label} cost_usd`).toBe("number");

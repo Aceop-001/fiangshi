@@ -7,6 +7,7 @@ import { referenceTime } from "../src/reference-time.js";
 // Pin the clock to the committed reference time (fixtures/audit/numbers-as-of.json), shortly after the census, so its
 // records are fresh and results never depend on today's date. Tests about staleness set their own time explicitly.
 process.env.FIANGSHI_NOW = referenceTime();
+process.env.FIANGSHI_ALLOW_FIXTURE = "1"; // fixtures are opt-in (live by default since 2026-11-19)
 process.env.FIANGSHI_OFFLINE = "1";
 process.env.SNAPSHOT_SOURCE = "fixture";
 process.env.MOCK_MODELS = "good";

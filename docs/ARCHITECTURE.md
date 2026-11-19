@@ -166,6 +166,7 @@ There is no database server. There are no accounts and no user records.
 | `DOLPHIN_API_KEY`, `DOLPHIN_BASE_URL`, `DOLPHIN_MODEL` | Dolphin access |
 | `SURF_API_KEY`, `SURF_BIN` | Surf CLI (scripts and cold checks) |
 | `FIANGSHI_PAYTO` | your Base wallet for payments to the paid routes; paid routes are off without it |
+| `FIANGSHI_ALLOW_FIXTURE=1` | required for any fixture or mock setting below; without it they are ignored and the server runs live |
 | `FIANGSHI_REPLAY=1` | fixture mode: recorded replies through the real code, no keys, no network |
 | `FIANGSHI_OFFLINE`, `MOCK_MODELS` | mock models for tests |
 | `FIANGSHI_URL` | where the MCP server finds the HTTP server (default `http://127.0.0.1:8787`) |

@@ -34,6 +34,7 @@ async function start(port: number, dataDir: string, useDist: boolean): Promise<C
     ...process.env,
     PORT: String(port),
     HOST: "127.0.0.1",
+    FIANGSHI_ALLOW_FIXTURE: "1",
     FIANGSHI_REPLAY: "1",
     FIANGSHI_OFFLINE: "1",
     FIANGSHI_NOW: FIXTURE_TIME,

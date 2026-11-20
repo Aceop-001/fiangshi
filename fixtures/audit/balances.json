@@ -54,5 +54,19 @@
   "billed_refusals": 0,
   "payees_collected": 1922,
   "baseline": "artifacts/index-2026-11-13.json (live /v1/index.json, sha256 fe6539afe9a0e1f4209ea6cc0cb5dac8dd738e61b0026170fc934887e5bd19da)"
+ },
+ "refresh_r4": {
+  "start": 888,
+  "after_payees": 424,
+  "after_labels": 404,
+  "cap": 560,
+  "floor": 328,
+  "at": "2026-11-20T03:29:55Z",
+  "note": "third refresh (sample-census-r4), labels seeded from the r3 checkpoint; readings from surf me-credits before the run, after the payee pass (data/census-r4.log) and after --finish. 150 payees refused at the 25 s per-call limit were retried in groups of 12 at 40 s (excluded_first_pass in the checkpoint)",
+  "payee_sql_calls": 102,
+  "label_calls": 5,
+  "billed_refusals": 13,
+  "payees_collected": 1922,
+  "baseline": "artifacts/index-2026-11-17.json (live /v1/index.json, sha256 567876176f01bf409c6dafdb0bad5f870bf3cbbc5119db45669ed4f889f09bce)"
  }
 }

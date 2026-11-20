@@ -679,7 +679,8 @@ export function auditReport(inp: ReportInputs): string {
   const credits = cp.calls.filter((c) => !reask(c as { at?: string })).reduce((a, c) => a + (c.credits ?? 0), 0);
   // the 13 Nov refresh (its checkpoint reused 9 Nov labels) has its own balance readings; the 9 Nov census keeps its own
   const balances = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
-  const rb = (cp as { sample?: string }).sample === "sample-census-r3.json" ? balances.refresh_r3 : balances.refresh;
+  const cpSample = (cp as { sample?: string }).sample;
+  const rb = cpSample === "sample-census-r4.json" ? balances.refresh_r4 : cpSample === "sample-census-r3.json" ? balances.refresh_r3 : balances.refresh;
   const refresh = (cp as { labels_reused_from?: unknown }).labels_reused_from && rb;
   const bal = (refresh ? { census_start: rb.start, labels_stopped: rb.after_labels } : balances.census) as { census_start: number; labels_stopped: number };
   const billed = bal.census_start - bal.labels_stopped;

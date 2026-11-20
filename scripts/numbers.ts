@@ -9,7 +9,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, dataDir } from "../src/config.js";
-import { CENSUS_R3_SAMPLE, CENSUS_V4_SAMPLE, currentRefreshSample, legacyCensus, loadCensus, loadDemoStats } from "../src/census.js";
+import { CENSUS_R3_SAMPLE, CENSUS_R4_SAMPLE, CENSUS_V4_SAMPLE, currentRefreshSample, legacyCensus, loadCensus, loadDemoStats } from "../src/census.js";
 import { checkpointPath } from "./audit.js";
 import { evaluateVows, KINSHIP_REVIEW_AT } from "../src/core/vows.js";
 import { pinReferenceTime } from "../src/reference-time.js";
@@ -21,7 +21,7 @@ export function computeNumbers() {
   const reference = pinReferenceTime();
   const c = loadCensus();
   const bal = JSON.parse(readFileSync(join(ROOT, "fixtures", "audit", "balances.json"), "utf8"));
-  // the census being served: the newest complete refresh (17 Nov r3, else 13 Nov r2), else the 9 Nov census
+  // the census being served: the newest complete refresh (20 Nov r4, 17 Nov r3, else 13 Nov r2), else the 9 Nov census
   const refreshSample = currentRefreshSample(90);
   const refreshed = refreshSample !== null;
   const cp = JSON.parse(readFileSync(checkpointPath(refreshSample ?? CENSUS_V4_SAMPLE, 90), "utf8")) as { labels: { address: string; entity_name?: string | null; entity_type?: string | null }[]; labels_done: string[] };
@@ -36,7 +36,7 @@ export function computeNumbers() {
   }
   const v4Billed = bal.census.census_start - bal.census.labels_stopped;
   // billed by balance: the refresh being served has its own readings in fixtures/audit/balances.json
-  const rb = refreshSample === CENSUS_R3_SAMPLE ? bal.refresh_r3 : bal.refresh;
+  const rb = refreshSample === CENSUS_R4_SAMPLE ? bal.refresh_r4 : refreshSample === CENSUS_R3_SAMPLE ? bal.refresh_r3 : bal.refresh;
   const censusBilled = refreshed ? rb.start - rb.after_labels : v4Billed;
   const v4 = legacyCensus();
   const v4Bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<"ALLOW" | "REVIEW" | "BLOCK", number>;
@@ -94,8 +94,8 @@ export function checkDocs(n: Numbers): string[] {
       // a dated archive (e.g. artifacts/refresh-2026-11-13.md) records an earlier census as it was: history throughout
       if (/-\d{4}-\d{2}-\d{2}\.md$/.test(name)) return;
       // an earlier census's figure is allowed only where the line says which census it is (9 Nov v4, or the 13 Nov
-      // refresh), or in a dated build-log entry: those lines are history, not claims about today's census
-      const historic = /9 Nov|2026-11-09|13 Nov|2026-11-13T|v4|policy 2026-11-09\.4|first census/.test(line) || /^- \*\*2026-11-\d\d /.test(line);
+      // refresh, the 17 Nov refresh), or in a dated build-log entry: those lines are history, not claims about today's census
+      const historic = /9 Nov|2026-11-09|13 Nov|2026-11-13T|17 Nov|2026-11-17T|v4|policy 2026-11-09\.4|first census/.test(line) || /^- \*\*2026-11-\d\d /.test(line);
       if (historic) return;
       for (const m of line.matchAll(triple)) {
         const [a, b, c] = [int(m[1]!), int(m[2]!), int(m[3]!)];

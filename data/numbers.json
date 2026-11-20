@@ -4,40 +4,40 @@
     "payees": 1923,
     "catalog_payees": 1923,
     "window_days": 90,
-    "census_at": "2026-11-17T02:52:15.885Z"
+    "census_at": "2026-11-20T03:52:38.824Z"
   },
   "policy_version": "2026-11-13.5",
-  "reference_time": "2026-11-17T04:00:00.000Z",
+  "reference_time": "2026-11-20T04:00:00.000Z",
   "bands": {
-    "ALLOW": 160,
-    "REVIEW": 1227,
-    "BLOCK": 536
+    "ALLOW": 159,
+    "REVIEW": 1243,
+    "BLOCK": 521
   },
   "issued_bands": {
-    "ALLOW": 160,
-    "REVIEW": 1227,
-    "BLOCK": 536
+    "ALLOW": 159,
+    "REVIEW": 1243,
+    "BLOCK": 521
   },
   "freshness": {
     "stale_limit_hours": 72,
     "payees_stale": 1,
     "oldest_as_of": "2026-11-09T02:57:19.701Z",
-    "newest_as_of": "2026-11-17T02:52:15.885Z",
+    "newest_as_of": "2026-11-20T03:52:38.824Z",
     "allow_capped": 0
   },
   "kinship": {
-    "block": 290,
-    "review": 414,
+    "block": 296,
+    "review": 462,
     "review_at_fanout": 21,
-    "firing_funders": 49
+    "firing_funders": 51
   },
   "verdictable": {
-    "payees": 1873,
-    "pct": 97.4
+    "payees": 1876,
+    "pct": 97.6
   },
   "credits": {
-    "census_billed": 540,
-    "census_cost_per_payee_usd": 0.00168,
+    "census_billed": 484,
+    "census_cost_per_payee_usd": 0.00151,
     "final_pass_billed": 12,
     "balance_after_final_pass": 1048,
     "credit_usd": 0.006
@@ -49,9 +49,9 @@
     "cold_repeat_ms": 237
   },
   "labels": {
-    "queried": 3011,
-    "any_row": 160,
-    "named": 78
+    "queried": 3108,
+    "any_row": 171,
+    "named": 82
   },
   "census_v4": {
     "payees": 800,

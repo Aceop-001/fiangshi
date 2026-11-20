@@ -23,6 +23,8 @@ const rows = [...guide.matchAll(/^\| \[[^\]]+\]\(\/check\?url=([^)]+)\) \| ([^|]
 
 const BITREFILL = "https://api.bitrefill.com/x402/gift-cards/search";
 const QUAKES = "https://earthquakes.use.x402atlas.com/recent";
+const COINGECKO = "https://pro-api.coingecko.com/api/v3/x402/onchain/search/pools";
+const TWIT = "https://x402.twit.sh/tweets/search";
 const SUSPECT = "https://x402.professorsausages.com/gas-oracle/prices";
 const NANSEN = "https://api.nansen.ai/api/v1/profiler/address/current-balance";
 const TBS = "https://x402.tbs-digital.com/weather/current";
@@ -34,41 +36,45 @@ describe("guide examples are true", () => {
   it("every census example shows the band the census gives it (issued band, before the freshness cap)", () => {
     for (const r of rows.filter((x) => !x.url.includes("cleave"))) expect(byUrl(r.url)?.issued_band, r.url).toBe(r.answer);
   });
-  it("ALLOW examples fire no rule; Bitrefill: 3,508 payers, name confirmed by host and label, a top score; TBS 394 (host and path); Nansen 467 (host)", () => {
+  it("ALLOW examples fire no rule; Bitrefill: 4,662 payers, name confirmed by host and label, a top score; twit.sh 326 (no claim); Nansen 490 (host)", () => {
     for (const r of rows.filter((x) => x.answer === "ALLOW")) expect(byUrl(r.url)!.vows, r.url).toEqual([]);
     const b = byUrl(BITREFILL)!;
-    expect(c.signals.get(b.payee)!.distinct_payers).toBe(3508);
+    expect(c.signals.get(b.payee)!.distinct_payers).toBe(4662);
     expect(b.identity.sources).toEqual(expect.arrayContaining(["host", "label"]));
     expect(c.payees.filter((p) => p.score > b.score).length).toBeLessThan(20);
-    const t = byUrl(TBS)!;
-    expect(c.signals.get(t.payee)!.distinct_payers).toBe(394);
-    expect(t.identity.sources).toEqual(expect.arrayContaining(["host", "path"]));
+    const t = byUrl(TWIT)!;
+    expect(c.signals.get(t.payee)!.distinct_payers).toBe(326);
+    expect(t.identity.claims_org).toBeNull(); // no claim: neutral, as the guide says
     const n = byUrl(NANSEN)!;
-    expect(c.signals.get(n.payee)!.distinct_payers).toBe(467);
+    expect(c.signals.get(n.payee)!.distinct_payers).toBe(490);
     expect(n.identity.sources).toEqual(expect.arrayContaining(["host"]));
   });
   it("cleave.fi pays the zero address (rule I)", () => {
     expect(byUrl("https://api.cleave.fi/x402/gas")!.payee).toBe("0x0000000000000000000000000000000000000000");
   });
-  it("earthquakes: score alone would ALLOW, kinship BLOCKs; its funder funded 16 others, under the REVIEW cutoff", () => {
-    const k = kin(QUAKES);
-    expect(k.s.funder_fanout).toBe(16);
+  it("CoinGecko: score alone would ALLOW, kinship BLOCKs; its funder funded 3 others, under the REVIEW cutoff", () => {
+    const k = kin(COINGECKO);
+    expect(k.s.funder_fanout).toBe(3);
     expect(k.p.score).toBeGreaterThanOrEqual(80);
     expect(k.row).toMatchObject({ fired: true, band: "BLOCK" });
     expect(k.s.funder_fanout!).toBeLessThan(KINSHIP_REVIEW_AT);
     expect(c.funderLabels[k.p.first_funder!]).toBeUndefined();
   });
-  it("professorsausages: kinship REVIEW as a suspected exchange (52 others, unnamed funder)", () => {
+  it("professorsausages: kinship REVIEW as a suspected exchange (91 others, unnamed funder)", () => {
     const k = kin(SUSPECT);
-    expect(k.s.funder_fanout).toBe(52);
+    expect(k.s.funder_fanout).toBe(91);
     expect(c.funderLabels[k.p.first_funder!]).toBeUndefined();
     expect(k.row).toMatchObject({ fired: true, band: "REVIEW", flags: ["kinship_suspected_exchange"] });
     expect(k.s.funder_fanout!).toBeGreaterThanOrEqual(KINSHIP_REVIEW_AT);
   });
-  it("every Base payee in the catalog has a record, and the movement note is true (TBS ALLOW now; CoinGecko and ApiToll BLOCK by kinship)", () => {
+  it("every Base payee in the catalog has a record, and the movement note is true (TBS and earthquakes REVIEW now; CoinGecko and ApiToll BLOCK by kinship)", () => {
     expect(c.payees.length).toBe(c.catalog_payees);
     expect(guide).toContain(`${c.payees.length.toLocaleString("en-US")} of ${c.catalog_payees.toLocaleString("en-US")}`);
-    expect(byUrl(TBS)!.issued_band).toBe("ALLOW");
+    for (const u of [TBS, QUAKES]) {
+      expect(byUrl(u)!.issued_band, u).toBe("REVIEW");
+      expect(kin(u).row, u).toMatchObject({ fired: true, band: "REVIEW", flags: ["kinship_suspected_exchange"] });
+    }
+    expect(kin(TBS).s.funder_fanout).toBe(82);
     for (const u of ["https://pro-api.coingecko.com/api/v3/x402/onchain/search/pools", "https://crypto.apitoll.cloud/v1/crypto/price"]) {
       expect(byUrl(u)!.issued_band, u).toBe("BLOCK");
       expect(byUrl(u)!.vows, u).toEqual(["kinship"]);

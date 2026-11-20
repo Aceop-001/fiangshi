@@ -8,14 +8,14 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 
 | measure | value | source |
 |---|---|---|
-| census | 1,923 of 1,923 Base payees, 90-day window, refreshed 17 Nov (each record with its own `as_of`) | `scripts/audit.ts`, `data/numbers.json` |
-| verdicts | 160 ALLOW / 1,227 REVIEW / 536 BLOCK, policy `2026-11-13.5` | `scripts/numbers.ts` |
+| census | 1,923 of 1,923 Base payees, 90-day window, refreshed 20 Nov (each record with its own `as_of`) | `scripts/audit.ts`, `data/numbers.json` |
+| verdicts | 159 ALLOW / 1,243 REVIEW / 521 BLOCK, policy `2026-11-13.5` | `scripts/numbers.ts` |
 | verdictable payees | 1,873 (97.4%) | `scripts/winrate.ts` |
 | lab | 9 cases: 8 pass, 1 superseded by a documented rule change | `scripts/matrix.ts` |
 | real sellers in the lab (controls) | 3 of 3 reach ALLOW | `artifacts/matrix.md` |
 | accept gates | 17 of 17, offline, network unplugged | `npm run accept` |
 | end to end | 10 of 10 on a local server, with no keys (fixture mode) and with keys (live) | `npm run localhost-check` |
-| census cost | 540 credits billed for the 17 Nov refresh of 1,923 payees, labels reused (the 13 Nov refresh cost 620; the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
+| census cost | 484 credits billed for the 20 Nov refresh of 1,923 payees, labels reused (the 17 Nov refresh cost 540; the 13 Nov refresh cost 620; the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
 | paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies; settlement dry-run | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
@@ -289,8 +289,8 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 
 - **Seen.** On 17 Nov the 13 Nov census was 87.5 hours old, past the 72-hour limit. The live API answered correctly: every record stale, 0 ALLOW, Bitrefill REVIEW with `band_cap` "data_stale". The static site still said "1 of 1,923 verdicts past the window" and "ALLOW 127", and `/judges` promised Bitrefill ALLOW.
 - **Cause.** The static site is built only when code is pushed, and its freshness is computed at build time. With no push after 13 Nov, the pages kept the freshness of their last build while the API, which reads the clock on every request, moved on.
-- **Fix.** The census was refreshed (17 Nov, 540 credits; `artifacts/refresh.md`) and every page regenerated. The Pages workflow now also runs every hour (`.github/workflows/pages.yml`, cron `17 * * * *`): each run rebuilds the site from the committed census against the real clock, so stale records are capped on the pages within the hour, as they are in the API. The hourly run makes no Surf call, spends no credits and commits nothing; only a refresh fetches new data.
-- **Proof.** After the deploy, the live API and the pages agree: `/v1/index.json` and the home page both show 160 ALLOW / 1,227 REVIEW / 536 BLOCK with 1 stale record, and the Bitrefill preview and the `/judges` example both read ALLOW 90.59.
+- **Fix.** The census was refreshed (17 Nov, 540 credits; `artifacts/refresh-2026-11-17.md`) and every page regenerated. The Pages workflow now also runs every hour (`.github/workflows/pages.yml`, cron `17 * * * *`): each run rebuilds the site from the committed census against the real clock, so stale records are capped on the pages within the hour, as they are in the API. The hourly run makes no Surf call, spends no credits and commits nothing; only a refresh fetches new data.
+- **Proof.** After the 17 Nov deploy, the live API and the pages agree: `/v1/index.json` and the home page both show 160 ALLOW / 1,227 REVIEW / 536 BLOCK with 1 stale record, and the Bitrefill preview and the `/judges` example both read ALLOW 90.59.
 
 ## Rule changes, each one measured
 
@@ -327,7 +327,7 @@ The rule count has been frozen at six since 9 Nov.
 
 These are open, and they are not hidden anywhere else either.
 
-- **Most shared funders have no name.** 48 of the 49 funders behind a kinship vow have no Surf label. If they turn out to be exchanges or relayers, up to 450 of the 536 BLOCKs (84%) could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
+- **Most shared funders have no name.** 48 of the 51 funders behind a kinship vow have no Surf label. If they turn out to be exchanges or relayers, up to 477 of the 521 BLOCKs (92%) could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
 - **The first funder of an old wallet drifts with the window** (F20). Not fixed in this pass, because it needs a rubric change.
 - **The census goes stale on 16 Nov around 10:54 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
 - **The public API's ledger is ephemeral.** No mirror is configured on Render's free tier, so ids are forgotten on redeploy; receipts stay verifiable from their payload.

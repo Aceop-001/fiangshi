@@ -61,8 +61,8 @@ curl -si "https://api.fiangshi.xyz/v1/check?url=https://api.bitrefill.com/x402/g
 
 - **Settlement is dry-run.** No funds move. The paid route checks the payment header's structure and settles nothing.
 - **Narrow data.** Base only, a 90-day window and a single data provider (Surf). Wallet age is a lower bound.
-- **False blocks are a range, not a number.** Of 536 BLOCKs, between 0 and 450 would clear if every unnamed shared funder turned out to be an exchange (`artifacts/sensitivity.md`, policy C).
-- **Kinship recall is unmeasured.** 48 of the 49 funders behind a kinship firing are unnamed in Surf, so there is no labelled ground truth to score against.
+- **False blocks are a range, not a number.** Of 521 BLOCKs, between 0 and 477 would clear if every unnamed shared funder turned out to be an exchange (`artifacts/sensitivity.md`, policy C).
+- **Kinship recall is unmeasured.** 48 of the 51 funders behind a kinship firing are unnamed in Surf, so there is no labelled ground truth to score against.
 - **One stale record.** 1 of 1,923 verdicts is past the 72-hour freshness window; a stale ALLOW would be capped at REVIEW.
 
 This is by design. A check that hides its error bars is not a check.
@@ -73,8 +73,8 @@ This is by design. A check that hides its error bars is not a check.
 |---|---|---|---|
 | cached check | $0.05 | $0.0019 | 96% |
 | cold check (payee not in the census) | $0.15 | $0.0499 | 67% |
-| payee record | $0.02 | $0.00168 | ~92% |
+| payee record | $0.02 | $0.00151 | ~92% |
 
-The census itself cost $0.00168 per payee to build. Agents and the platforms that run them pay, per check, because one avoided payment to a dead-end wallet covers many checks.
+The census itself cost $0.00151 per payee to build. Agents and the platforms that run them pay, per check, because one avoided payment to a dead-end wallet covers many checks.
 
 Every figure's source: [SUBMISSION-SOURCES.md](SUBMISSION-SOURCES.md).

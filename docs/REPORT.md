@@ -10,7 +10,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 |---|---|---|
 | census | 1,923 of 1,923 Base payees, 90-day window, refreshed 20 Nov (each record with its own `as_of`) | `scripts/audit.ts`, `data/numbers.json` |
 | verdicts | 159 ALLOW / 1,243 REVIEW / 521 BLOCK, policy `2026-11-13.5` | `scripts/numbers.ts` |
-| verdictable payees | 1,873 (97.4%) | `scripts/winrate.ts` |
+| verdictable payees | 1,876 (97.6%) | `scripts/winrate.ts` |
 | lab | 9 cases: 8 pass, 1 superseded by a documented rule change | `scripts/matrix.ts` |
 | real sellers in the lab (controls) | 3 of 3 reach ALLOW | `artifacts/matrix.md` |
 | accept gates | 17 of 17, offline, network unplugged | `npm run accept` |
@@ -292,6 +292,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Fix.** The census was refreshed (17 Nov, 540 credits; `artifacts/refresh-2026-11-17.md`) and every page regenerated. The Pages workflow now also runs every hour (`.github/workflows/pages.yml`, cron `17 * * * *`): each run rebuilds the site from the committed census against the real clock, so stale records are capped on the pages within the hour, as they are in the API. The hourly run makes no Surf call, spends no credits and commits nothing; only a refresh fetches new data.
 - **Proof.** After the 17 Nov deploy, the live API and the pages agree: `/v1/index.json` and the home page both show 160 ALLOW / 1,227 REVIEW / 536 BLOCK with 1 stale record, and the Bitrefill preview and the `/judges` example both read ALLOW 90.59.
 
+### F27. The census went stale again, and the refresh hit billed timeouts (20 Nov)
+
+- **Seen.** At 03:29 UTC on 20 Nov every 17 Nov record had passed the 72-hour limit: the live census served 0 ALLOW / 1,387 REVIEW / 536 BLOCK, as the stale cap is meant to. During the refresh, 13 Surf SQL calls were killed at the 25 s per-call limit (each billed 4 credits, no rows), and 150 payees were set aside as scan-heavy after their 25-payee groups failed twice. Twice the run stopped itself on the per-chunk cost limit.
+- **Cause.** Staleness is by design: data older than 72 hours cannot vouch for ALLOW, and only a paid refresh renews it. The timeouts were batch size, not slow payees: no successful call in the run took longer than 24.7 s (median 2.6 s, 90th percentile 13.1 s), so a 25- or 50-payee group either answered well inside the limit or did not answer at all.
+- **Fix.** A third refresh (`sample-census-r4`, labels seeded from 17 Nov) re-collected all 1,922 payees for 484 credits by balance (888 → 404, cap 560). The 150 set-aside payees were collected in groups of 12, never re-sending a failed address set, with 0 timeouts (the original list is kept as `excluded_first_pass` in the checkpoint). The per-chunk cost limit went from 10 to 20 credits for the resumed run, so one billed timeout no longer stops it; the floor of 328 credits still bounded the whole spend.
+- **Proof.** `/v1/index.json` serves census `2026-11-20T03:52Z` with 159 ALLOW / 1,243 REVIEW / 521 BLOCK and 1 stale record (the zero address, carried over). `artifacts/refresh.md` has the credit readings and the movement against the 17 Nov snapshot (1,704 payees unchanged, 121 of the 160 ALLOWs kept). The next refresh is due before 23 Nov 03:52 UTC.
+
 ## Rule changes, each one measured
 
 Every rule change was simulated on the census before it was applied, and its effect was recorded.
@@ -321,7 +328,8 @@ The rule count has been frozen at six since 9 Nov.
 | async jobs | need an API key | free tier uses two single-branch sync queries |
 | window | 365 days at most; census uses 90 | wallet age is a lower bound |
 | refresh cost (13 Nov) | 0.16 credits per payee for SQL at 50 per call, 0 refusals at a 25 s limit | a full refresh of 1,923 payees fits in about 320 credits before labels |
-| label coverage | 81 of 1,907 addresses returned a label row (4.2%), 42 with a name or type | most funders stay unnamed; kinship can only exempt what Surf names |
+| refresh cost (20 Nov) | 464 credits for SQL: 102 calls, 13 killed at the 25 s limit and billed; the slowest successful call took 24.7 s | when 25- or 50-payee groups time out, split to 12: 0 timeouts in 13 groups |
+| label coverage | 171 of 3,108 addresses returned a label row (5.5%), 82 with a name or type | most funders stay unnamed; kinship can only exempt what Surf names |
 
 ## Still failing or not done
 
@@ -329,7 +337,7 @@ These are open, and they are not hidden anywhere else either.
 
 - **Most shared funders have no name.** 48 of the 51 funders behind a kinship vow have no Surf label. If they turn out to be exchanges or relayers, up to 477 of the 521 BLOCKs (92%) could be wrong. The number is published as an upper bound (`artifacts/winrate.md`).
 - **The first funder of an old wallet drifts with the window** (F20). Not fixed in this pass, because it needs a rubric change.
-- **The census goes stale on 16 Nov around 10:54 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
+- **The census goes stale on 23 Nov around 03:52 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
 - **The public API's ledger is ephemeral.** No mirror is configured on Render's free tier, so ids are forgotten on redeploy; receipts stay verifiable from their payload.
 - **No real payment yet.** Settlement is a dry run until the owner pays from their own wallet. Fiangshi will not do it for them.
 - **3 real control sellers in the lab, not 10.** The census only had a few sellers that pass every rule with complete data.

@@ -188,7 +188,7 @@ Vows are deterministic rules that run after the model and can only lower the ver
 | tests | 355 passing; accept 17 / 17 (G12 numbers consistency, G13 cold cache, G14 kinship thresholds, G15 sensitivity, G16 no stale ALLOW, G17 receipts outlive the server) | `npm test`, `npm run accept` |
 | localhost end to end | 10 / 10 PASS in fixture mode (no keys) and in live mode | `npm run localhost-check [-- --live]` |
 
-**Win rate:** lab 9/9 (1 superseded) · false-block rate at most 66% · BaseScan first seen 0 s, funder match, transfers +3.2% · 95.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
+**Win rate:** lab 9/9 (1 superseded) · false-block rate at most 92% · BaseScan first seen 0 s, funder match, transfers +3.2% · 97.6% of the census verdictable (`npx tsx scripts/winrate.ts`). Details: `artifacts/winrate.md`.
 
 These are the only band counts the repo states; every page (README, `artifacts/audit.md`, `artifacts/capability.md`, the index) shows the same split. Earlier rule sets live in git history.
 

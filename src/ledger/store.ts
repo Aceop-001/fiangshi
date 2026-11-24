@@ -12,6 +12,24 @@ import { dirname, join } from "node:path";
 import { dataDir, env } from "../config.js";
 import { sealReceipt, verifyReceipt, type ReceiptBody } from "../core/receipt.js";
 import type { Receipt } from "../core/types.js";
+import { fetchHead, githubStoreOn, storeReceipt, storeStatus, type Head } from "./github.js";
+
+/** The newest receipt in the GitHub store when this process started (null without a store, or an empty one). */
+let remoteHead: Head | null = null;
+/** On start, before serving: read the store's HEAD so a fresh process continues the same chain. Never throws. */
+export async function restoreFromGithub(): Promise<Head | null> {
+  if (!githubStoreOn()) return null;
+  try {
+    remoteHead = await fetchHead();
+  } catch (e) {
+    console.error(`receipt store: HEAD not read (${(e as Error).message}); a new epoch starts`);
+  }
+  return remoteHead;
+}
+/** tests only */
+export const setRemoteHead = (h: Head | null) => (remoteHead = h);
+/** What the first receipt in this process's ledger links to: the store's HEAD read at start, else genesis. */
+export const ledgerBaseHash = (): string => remoteHead?.receipt_hash ?? "genesis";
 
 export const ledgerPath = (dir = dataDir()) => join(dir, "ledger.jsonl");
 const epochPath = (ledger: string) => join(dirname(ledger), "ledger-epoch.json");
@@ -34,7 +52,8 @@ export function readLedger(path = ledgerPath()): unknown[] {
 export function lastHash(path = ledgerPath()): string {
   const all = readLedger(path);
   const last = all[all.length - 1] as Partial<Receipt> | undefined;
-  return last?.receipt_hash ?? "genesis";
+  // an empty local ledger continues the durable store's chain when there is one
+  return last?.receipt_hash ?? remoteHead?.receipt_hash ?? "genesis";
 }
 
 /** The current epoch, created with a fresh id whenever the ledger starts empty. */
@@ -48,11 +67,14 @@ export function currentEpoch(path = ledgerPath()): Epoch {
     }
   }
   const started_at = new Date().toISOString();
-  const epoch: Epoch = {
-    chain_id: createHash("sha256").update(`${started_at}|${randomUUID()}`).digest("hex"),
-    started_at,
-    durability: env("FIANGSHI_LEDGER_DURABLE") === "1" || env("FIANGSHI_LEDGER_MIRROR") ? "durable" : "resets on redeploy",
-  };
+  // with a durable GitHub store, a wiped disk continues the stored chain (same chain_id) instead of starting a new one
+  const epoch: Epoch = remoteHead?.chain_id
+    ? { chain_id: remoteHead.chain_id, started_at: remoteHead.started_at, durability: "durable" }
+    : {
+        chain_id: createHash("sha256").update(`${started_at}|${randomUUID()}`).digest("hex"),
+        started_at,
+        durability: env("FIANGSHI_LEDGER_DURABLE") === "1" || env("FIANGSHI_LEDGER_MIRROR") || githubStoreOn() ? "durable" : "resets on redeploy",
+      };
   mkdirSync(dirname(ep), { recursive: true });
   writeFileSync(ep, JSON.stringify(epoch, null, 2) + "\n");
   return epoch;
@@ -64,6 +86,7 @@ export function appendReceipt(body: ReceiptBody, path = ledgerPath()): Receipt {
   const r = sealReceipt({ ...body, chain_id: epoch.chain_id }, lastHash(path));
   appendFileSync(path, JSON.stringify(r) + "\n", "utf8");
   mirrorLine(JSON.stringify(r));
+  void storeReceipt(r, JSON.stringify(r), { receipt_hash: r.receipt_hash, chain_id: epoch.chain_id, started_at: epoch.started_at, count: (remoteHead?.count ?? 0) + readLedger(path).length });
   return r;
 }
 
@@ -159,6 +182,8 @@ export function restoreFromMirror(path = ledgerPath()): { entries: number; intac
 
 /** What /health says about the live ledger, in plain words. */
 export function ledgerDurability(path = ledgerPath()): string {
+  const gh = storeStatus();
+  if (gh) return gh;
   const dir = mirrorDir();
   if (!dir) return "ephemeral: receipts are verifiable from their payload, not by id";
   return `durable: ${dir}, ${readLedger(path).length} entries${restored?.refused ? ` (${restored.refused} refused on restore)` : ""}`;

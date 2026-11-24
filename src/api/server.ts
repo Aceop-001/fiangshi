@@ -11,7 +11,8 @@
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
  *   GET /v1/check?url=          V6 payTo -> BLOCK at $0.00 with no payment and no model call;
  *                               otherwise $0.05 · 402 without X-PAYMENT; verdict + receipt with it (SERV || Dolphin, vows)
- *   GET /v1/receipt/:id         free · full receipt JSON (census or live ledger)
+ *   GET /v1/receipt/:id         free · full receipt JSON (census, live ledger, or the durable store)
+ *   GET /v1/receipts/:id        free · the stored receipt plus its verify result
  *   GET /v1/verify?id=|receipt= free · recompute the hash (and chain link); receipt = base64url JSON
  *   GET /v1/badge/:addr.svg     free · colour by band
  * Settlement is "dry-run": X-PAYMENT is validated structurally, nothing is settled, no tx hash is invented.
@@ -45,7 +46,8 @@ import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
 import { censusStatus, readRuns } from "../census-status.js";
-import { appendReceipt, currentEpoch, ledgerDurability, ledgerPath, readLedger, restoreFromMirror } from "../ledger/store.js";
+import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror } from "../ledger/store.js";
+import { fetchStoredReceipt, githubStoreOn, receiptsRepo } from "../ledger/github.js";
 
 /** Static brand images the pages use (img-src 'self'). */
 const ASSETS: Record<string, { file: string; type: string }> = {
@@ -103,6 +105,34 @@ function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list
   });
   const r = list.find((x) => x.receipt_hash === id);
   return r ? { r, chain: "ledger", list } : null;
+}
+
+type Found = { r: Receipt; source: "census" | "ledger" | "store" };
+/** A receipt by id: the census, this process's ledger, then the durable GitHub store (survives redeploys). */
+async function lookupReceipt(id: string): Promise<Found | null> {
+  const local = findReceipt(id);
+  if (local) return { r: local.r, source: local.chain };
+  const stored = await fetchStoredReceipt(id).catch(() => null);
+  return stored ? { r: stored.receipt, source: "store" } : null;
+}
+/**
+ * Verify a found receipt. A stored one is re-hashed from the stored bytes and its band re-derived; its link is checked
+ * against the store: the predecessor it names must be stored too (or be genesis, or held here) and hash to that name.
+ */
+async function verifyFound(f: Found): Promise<VerifyOut> {
+  const out = verifyOne(f.r, "id");
+  if (f.source !== "store" || !out.valid) return out;
+  const prev = f.r.prev_hash;
+  const held = prev === "genesis" || findReceipt(prev) !== null || (await fetchStoredReceipt(prev).catch(() => null))?.receipt.receipt_hash === prev;
+  return {
+    ...out,
+    chain: `receipt store github.com/${receiptsRepo()}`,
+    chain_linkage: held ? "verified" : "unverified",
+    chain_id: f.r.chain_id ?? null,
+    continuity: held
+      ? "Read back from the durable receipt store; its predecessor is stored too, so the link was checked after the server that issued it was gone."
+      : "Read back from the durable receipt store; its predecessor is not there, so only the receipt's own hash and band were checked.",
+  };
 }
 
 /**
@@ -175,7 +205,8 @@ function verifyOneHash(obj: unknown): VerifyOut {
     };
   }
   const i = known.list.findIndex((x) => x.receipt_hash === r.receipt_hash);
-  const prev = i <= 0 ? "genesis" : known.list[i - 1]!.receipt_hash;
+  // the first receipt of this process links to the durable store's HEAD when there is one (a redeploy continues the chain)
+  const prev = i <= 0 ? (known.chain === "ledger" ? ledgerBaseHash() : "genesis") : known.list[i - 1]!.receipt_hash;
   if (r.prev_hash !== prev) return { valid: false, errors: [`prev_hash ${r.prev_hash} does not link to ${prev}`], chain: known.chain, chain_linkage: "unverified" };
   if (known.chain === "census") return { valid: true, errors: [], chain: `census #${i}`, chain_linkage: "verified", chain_id: null, continuity: "The census chain is rebuilt identically from committed data on every start, so it never resets." };
   return {
@@ -260,8 +291,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     }
     const hm = /^\/receipt\/([0-9a-f]{64})$/.exec(u.pathname);
     if (hm) {
-      const f = findReceipt(hm[1]!);
-      return f ? html(res, 200, renderReceipt(f.r, verifyOne(f.r), c, self, loadDemoStats())) : html(res, 404, renderNotFound("No receipt with that id.", c, loadDemoStats()));
+      const f = await lookupReceipt(hm[1]!);
+      return f ? html(res, 200, renderReceipt(f.r, await verifyFound(f), c, self, loadDemoStats())) : html(res, 404, renderNotFound("No receipt with that id.", c, loadDemoStats()));
     }
     if (u.pathname === "/v1/preview") {
       // Free JSON twin of the /check page, for agents and the MCP server: one unpaid probe, the null-payee gate and the
@@ -306,8 +337,14 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     }
     m = /^\/v1\/receipt\/([0-9a-f]{64})$/.exec(u.pathname);
     if (m) {
-      const f = findReceipt(m[1]!);
-      return f ? json(res, 200, { chain: f.chain, receipt: f.r }) : json(res, 404, UNKNOWN_ID);
+      const f = await lookupReceipt(m[1]!);
+      return f ? json(res, 200, { chain: f.source, receipt: f.r }) : json(res, 404, UNKNOWN_ID);
+    }
+    m = /^\/v1\/receipts\/([0-9a-f]{64})$/.exec(u.pathname);
+    if (m) {
+      // the stored receipt, wherever it lives (census, this process's ledger, or the durable store), with its verify result
+      const f = await lookupReceipt(m[1]!);
+      return f ? json(res, 200, { id: m[1], source: f.source, receipt: f.r, verify: await verifyFound(f) }) : json(res, 404, { id: m[1], ...UNKNOWN_ID });
     }
     if (u.pathname === "/v1/verify") {
       const id = u.searchParams.get("id");
@@ -319,8 +356,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         return json(res, 200, { id: typeof rid === "string" ? rid : null, ...verifyOne(d.obj, "payload") });
       }
       if (id) {
-        const f = findReceipt(id);
-        return f ? json(res, 200, { id, ...verifyOne(f.r, "id") }) : json(res, 404, { id, source: "id", valid: false, ...UNKNOWN_ID });
+        const f = await lookupReceipt(id);
+        return f ? json(res, 200, { id, ...(await verifyFound(f)) }) : json(res, 404, { id, source: "id", valid: false, ...UNKNOWN_ID });
       }
       return json(res, 400, { error: "pass ?id=<receipt id> or ?receipt=<base64url receipt JSON>" });
     }
@@ -419,13 +456,15 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
   }
 }
 
-export function startServer(port = num("PORT", 8787), host = process.env.HOST ?? "127.0.0.1") {
+export async function startServer(port = num("PORT", 8787), host = process.env.HOST ?? "127.0.0.1") {
   if (process.env.FIANGSHI_REPLAY === "1") process.env.FIANGSHI_OFFLINE = "1"; // fixture mode: recorded 402s, never the network
   if (process.env.FIANGSHI_OFFLINE !== "1") process.env.SNAPSHOT_SOURCE = "live"; // probe live endpoints
   process.env.MOCK_MODELS ??= "";
   loadCensus(); // fail fast if fixtures are missing
   const rs = restoreFromMirror(); // a mirror, if configured, is loaded before the first request
   if (rs) process.stdout.write(`ledger restored: ${rs.entries} entries, chain ${rs.intact} intact${rs.refused ? `, ${rs.refused} refused` : ""}\n`);
+  const head = await restoreFromGithub(); // the durable store's newest receipt: this process continues its chain
+  if (githubStoreOn()) process.stdout.write(`receipt store: github.com/${receiptsRepo()}, ${head ? `HEAD ${head.receipt_hash.slice(0, 12)} (#${head.count})` : "empty"}\n`);
   // one failed request must never take the server down
   const server = createServer((req, res) =>
     handle(req, res).catch((e) => {

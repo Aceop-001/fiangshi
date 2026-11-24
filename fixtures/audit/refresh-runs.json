@@ -1,0 +1,17 @@
+[
+ {
+  "at": "2026-11-24T13:04:20.554Z",
+  "finished_at": "2026-11-24T13:05:32.771Z",
+  "kind": "allow-only",
+  "overlay": "sample-allow-20261124T1304.json",
+  "overlay_of": "sample-census-r4.json",
+  "payees_targeted": 159,
+  "payees_refreshed": 159,
+  "payees_failed": 0,
+  "credits_spent": 40,
+  "balance_after": 364,
+  "budget": 60,
+  "complete": true,
+  "stopped": null
+ }
+]

@@ -339,6 +339,8 @@ export interface RunOpts {
   finish?: boolean;
   /** On a billed scan refusal, bisect groups larger than this; a refused group of this size is excluded as scan-heavy. */
   bisectMin?: number;
+  /** On a billed refusal of a group larger than this, split straight into groups of at most this size (default: halve). */
+  splitTo?: number;
   /** wallet-labels-batch group size (default 100; Surf returned INTERNAL_ERROR at 100 on 2026-11-09). */
   labelChunk?: number;
   /** Funder-outbound chunk size (default max(batch, 300)). */
@@ -471,10 +473,13 @@ async function runAudit(sample: Sample, samplePath: string, opts: RunOpts): Prom
           if (!failedBefore) cp.refusals = [...(cp.refusals ?? []), { at: new Date().toISOString(), template: t, payees: addrs.length, message: e.message.slice(0, 200) }];
           if (!failedBefore) costLine(costsPath, `| ${new Date().toISOString()} | surf | ${t} payees=${addrs.length} REFUSED (scan size) | billed refusal | ${BILLED_REFUSAL} (balance delta) | refused |`);
           console.log(`  ${t} refused for ${addrs.length} payees (billed ~${BILLED_REFUSAL}): ${e.message.slice(0, 120)}`);
-          if (addrs.length > opts.bisectMin!) {
-            const half = Math.ceil(addrs.length / 2);
-            await runPart(addrs.slice(0, half), t);
-            await runPart(addrs.slice(half), t);
+          const plan = splitPlan(addrs.length, opts.bisectMin!, opts.splitTo);
+          if (plan !== "exclude") {
+            let i = 0;
+            for (const size of plan) {
+              await runPart(addrs.slice(i, i + size), t);
+              i += size;
+            }
           } else {
             // could not resolve which payee is heavy without more billed bisecting: exclude the whole group, record every address
             cp.scan_heavy = [...(cp.scan_heavy ?? []), { at: new Date().toISOString(), template: t, addresses: addrs, message: e.message.slice(0, 200) }];
@@ -618,7 +623,28 @@ export function censusIdentity(
 }
 
 /** The scored set exactly as the audit scores it (shared by the report and the ALLOW hunt). Pure. */
-export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string) {
+/**
+ * `clockOf` (optional): per-payee collection time (ISO). Used only when an ALLOW-only overlay re-collected some payees
+ * later than the rest: each record is then aged from its own collection time. Without it, one clock for all, as before.
+ */
+/**
+ * How to split a group whose query was refused (killed at the per-call limit, or too large). Every part is a strict subset,
+ * so a failed set is never re-sent. With splitTo (adaptive, 2026-11-24): straight to parts of at most splitTo, the size
+ * that answered with 0 timeouts in 13 groups of 12 on 20 Nov. Without it: halves. At or below bisectMin: exclude.
+ */
+export function splitPlan(n: number, bisectMin: number, splitTo?: number): number[] | "exclude" {
+  if (splitTo !== undefined && n > splitTo) {
+    const parts = Math.ceil(n / splitTo);
+    const size = Math.ceil(n / parts);
+    const out: number[] = [];
+    for (let left = n; left > 0; left -= size) out.push(Math.min(size, left));
+    return out;
+  }
+  if (n > bisectMin) return [Math.ceil(n / 2), n - Math.ceil(n / 2)];
+  return "exclude";
+}
+
+export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string, clockOf?: Record<string, string>) {
   const now = Math.floor(Date.parse(ranAt) / 1000);
   const windowStart = now - DAYS * 86_400;
   const windowH = DAYS * 24;
@@ -630,7 +656,9 @@ export function scoredSet(sample: Sample, cp: ReportInputs["cp"], ranAt: string)
   const audited = sample.payees.filter((p) => cp.payee_rows[p.payee] && !excluded.has(p.payee));
   let signals: PayeeSignals[] = audited.map((p) => {
     const l = labelOf.get(p.payee);
-    return signalsFromSurf(cp.payee_rows[p.payee]!, { now, windowStart, tokenContracts, identity: censusIdentity(p, l) });
+    const own = clockOf?.[p.payee] ? Math.floor(Date.parse(clockOf[p.payee]!) / 1000) : null;
+    const clock = own ?? now;
+    return signalsFromSurf(cp.payee_rows[p.payee]!, { now: clock, windowStart: own === null ? windowStart : clock - DAYS * 86_400, tokenContracts, identity: censusIdentity(p, l) });
   });
   const fan = computeFanout(signals, { labels: funderLabels, edges: {} });
   signals = signals.map((s) => (s.first_funder ? { ...s, funder_fanout: fan.get(s.payee) ?? 0 } : s));
@@ -948,6 +976,7 @@ async function main() {
       finish: rest.includes("--finish"),
       funderChunk: flag("--funder-chunk") ? Number(flag("--funder-chunk")) : undefined,
       bisectMin: flag("--bisect-min") ? Number(flag("--bisect-min")) : undefined,
+      splitTo: flag("--split-to") ? Number(flag("--split-to")) : undefined,
       labelChunk: flag("--label-chunk") ? Number(flag("--label-chunk")) : undefined,
       maxPerPayee: flag("--max-per-payee") ? Number(flag("--max-per-payee")) : undefined,
       seedFrom: flag("--seed-from"),

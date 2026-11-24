@@ -3,8 +3,8 @@
  * clone): the 90-day sample + checkpoint -> scored set (current rubric) -> one deterministic sealed receipt per payee.
  * Receipts use the census time as checked_at, so receipt ids are stable across restarts and verifiable.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { basename, join } from "node:path";
 import { ROOT, nowMs, replayMode, staleHours } from "./config.js";
 import { ageHours, POLICY_VERSION, staleCap, type BandCap } from "./core/cap.js";
 import { hashOf } from "./core/canonical.js";
@@ -74,7 +74,9 @@ export interface Census {
 }
 
 let base: Census | null = null;
-let served: { minute: number; limit: number; census: Census } | null = null;
+/** which overlays the cached census was built with: it is rebuilt when the clock passes the next one */
+let baseKey = "";
+let served: { minute: number; limit: number; base: Census; census: Census } | null = null;
 
 /**
  * The census as served now: each record's band capped by its own age (policy v5). Recomputed at most once a minute,
@@ -85,7 +87,7 @@ export function loadCensus(): Census {
   const now = nowMs();
   const minute = Math.floor(now / 60_000);
   const limit = staleHours();
-  if (served && served.minute === minute && served.limit === limit) return served.census;
+  if (served && served.minute === minute && served.limit === limit && served.base === b) return served.census;
   const payees = b.payees.map((p) => {
     const age = ageHours(p.as_of, now);
     const cap = staleCap(p.issued_band, age, limit);
@@ -94,7 +96,7 @@ export function loadCensus(): Census {
   const bands = { ALLOW: 0, REVIEW: 0, BLOCK: 0 } as Record<Band, number>;
   for (const p of payees) bands[p.band]++;
   const census: Census = { ...b, payees, bands, served_at: new Date(now).toISOString(), payees_stale: payees.filter((p) => p.stale).length, stale_limit_hours: limit };
-  served = { minute, limit, census };
+  served = { minute, limit, base: b, census };
   return census;
 }
 
@@ -132,6 +134,65 @@ export function currentRefreshSample(days = 90): string | null {
   return existsSync(checkpointPath(CENSUS_R2_SAMPLE, days)) ? CENSUS_R2_SAMPLE : null;
 }
 
+/* ------------------------------------------------------------ ALLOW-only overlays (2026-11-24) ------------------------ */
+
+/**
+ * An overlay is a partial refresh: `fixtures/audit/sample-allow-*.json` lists a subset of payees (the ALLOWs, whose band
+ * is the only one the 72 h stale cap changes) and names the full refresh it sits on (`overlay_of`). Its checkpoint is
+ * collected like any refresh (scripts/refresh-allow.ts). An overlay counts only when complete and only once the clock is
+ * past its newest collection time, so figures pinned to an earlier reference time never see it. Payees it re-collected
+ * replace their rows in the full refresh; every other record keeps its own row and its own as_of.
+ */
+export interface OverlayMeta { sample: string; checkpoint: string; collected_at: string; payees: number; overlay_of: string }
+export interface MergedOverlay { cp: Record<string, unknown> & { payee_rows: Record<string, unknown>; payee_as_of: Record<string, string> }; clockOf: Record<string, string>; label: string }
+
+const overlayMetaCache = new Map<string, OverlayMeta | null>();
+function overlayMeta(samplePath: string): OverlayMeta | null {
+  if (overlayMetaCache.has(samplePath)) return overlayMetaCache.get(samplePath)!;
+  let meta: OverlayMeta | null = null;
+  const cpPath = checkpointPath(samplePath, CENSUS_DAYS);
+  if (existsSync(cpPath)) {
+    const s = JSON.parse(readFileSync(samplePath, "utf8")) as Sample & { overlay_of?: string };
+    const cp = JSON.parse(readFileSync(cpPath, "utf8")) as { payee_rows: Record<string, unknown>; payee_as_of?: Record<string, string>; excluded?: string[]; funders_done?: boolean };
+    const settled = s.payees.every((p) => cp.payee_rows[p.payee] || (cp.excluded ?? []).includes(p.payee));
+    const asOfs = Object.values(cp.payee_as_of ?? {}).sort();
+    if (s.overlay_of && settled && cp.funders_done && asOfs.length)
+      meta = { sample: samplePath, checkpoint: cpPath, collected_at: asOfs[asOfs.length - 1]!, payees: Object.keys(cp.payee_rows).length, overlay_of: s.overlay_of };
+  }
+  overlayMetaCache.set(samplePath, meta);
+  return meta;
+}
+
+/** Complete overlays on this full refresh, collected at or before `now`, oldest first. */
+export function applicableOverlays(refreshSample: string, now: number): OverlayMeta[] {
+  if (!existsSync(AUDIT_DIR)) return [];
+  return readdirSync(AUDIT_DIR)
+    .filter((f) => /^sample-allow-.*\.json$/.test(f))
+    .map((f) => overlayMeta(join(AUDIT_DIR, f)))
+    .filter((m): m is OverlayMeta => m !== null && m.overlay_of === basename(refreshSample) && Date.parse(m.collected_at) <= now)
+    .sort((a, b) => a.collected_at.localeCompare(b.collected_at));
+}
+
+/** The full refresh's checkpoint with each overlay's rows, collection times, labels and calls laid over it. */
+export function mergeOverlays(refreshSample: string, overlays: OverlayMeta[]): MergedOverlay {
+  const cp = JSON.parse(readFileSync(checkpointPath(refreshSample, CENSUS_DAYS), "utf8"));
+  const clockOf: Record<string, string> = {};
+  const labels = new Map<string, unknown>((cp.labels as { address: string }[]).map((l) => [l.address.toLowerCase(), l]));
+  for (const o of overlays) {
+    const ov = JSON.parse(readFileSync(o.checkpoint, "utf8"));
+    for (const [p, row] of Object.entries(ov.payee_rows as Record<string, unknown>)) {
+      cp.payee_rows[p] = row;
+      cp.payee_as_of[p] = ov.payee_as_of[p];
+      clockOf[p] = ov.payee_as_of[p];
+    }
+    for (const l of ov.labels as { address: string }[]) labels.set(l.address.toLowerCase(), l);
+    cp.labels_done = [...new Set([...cp.labels_done, ...ov.labels_done])];
+    cp.calls = [...cp.calls, ...ov.calls];
+  }
+  cp.labels = [...labels.values()];
+  return { cp, clockOf, label: overlays.map((o) => basename(o.sample, ".json")).join("+") };
+}
+
 /** Refreshes older than the one served, newest first: their receipts are published and linked, so they keep verifying. */
 const OLDER_REFRESHES: Record<string, string[]> = {
   [CENSUS_R4_SAMPLE]: [CENSUS_R3_SAMPLE, CENSUS_R2_SAMPLE],
@@ -143,14 +204,14 @@ const OLDER_REFRESHES: Record<string, string[]> = {
  * so the 800 original receipt ids never change. v5: checked_at and as_of are the record's own collection time, and the
  * receipt carries its policy version and band basis (score band, vow band; no model ran; no cap at issue).
  */
-function issue(samplePath: string, version: "v4" | "v5"): Issued {
+function issue(samplePath: string, version: "v4" | "v5", merged?: MergedOverlay): Issued {
   const sample = JSON.parse(readFileSync(samplePath, "utf8")) as Sample;
-  const cp = JSON.parse(readFileSync(checkpointPath(samplePath, CENSUS_DAYS), "utf8"));
+  const cp = merged?.cp ?? JSON.parse(readFileSync(checkpointPath(samplePath, CENSUS_DAYS), "utf8"));
   const at = (cp.calls as { label: string; at: string }[]).filter((c) => c.label.startsWith("onchain-sql")).map((c) => c.at).sort().pop()!;
   const asOfOf = (cp.payee_as_of ?? {}) as Record<string, string>;
-  const set = scoredSet(sample, cp, at);
+  const set = scoredSet(sample, cp, at, merged?.clockOf);
   const meta = new Map(sample.payees.map((p) => [p.payee, p]));
-  const snapshotId = version === "v4" ? hashOf({ census: "w90", at, payees: set.scored.length }) : hashOf({ census: samplePath === CENSUS_R4_SAMPLE ? "w90-r4" : samplePath === CENSUS_R3_SAMPLE ? "w90-r3" : "w90-r2", at, payees: set.scored.length });
+  const snapshotId = version === "v4" ? hashOf({ census: "w90", at, payees: set.scored.length }) : hashOf({ census: (samplePath === CENSUS_R4_SAMPLE ? "w90-r4" : samplePath === CENSUS_R3_SAMPLE ? "w90-r3" : "w90-r2") + (merged ? `+${merged.label}` : ""), at, payees: set.scored.length });
   const ledger: Receipt[] = [];
   const receipts = new Map<string, Receipt>();
   const payees: CensusPayee[] = [];
@@ -205,12 +266,15 @@ export function legacyCensus(): Issued {
 }
 
 function loadBaseCensus(): Census {
-  if (base) return base;
-  setWindowDays(CENSUS_DAYS);
   // fixture mode replays model answers recorded against the 9 Nov census: it serves that census, never the refresh
   const refreshSample = replayMode() ? null : currentRefreshSample(CENSUS_DAYS);
+  const overlays = refreshSample ? applicableOverlays(refreshSample, nowMs()) : [];
+  const key = `${refreshSample}|${overlays.map((o) => o.sample).join(",")}`;
+  if (base && baseKey === key) return base;
+  baseKey = key;
+  setWindowDays(CENSUS_DAYS);
   const refreshed = refreshSample !== null;
-  const cur = refreshSample ? issue(refreshSample, "v5") : legacyCensus();
+  const cur = refreshSample ? (overlays.length ? issue(refreshSample, "v5", mergeOverlays(refreshSample, overlays)) : issue(refreshSample, "v5")) : legacyCensus();
   const { at, sample, set } = cur;
   const payees = [...cur.payees];
   const receipts = new Map(cur.receipts);
@@ -222,8 +286,9 @@ function loadBaseCensus(): Census {
     for (const p of old.payees) if (!have.has(p.payee)) payees.push(p);
     for (const [k, r] of old.receipts) receipts.set(k, r);
     chains.push(old.ledger);
-    // older refreshes (r4 serves: r3 and r2; r3 serves: r2): their receipts keep verifying by id; they are published and linked
-    for (const older of OLDER_REFRESHES[refreshSample] ?? []) {
+    // older refreshes (r4 serves: r3 and r2; r3 serves: r2): their receipts keep verifying by id; they are published and linked.
+    // With overlays applied, the full refresh itself is older too: its receipts were published before the first overlay.
+    for (const older of [...(overlays.length ? [refreshSample] : []), ...(OLDER_REFRESHES[refreshSample] ?? [])]) {
       if (!existsSync(checkpointPath(older, CENSUS_DAYS))) continue;
       const o = issueCached(older);
       for (const [k, r] of o.receipts) if (!receipts.has(k)) receipts.set(k, r);

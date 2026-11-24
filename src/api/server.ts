@@ -7,6 +7,7 @@
  *   GET /v1/preview?url=        free JSON · unpaid probe, null-payee gate, census answer (the MCP server's free tool)
  *   GET /health                 free
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
+ *   GET /v1/census/status       free · freshness now, the next planned refresh, what the last refresh did
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
  *   GET /v1/check?url=          V6 payTo -> BLOCK at $0.00 with no payment and no model call;
  *                               otherwise $0.05 · 402 without X-PAYMENT; verdict + receipt with it (SERV || Dolphin, vows)
@@ -43,6 +44,7 @@ import { hashOf } from "../core/canonical.js";
 import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
+import { censusStatus, readRuns } from "../census-status.js";
 import { appendReceipt, currentEpoch, ledgerDurability, ledgerPath, readLedger, restoreFromMirror } from "../ledger/store.js";
 
 /** Static brand images the pages use (img-src 'self'). */
@@ -278,6 +280,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const cp = c.payees.find((x) => x.payee === pr.terms.payee);
       return json(res, 200, cp ? censusAnswer(input, terms, c, cp, paid) : noRecordAnswer(input, terms, c, paid));
     }
+    if (u.pathname === "/v1/census/status") return json(res, 200, censusStatus(c, readRuns(), nowMs()));
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement(), ledger_durability: ledgerDurability() });
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {

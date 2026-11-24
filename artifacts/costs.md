@@ -729,3 +729,13 @@ Inputs, all from account balance deltas on 2026-11-09: Surf $0.006/credit · SQL
 | 2026-11-20T03:53:17.758Z | surf | wallet-labels-batch n=20 | 503/600 | 1 | ok |
 | 2026-11-20T03:53:20.641Z | surf | wallet-labels-batch n=20 | 504/600 | 1 | ok |
 | 2026-11-20T03:53:23.599Z | surf | wallet-labels-batch n=17 | 505/600 | 1 | ok |
+| 2026-11-24T13:04:25.566Z | surf | onchain-sql payee-inbound payees=5 | 506/1000 | 5 | ok |
+| 2026-11-24T13:04:35.167Z | surf | onchain-sql payee-inbound payees=50 | 507/1000 | 5 | ok |
+| 2026-11-24T13:04:42.616Z | surf | onchain-sql payee-outbound payees=50 | 508/1000 | 5 | ok |
+| 2026-11-24T13:04:51.739Z | surf | onchain-sql payee-inbound payees=50 | 509/1000 | 5 | ok |
+| 2026-11-24T13:04:58.443Z | surf | onchain-sql payee-outbound payees=50 | 510/1000 | 5 | ok |
+| 2026-11-24T13:05:06.767Z | surf | onchain-sql payee-inbound payees=50 | 511/1000 | 5 | ok |
+| 2026-11-24T13:05:11.605Z | surf | onchain-sql payee-outbound payees=50 | 512/1000 | 5 | ok |
+| 2026-11-24T13:05:19.371Z | surf | onchain-sql payee-inbound payees=9 | 513/1000 | 5 | ok |
+| 2026-11-24T13:05:22.967Z | surf | onchain-sql payee-outbound payees=9 | 514/1000 | 5 | ok |
+| 2026-11-24T13:05:28.188Z | surf | wallet-labels-batch n=18 | 515/1000 | 1 | ok |

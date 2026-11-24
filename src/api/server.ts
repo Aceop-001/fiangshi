@@ -32,6 +32,7 @@ import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { decodeReceiptParam, receiptVerifyUrl } from "../receipt-url.js";
 import { paymentRequired, paymentResponse, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
+import { facilitatorSettle, facilitatorVerify, isTxHash, settleMode, settleReady } from "../adapters/facilitator.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
 import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
 import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
@@ -223,7 +224,8 @@ function verifyOneHash(obj: unknown): VerifyOut {
   };
 }
 
-function requirePayment(req: IncomingMessage, res: ServerResponse, resource: string, usd: number, description: string): { ok: true; requirement: Requirement; from: string | null } | null {
+type Paid = { ok: true; requirement: Requirement; from: string | null; payload: unknown };
+function requirePayment(req: IncomingMessage, res: ServerResponse, resource: string, usd: number, description: string): Paid | null {
   const seller = sellerPayTo();
   if (!seller.ok) {
     json(res, 503, { error: seller.error });
@@ -231,7 +233,8 @@ function requirePayment(req: IncomingMessage, res: ServerResponse, resource: str
   }
   const pr = paymentRequired(resource, usd, seller.payTo, description);
   const requirement = pr.body.accepts[0]!;
-  const header = req.headers["x-payment"];
+  // x402 v2 clients send PAYMENT-SIGNATURE; earlier clients send X-PAYMENT. Same base64 JSON payment either way.
+  const header = req.headers["payment-signature"] ?? req.headers["x-payment"];
   const xp = Array.isArray(header) ? header[0] : header;
   if (!xp) {
     json(res, 402, pr.body, { "payment-required": pr.header });
@@ -242,7 +245,37 @@ function requirePayment(req: IncomingMessage, res: ServerResponse, resource: str
     json(res, 402, { ...pr.body, error: `invalid X-PAYMENT: ${chk.errors.join("; ")}` }, { "payment-required": pr.header });
     return null;
   }
-  return { ok: true, requirement, from: chk.from };
+  return { ok: true, requirement, from: chk.from, payload: chk.payload };
+}
+
+/**
+ * Live settlement (FIANGSHI_SETTLE=live): the facilitator checks the payer's signature before any work is done. A check
+ * that fails is a 402 with the facilitator's reason. Dry-run (default): nothing is sent anywhere.
+ */
+async function verifyLive(pay: Paid, res: ServerResponse, retry: { body: unknown; header: string }): Promise<boolean> {
+  if (settleMode() !== "live") return true;
+  const ready = settleReady();
+  if (!ready.ok) {
+    json(res, 503, { error: `live settlement is not configured: ${ready.why}` });
+    return false;
+  }
+  const v = await facilitatorVerify(pay.payload, pay.requirement).catch((e: Error) => ({ isValid: false, invalidReason: "facilitator_unreachable", invalidMessage: e.message }) as const);
+  if (v.isValid) return true;
+  json(res, 402, { ...(retry.body as object), error: `payment not valid: ${v.invalidReason ?? "unknown"}${v.invalidMessage ? ` (${v.invalidMessage})` : ""}` }, { "payment-required": retry.header });
+  return false;
+}
+
+/**
+ * Live settlement, after the work: the facilitator submits the payer's transfer. Only a settled payment is answered; a
+ * failed settlement is a 402 carrying the facilitator's SettlementResponse, and no result is delivered.
+ */
+async function settleLive(pay: Paid, res: ServerResponse): Promise<{ tx: string; header: string } | null | false> {
+  if (settleMode() !== "live") return null;
+  const s = await facilitatorSettle(pay.payload, pay.requirement).catch((e: Error) => ({ success: false, errorReason: "facilitator_unreachable", errorMessage: e.message, transaction: "", network: pay.requirement.network }) as const);
+  const header = Buffer.from(JSON.stringify(s)).toString("base64");
+  if (s.success && isTxHash(s.transaction)) return { tx: s.transaction, header };
+  json(res, 402, { error: `payment not settled: ${s.errorReason ?? "no transaction returned"}`, settlement: s }, { "payment-response": header, "x-payment-response": header });
+  return false;
 }
 
 export async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -312,7 +345,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       return json(res, 200, cp ? censusAnswer(input, terms, c, cp, paid) : noRecordAnswer(input, terms, c, paid));
     }
     if (u.pathname === "/v1/census/status") return json(res, 200, censusStatus(c, readRuns(), nowMs()));
-    if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: currentSettlement(), ledger_durability: ledgerDurability() });
+    if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: settleReady().ok ? "live: CDP x402 facilitator (payer -> payTo, Fiangshi never holds funds)" : currentSettlement(), ledger_durability: ledgerDurability() });
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {
         census_at: c.at,
@@ -363,10 +396,20 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
     }
     m = /^\/v1\/payee\/(0x[0-9a-fA-F]{40})$/.exec(u.pathname);
     if (m) {
-      const pay = requirePayment(req, res, `${self}${u.pathname}`, num("FIANGSHI_PRICE_PAYEE", 0.02), "Fiangshi payee record");
+      const resource = `${self}${u.pathname}`;
+      const usd = num("FIANGSHI_PRICE_PAYEE", 0.02);
+      const pay = requirePayment(req, res, resource, usd, "Fiangshi payee record");
       if (!pay) return;
       const p = c.payees.find((x) => x.payee === m![1]!.toLowerCase());
-      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), settlement: "dry-run", payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
+      // live: never charge for a record that does not exist; verify and settle only when there is one to deliver
+      if (p) {
+        const t = paymentRequired(resource, usd, pay.requirement.payTo, "Fiangshi payee record");
+        if (!(await verifyLive(pay, res, { body: t.body, header: t.header }))) return;
+      }
+      const settled = p ? await settleLive(pay, res) : null;
+      if (settled === false) return;
+      const st = settled ? { settlement: "settled", tx_hash: settled.tx } : { settlement: "dry-run" };
+      return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), ...st, payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" }, settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
@@ -387,8 +430,12 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const cachedCold = !cp && terms ? coldCacheHit(payee) : false;
       const sku: "cached" | "cold" = cp || cachedCold || !terms || !coldLive ? "cached" : "cold";
       const price = sku === "cold" ? num("FIANGSHI_PRICE_CHECK_COLD", 0.15) : num("FIANGSHI_PRICE_CHECK", 0.05);
-      const pay = requirePayment(req, res, `${self}/v1/check?url=${encodeURIComponent(target)}`, price, sku === "cold" ? "Fiangshi counterparty check (cold: live on-chain fetch)" : "Fiangshi counterparty check");
+      const desc = sku === "cold" ? "Fiangshi counterparty check (cold: live on-chain fetch)" : "Fiangshi counterparty check";
+      const resource = `${self}/v1/check?url=${encodeURIComponent(target)}`;
+      const pay = requirePayment(req, res, resource, price, desc);
       if (!pay) return;
+      const terms402 = paymentRequired(resource, price, pay.requirement.payTo, desc);
+      if (!(await verifyLive(pay, res, { body: terms402.body, header: terms402.header }))) return;
       let s = c.signals.get(payee) ?? emptySignals(payee);
       let cold: Record<string, unknown> | null = null;
       if (!cp && terms) {
@@ -406,6 +453,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const asOf = cp ? cp.as_of : ((cold?.fetched_at as string | undefined) ?? new Date(nowMs()).toISOString());
       const v5 = v5Fields(d, asOf, nowMs(), staleHours());
       const coldNote = cold && cold.ok === false ? [{ signal: "cold_check", quote: `${String(cold.reason)}: ${String(cold.detail)}` }] : [];
+      const settled = await settleLive(pay, res);
+      if (settled === false) return;
       const receipt = appendReceipt({
         payee,
         url: target,
@@ -418,7 +467,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         model: { verdict: d.modelRawBand, extractor: full.extraction ? (full.extraction.claims ? "dolphin" : "dolphin:failed") : "none", degraded: d.verdict.degraded },
         snapshot_id: cp ? hashOf({ census: "w90", at: c.at }) : hashOf({ cold: payee, fetched_at: (cold?.fetched_at as string | undefined) ?? null }),
         checked_at: new Date().toISOString(),
-        settlement: currentSettlement(),
+        settlement: settled ? "settled" : currentSettlement(),
+        ...(settled ? { tx_hash: settled.tx, chain: "eip155:8453" as const } : {}),
         enrichment: full.enrichment,
         ...v5.fields,
       });
@@ -440,13 +490,14 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         probe: pr.ok ? { price: pr.terms.price, payee: pr.terms.payee } : { error: pr.error },
         cost_usd: price,
         payer: pay.from,
-        settlement: "dry-run",
+        settlement: settled ? "settled" : "dry-run",
+        ...(settled ? { tx_hash: settled.tx } : {}),
         model_calls: modelCalls.length - mc0,
         receipt_id: receipt.receipt_hash,
         receipt,
         receipt_verify_url: receiptVerifyUrl(self, receipt),
         ms: Math.round(performance.now() - t0),
-      }, { "x-payment-response": paymentResponse(pay.requirement.network, pay.from), "x-receipt-verify": receiptVerifyUrl(self, receipt) });
+      }, { ...(settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) }), "x-receipt-verify": receiptVerifyUrl(self, receipt) });
     }
     return json(res, 404, { error: "not found" });
   } catch (e) {

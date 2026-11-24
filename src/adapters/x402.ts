@@ -1,10 +1,11 @@
 /**
  * x402 SELLER side for Fiangshi's own paid endpoints. Fiangshi never holds funds, signs, or sends transactions.
  * - paymentRequired(): an x402 v2 402 body (the same shape src/adapters/probe.ts parses) + base64 `payment-required` header.
- * - verifyXPayment(): STRUCTURAL validation of an `X-PAYMENT` header (base64 JSON: x402Version, scheme, network,
- *   payload.authorization {from,to,value,validAfter,validBefore,nonce}, payload.signature). The EIP-3009 signature is NOT
- *   cryptographically verified (no secp256k1 without a new dependency) and nothing is settled: settlement is "dry-run".
- * TODO(api-wiring §D): facilitator verify/settle via KITE_FACILITATOR_URL once its docs are read; record the real tx hash.
+ * - verifyXPayment(): STRUCTURAL validation of a payment header (x402 v2 `PAYMENT-SIGNATURE`, or `X-PAYMENT`; base64 JSON:
+ *   x402Version, `accepted` terms or scheme/network, payload.authorization {from,to,value,validAfter,validBefore,nonce},
+ *   payload.signature). It does not check the EIP-3009 signature itself (no secp256k1 without a new dependency).
+ * - Settlement: "dry-run" by default. With FIANGSHI_SETTLE=live, src/adapters/facilitator.ts has the CDP x402 facilitator
+ *   verify the signature before any work and settle after it (2026-11-24); the receipt then carries the tx hash.
  */
 import { checksumValid, v6 } from "../core/v6.js";
 
@@ -60,14 +61,16 @@ export interface PaymentCheck {
   errors: string[];
   from: string | null;
   value: string | null;
-  signature_verified: false; // always: structure only (dry-run)
+  signature_verified: false; // structure only here; with FIANGSHI_SETTLE=live the facilitator verifies the signature
+  /** the decoded payment, as the client sent it (handed to the facilitator unchanged in live mode) */
+  payload: unknown;
 }
 
 const hex = (n: number) => new RegExp(`^0x[0-9a-fA-F]{${n}}$`);
 
 /** Structural validation only. Never settles. */
 export function verifyXPayment(header: string | undefined, req: Requirement, nowS = Math.floor(Date.now() / 1000)): PaymentCheck {
-  const out: PaymentCheck = { ok: false, errors: [], from: null, value: null, signature_verified: false };
+  const out: PaymentCheck = { ok: false, errors: [], from: null, value: null, signature_verified: false, payload: null };
   if (!header) return { ...out, errors: ["missing X-PAYMENT header"] };
   let p: any;
   try {
@@ -75,10 +78,20 @@ export function verifyXPayment(header: string | undefined, req: Requirement, now
   } catch {
     return { ...out, errors: ["X-PAYMENT is not base64 JSON"] };
   }
+  out.payload = p;
   const e = out.errors;
+  // x402 v2 PaymentPayload carries the chosen terms in `accepted`; the older shape puts scheme and network at the top
+  const acc = p?.accepted;
+  const scheme = acc ? acc.scheme : p?.scheme;
+  const network = acc ? acc.network : p?.network;
   if (typeof p?.x402Version !== "number") e.push("x402Version missing");
-  if (p?.scheme !== "exact") e.push(`scheme must be "exact"`);
-  if (p?.network !== req.network && !(p?.network === "base" && req.network === BASE_CAIP2)) e.push(`network must be ${req.network}`);
+  if (scheme !== "exact") e.push(`scheme must be "exact"`);
+  if (network !== req.network && !(network === "base" && req.network === BASE_CAIP2)) e.push(`network must be ${req.network}`);
+  if (acc) {
+    if (typeof acc.payTo !== "string" || acc.payTo.toLowerCase() !== req.payTo.toLowerCase()) e.push("accepted.payTo is not the payTo");
+    if (typeof acc.asset !== "string" || acc.asset.toLowerCase() !== req.asset.toLowerCase()) e.push("accepted.asset is not the asset asked");
+    if (typeof acc.amount !== "string" || !/^\d+$/.test(acc.amount) || BigInt(acc.amount) < BigInt(req.amount)) e.push(`accepted.amount is below the required ${req.amount}`);
+  }
   const a = p?.payload?.authorization;
   const sig = p?.payload?.signature;
   if (!a) e.push("payload.authorization missing");

@@ -71,7 +71,9 @@ export const Verdict = z.object({
 });
 export type Verdict = z.infer<typeof Verdict>;
 
-export const Settlement = z.union([z.literal("dry-run"), z.string().regex(/^kite:.+$/)]);
+/** "dry-run" (default: nothing submitted), "settled" (2026-11-24: the facilitator submitted the payer's transfer; tx_hash
+ * names it), or the legacy "kite:<tx>" form from the original spec. */
+export const Settlement = z.union([z.literal("dry-run"), z.literal("settled"), z.string().regex(/^kite:.+$/)]);
 
 export const Receipt = z.object({
   payee: z.string(),
@@ -88,6 +90,8 @@ export const Receipt = z.object({
   prev_hash: z.union([hex, z.literal("genesis")]),
   receipt_hash: hex,
   settlement: Settlement,
+  /** with settlement "settled": the Base transaction that moved the payment (payer -> seller payTo), as the facilitator reported it */
+  tx_hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
   /** optional enrichment (Dolphin identity extraction). "incomplete" never changes the band; the reason says why. */
   enrichment: z.object({ status: z.enum(["complete", "incomplete", "skipped"]), reason: z.string().nullable() }).optional(),
   /** CAIP-2 chain of the payee (2026-11-11). Base only; stamped so a future chain can never collide with a Base address. */

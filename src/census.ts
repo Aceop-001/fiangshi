@@ -64,6 +64,8 @@ export interface Census {
   stale_limit_hours: number;
   receipts: Map<string, Receipt>;
   ledger: Receipt[];
+  /** every chain this census can verify: the served one, older refreshes, the 9 Nov census. A receipt links within its own. */
+  chains: Receipt[][];
   funders: FunderRow[];
   signals: Map<string, PayeeSignals>;
   funderLabels: Record<string, FunderLabel>;
@@ -187,9 +189,13 @@ function issue(samplePath: string, version: "v4" | "v5"): Issued {
   return { at, sample, set, payees, receipts, ledger };
 }
 
-let r2Issued: Issued | null = null;
-/** The 13 Nov refresh, issued once, kept only so its receipts still verify after a newer refresh is served. */
-const issueCached = (samplePath: string): Issued => (r2Issued ??= issue(samplePath, "v5"));
+const olderIssued = new Map<string, Issued>();
+/** An older refresh, issued once per sample, kept only so its receipts still verify after a newer refresh is served. */
+const issueCached = (samplePath: string): Issued => {
+  let i = olderIssued.get(samplePath);
+  if (!i) olderIssued.set(samplePath, (i = issue(samplePath, "v5")));
+  return i;
+};
 
 let legacy: Issued | null = null;
 /** The v4 census (2026-11-09): its receipts, chain and issued bands, for verification only. */
@@ -208,16 +214,20 @@ function loadBaseCensus(): Census {
   const { at, sample, set } = cur;
   const payees = [...cur.payees];
   const receipts = new Map(cur.receipts);
+  const chains: Receipt[][] = [cur.ledger];
   if (refreshed) {
     // union by payee: a v4 record the refresh could not re-collect (scan-heavy, excluded) is kept with its own old as_of
     const have = new Set(payees.map((p) => p.payee));
     const old = legacyCensus();
     for (const p of old.payees) if (!have.has(p.payee)) payees.push(p);
     for (const [k, r] of old.receipts) receipts.set(k, r);
+    chains.push(old.ledger);
     // older refreshes (r4 serves: r3 and r2; r3 serves: r2): their receipts keep verifying by id; they are published and linked
     for (const older of OLDER_REFRESHES[refreshSample] ?? []) {
       if (!existsSync(checkpointPath(older, CENSUS_DAYS))) continue;
-      for (const [k, r] of issueCached(older).receipts) if (!receipts.has(k)) receipts.set(k, r);
+      const o = issueCached(older);
+      for (const [k, r] of o.receipts) if (!receipts.has(k)) receipts.set(k, r);
+      chains.push(o.ledger);
     }
   }
   const ledger = cur.ledger;
@@ -257,6 +267,7 @@ function loadBaseCensus(): Census {
     stale_limit_hours: staleHours(),
     receipts,
     ledger,
+    chains,
     funders,
     signals: new Map([...(refreshed ? legacyCensus().set.scored : []), ...set.scored].map((e) => [e.s.payee, e.s])),
     funderLabels: set.funderLabels,

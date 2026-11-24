@@ -93,8 +93,8 @@ const UNKNOWN_ID = { error: "unknown receipt id: the live ledger resets on redep
 function findReceipt(id: string): { r: Receipt; chain: "census" | "ledger"; list: Receipt[] } | null {
   const c = loadCensus();
   const cr = c.receipts.get(id);
-  // a v4 census receipt (2026-11-09) links within its own chain, not the refreshed one
-  if (cr) return { r: cr, chain: "census", list: c.ledger.some((x) => x.receipt_hash === id) ? c.ledger : legacyCensus().ledger };
+  // a receipt from an older census (9 Nov, or a superseded refresh) links within its own chain, not the one served now
+  if (cr) return { r: cr, chain: "census", list: c.chains.find((l) => l.some((x) => x.receipt_hash === id)) ?? c.ledger };
   const list = readLedger(ledgerPath()).flatMap((x) => {
     // schema-checked, but returned exactly as stored, so /v1/receipt/:id is byte-identical to the paid answer's receipt
     return Receipt.safeParse(x).success ? [x as Receipt] : [];

@@ -9,6 +9,9 @@ import { startServer } from "../src/api/server.js";
 import { loadCensus } from "../src/census.js";
 import { RECEIPT_FIELDS } from "../src/openapi.js";
 import { Receipt } from "../src/core/types.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { ROOT } from "../src/config.js";
 import { tmp } from "./helpers.js";
 
 const PAYTO = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
@@ -46,6 +49,12 @@ describe("/openapi.json", () => {
     expect([...RECEIPT_FIELDS].sort()).toEqual(Object.keys(Receipt.shape).sort());
     expect(Object.keys(spec.components.schemas.Receipt.properties).sort()).toEqual(Object.keys(Receipt.shape).sort());
   });
+  it("every route the server's own route list names is documented", () => {
+    const src = readFileSync(join(ROOT, "src", "api", "server.ts"), "utf8");
+    const listed = [...src.matchAll(/^ \*   GET (\/[^\s?]*)/gm)].map((m) => m[1]!.replace(/:id$/, "{id}").replace(/:addr\.svg$/, "{file}").replace(/:addr$/, "{address}"));
+    expect(listed.length).toBeGreaterThan(15);
+    for (const p of listed) expect(spec.paths, `route ${p} is not in /openapi.json`).toHaveProperty([p]);
+  });
   it("every documented route answers with a documented status, and JSON bodies match their schema", async () => {
     const c = loadCensus();
     const id = c.ledger[0]!.receipt_hash;
@@ -58,6 +67,17 @@ describe("/openapi.json", () => {
       "/v1/preview": `/v1/preview?url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`,
       "/v1/check": `/v1/check?url=${encodeURIComponent("https://api.weatherly.example/v1/forecast")}`,
       "/v1/payee/{address}": `/v1/payee/${payee}`,
+      "/v1/batch": `/v1/batch?url=${encodeURIComponent("https://api.weatherly.example/v1/forecast")}&url=${encodeURIComponent("https://api.cleave.fi/x402/gas")}`,
+      "/v1/stats": "/v1/stats",
+      "/docs": "/docs",
+      "/judges": "/judges",
+      "/guide": "/guide",
+      "/connect": "/connect",
+      "/cli": "/cli",
+      "/pricing": "/pricing",
+      "/architecture": "/architecture",
+      "/report": "/report",
+      "/legal": "/legal",
       "/v1/receipt/{id}": `/v1/receipt/${id}`,
       "/v1/receipts/{id}": `/v1/receipts/${id}`,
       "/v1/verify": `/v1/verify?id=${id}`,

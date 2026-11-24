@@ -344,6 +344,8 @@ After the six vows and the model, one band cap runs. If the payee's own data is 
 | `GET /v1/index.json` | free | Every census payee: address, example endpoint, band, score, vows fired, receipt id. |
 | `GET /openapi.json` | free | An OpenAPI 3.1 description of every route, with schemas that a test checks against the real responses. |
 | `GET /v1/census/status` | free | How fresh the census is now: records total and stale, ALLOWs issued, served and capped, the last refresh (credits, payees refreshed and failed) and the next planned one, with `overdue` when it was missed. |
+| `GET /v1/batch?url=…&url=…` | 20% off the summed check prices | Up to 10 checks under one x402 payment: one settlement, one receipt per check, a null payee answered free. See [Pricing](PRICING.md). |
+| `GET /v1/stats` | free | Checks served, paid and settled in the last 24 hours, and the USD settled, counted from sealed receipts (each settled one names its tx hash). |
 | `GET /v1/receipts/{id}` | free | A stored receipt by id, wherever it lives (the census, this server's ledger, or the durable GitHub store when one is set), with its verify result: the hash recomputed from the stored bytes, the band re-derived, and the link to its predecessor checked. |
 | `GET /v1/receipt/:id` | free | One receipt as JSON. |
 | `GET /v1/verify?id=` or `?receipt=` | free | Recomputes the hash and the chain link. |

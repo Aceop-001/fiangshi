@@ -92,6 +92,8 @@ export const Receipt = z.object({
   settlement: Settlement,
   /** with settlement "settled": the Base transaction that moved the payment (payer -> seller payTo), as the facilitator reported it */
   tx_hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
+  /** what the agent was charged for this check in USD (2026-11-24; the seller's own price is `price`). Absent on free answers. */
+  fee_usd: z.number().nonnegative().optional(),
   /** optional enrichment (Dolphin identity extraction). "incomplete" never changes the band; the reason says why. */
   enrichment: z.object({ status: z.enum(["complete", "incomplete", "skipped"]), reason: z.string().nullable() }).optional(),
   /** CAIP-2 chain of the payee (2026-11-11). Base only; stamped so a future chain can never collide with a Base address. */

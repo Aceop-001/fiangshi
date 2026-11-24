@@ -12,6 +12,8 @@
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
  *   GET /v1/check?url=          V6 payTo -> BLOCK at $0.00 with no payment and no model call;
  *                               otherwise $0.05 · 402 without X-PAYMENT; verdict + receipt with it (SERV || Dolphin, vows)
+ *   GET /v1/batch?url=&url=     up to 10 checks under one x402 payment, 20% off their summed prices
+ *   GET /v1/stats               free · checks served and USD settled in the last 24 h, from sealed receipts
  *   GET /v1/receipt/:id         free · full receipt JSON (census, live ledger, or the durable store)
  *   GET /v1/receipts/:id        free · the stored receipt plus its verify result
  *   GET /v1/verify?id=|receipt= free · recompute the hash (and chain link); receipt = base64url JSON
@@ -25,7 +27,7 @@ import { pathToFileURL } from "node:url";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT, loadDotEnv, nowMs, num, providerMode, staleHours } from "../config.js";
-import { legacyCensus, loadCensus, loadDemoStats } from "../census.js";
+import { legacyCensus, loadCensus, loadDemoStats, type Census } from "../census.js";
 import { badgeSvg, renderCheck, renderDoc, renderDocsHome, renderIndex, renderJudges, renderNotFound, renderReceipt } from "../site.js";
 import { COPY_SCRIPT_CSP, CSP, setPagePath } from "../site-theme.js";
 import { docByPath } from "../docs-index.js";
@@ -50,6 +52,7 @@ import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
 import { censusStatus, readRuns } from "../census-status.js";
 import { openapi } from "../openapi.js";
+import { countPreview, usageStats } from "../stats.js";
 import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror } from "../ledger/store.js";
 import { fetchStoredReceipt, githubStoreOn, receiptsRepo } from "../ledger/github.js";
 
@@ -227,6 +230,103 @@ function verifyOneHash(obj: unknown): VerifyOut {
   };
 }
 
+/* ---------------------------------------------------------------- one paid check, in three phases ---------------- */
+// quote (probe, SKU, price; a null payee is answered free right away), evaluate (signals, SERV || Dolphin, vows),
+// seal (receipt with its settlement and fee). /v1/check runs them for one URL, /v1/batch for up to ten under one payment.
+
+type Quote =
+  | { kind: "null_payee"; target: string; body: Record<string, unknown> & { receipt_verify_url: string } }
+  | { kind: "paid"; target: string; pr: Awaited<ReturnType<typeof probe>>; sku: "cached" | "cold"; price: number };
+
+async function quoteCheck(target: string, c: Census, self: string): Promise<Quote> {
+  const pr = await probe(target);
+  if (pr.ok && v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
+    const r = await check(target, { probe: pr });
+    return { kind: "null_payee", target, body: { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired ?? null, vows_fired: r.decision.vows.filter((v) => v.fired).map((v) => v.vow), reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, receipt_verify_url: receiptVerifyUrl(self, r.receipt), settlement: "dry-run" } };
+  }
+  // Cached SKU: a census payee or a cold payee fetched in the last 72 h. Cold SKU: anyone else, fetched live from Surf.
+  const terms = pr.ok ? pr.terms : null;
+  const payee = terms?.payee ?? "unknown";
+  const cp = c.payees.find((x) => x.payee === payee);
+  const coldLive = providerMode() === "live";
+  const cachedCold = !cp && terms ? coldCacheHit(payee) : false;
+  const sku: "cached" | "cold" = cp || cachedCold || !terms || !coldLive ? "cached" : "cold";
+  return { kind: "paid", target, pr, sku, price: sku === "cold" ? num("FIANGSHI_PRICE_CHECK_COLD", 0.15) : num("FIANGSHI_PRICE_CHECK", 0.05) };
+}
+
+async function evaluateQuoted(q: Extract<Quote, { kind: "paid" }>, c: Census) {
+  const { pr, target, sku } = q;
+  const terms = pr.ok ? pr.terms : null;
+  const payee = terms?.payee ?? "unknown";
+  const cp = c.payees.find((x) => x.payee === payee);
+  const coldLive = providerMode() === "live";
+  const cachedCold = !cp && terms ? coldCacheHit(payee) : false;
+  let s = c.signals.get(payee) ?? emptySignals(payee);
+  let cold: Record<string, unknown> | null = null;
+  if (!cp && terms) {
+    if (!coldLive && !cachedCold) cold = { ok: false, reason: "unavailable", detail: `cold checks need live providers (this server runs in ${providerMode()} mode)`, surf_calls: 0 };
+    else {
+      const r = await coldSignals(payee, terms.network, c, coldFetcher);
+      if (r.ok) s = r.signals;
+      const { signals: _omit, ...meta } = r as Record<string, unknown>;
+      cold = meta;
+    }
+  }
+  const full = await evaluateFull(terms, s, c.funderLabels, cp?.service?.trim() || null, { url: target, catalogName: cp?.service ?? null, labelName: null });
+  // policy v5: the record's own collection time decides the stale cap (census record, or the cold fetch just made)
+  const asOf = cp ? cp.as_of : ((cold?.fetched_at as string | undefined) ?? new Date(nowMs()).toISOString());
+  return { q, terms, payee, cp, cold, full, asOf, sku, v5: v5Fields(full.decision, asOf, nowMs(), staleHours()) };
+}
+
+function sealQuoted(ev: Awaited<ReturnType<typeof evaluateQuoted>>, c: Census, self: string, settled: { tx: string } | null, fee: number, payer: string | null) {
+  const { q, terms, payee, cp, cold, full, asOf, sku, v5 } = ev;
+  const { pr, target } = q;
+  const d = full.decision;
+  const coldNote = cold && cold.ok === false ? [{ signal: "cold_check", quote: `${String(cold.reason)}: ${String(cold.detail)}` }] : [];
+  const receipt = appendReceipt({
+    payee,
+    url: target,
+    terms_hash: terms?.terms_hash ?? hashOf({ url: target, probe_error: pr.ok ? null : pr.error }),
+    price: terms?.price ?? null,
+    band: v5.band,
+    score: d.verdict.score,
+    vow_fired: d.verdict.vow_fired ?? null,
+    evidence: [...d.verdict.citations, ...coldNote],
+    model: { verdict: d.modelRawBand, extractor: full.extraction ? (full.extraction.claims ? "dolphin" : "dolphin:failed") : "none", degraded: d.verdict.degraded },
+    snapshot_id: cp ? hashOf({ census: "w90", at: c.at }) : hashOf({ cold: payee, fetched_at: (cold?.fetched_at as string | undefined) ?? null }),
+    checked_at: new Date().toISOString(),
+    settlement: settled ? "settled" : currentSettlement(),
+    ...(settled ? { tx_hash: settled.tx, chain: "eip155:8453" as const } : {}),
+    fee_usd: fee,
+    enrichment: full.enrichment,
+    ...v5.fields,
+  });
+  return {
+    band: v5.band,
+    band_cap: v5.cap.band_cap,
+    verdict_confidence: v5.cap.verdict_confidence,
+    policy_version: v5.fields.policy_version,
+    ...freshness(asOf),
+    score: d.verdict.score,
+    vow_fired: d.verdict.vow_fired ?? null,
+    vows_fired: d.vows.filter((v) => v.fired).map((v) => v.vow),
+    vows: d.vows.filter((v) => v.fired).map((v) => ({ vow: v.vow, band: v.band, reason: v.reason, ...(v.flags ? { flags: v.flags } : {}) })),
+    model: { serv: d.modelRawBand, degraded: d.verdict.degraded },
+    enrichment: full.enrichment,
+    in_census: Boolean(cp),
+    sku,
+    cold,
+    probe: pr.ok ? { price: pr.terms.price, payee: pr.terms.payee } : { error: pr.error },
+    cost_usd: fee,
+    payer,
+    settlement: settled ? "settled" : "dry-run",
+    ...(settled ? { tx_hash: settled.tx } : {}),
+    receipt_id: receipt.receipt_hash,
+    receipt,
+    receipt_verify_url: receiptVerifyUrl(self, receipt),
+  };
+}
+
 type Paid = { ok: true; requirement: Requirement; from: string | null; payload: unknown };
 function requirePayment(req: IncomingMessage, res: ServerResponse, resource: string, usd: number, description: string): Paid | null {
   const seller = sellerPayTo();
@@ -335,6 +435,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       // census answer. Never a model call, never a Surf call. A full verdict on a live probe is the paid /v1/check.
       const input = (u.searchParams.get("url") ?? "").trim();
       if (!/^https?:\/\/\S{1,2000}$/i.test(input)) return json(res, 400, { error: "pass ?url=<an http or https x402 endpoint>" });
+      countPreview();
       const pr = await probe(input);
       const seller = sellerPayTo();
       const paid: PaidStatus = seller.ok ? { ok: true, url: `${self}/v1/check?url=${encodeURIComponent(input)}` } : { ok: false, why: "the operator has not set a receiving wallet (FIANGSHI_PAYTO), so the paid route answers 503" };
@@ -419,93 +520,55 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const st = settled ? { settlement: "settled", tx_hash: settled.tx } : { settlement: "dry-run" };
       return json(res, p ? 200 : 404, p ? { ...p, ...freshness(p.as_of), ...st, payer: pay.from, receipt_id: p.receipt_id } : { error: "payee not in the census", settlement: "dry-run" }, settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
+    if (u.pathname === "/v1/batch") {
+      // One payment for up to FIANGSHI_BATCH_MAX checks at FIANGSHI_BATCH_DISCOUNT off their summed prices: no account,
+      // no key, no stored balance. A null payee in the batch is answered free and not charged, as on /v1/check.
+      const max = num("FIANGSHI_BATCH_MAX", 10);
+      const targets = u.searchParams.getAll("url").map((t) => t.trim()).filter(Boolean);
+      if (!targets.length || targets.length > max || targets.some((t) => !/^https?:\/\//.test(t)) || new Set(targets).size !== targets.length)
+        return json(res, 400, { error: `pass 1 to ${max} distinct ?url=<x402 endpoint> parameters` });
+      const t0 = performance.now();
+      const mc0 = modelCalls.length;
+      const quotes = await Promise.all(targets.map((t) => quoteCheck(t, c, self)));
+      const paidQ = quotes.filter((q): q is Extract<Quote, { kind: "paid" }> => q.kind === "paid");
+      const discount = Math.min(Math.max(num("FIANGSHI_BATCH_DISCOUNT", 0.2), 0), 0.9);
+      const listUsd = paidQ.reduce((a, q) => a + q.price, 0);
+      const usd = Math.round(listUsd * (1 - discount) * 1e6) / 1e6;
+      const freeItems = (qs: Quote[]) => qs.map((q) => (q.kind === "null_payee" ? { url: q.target, ...q.body } : null));
+      if (!paidQ.length) return json(res, 200, { items: freeItems(quotes), count: quotes.length, list_price_usd: 0, cost_usd: 0, settlement: "dry-run", model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) });
+      const resource = `${self}/v1/batch?${targets.map((t) => `url=${encodeURIComponent(t)}`).join("&")}`;
+      const desc = `Fiangshi batch: ${paidQ.length} counterparty checks`;
+      const pay = requirePayment(req, res, resource, usd, desc);
+      if (!pay) return;
+      const terms402 = paymentRequired(resource, usd, pay.requirement.payTo, desc);
+      if (!(await verifyLive(pay, res, { body: terms402.body, header: terms402.header }))) return;
+      const evs = new Map<string, Awaited<ReturnType<typeof evaluateQuoted>>>();
+      for (const q of paidQ) evs.set(q.target, await evaluateQuoted(q, c)); // one at a time: each runs SERV and Dolphin
+      const settled = await settleLive(pay, res);
+      if (settled === false) return;
+      const items = quotes.map((q) => (q.kind === "null_payee" ? { url: q.target, ...q.body } : { url: q.target, ...sealQuoted(evs.get(q.target)!, c, self, settled, Math.round(q.price * (1 - discount) * 1e6) / 1e6, pay.from) }));
+      return json(res, 200, { items, count: items.length, list_price_usd: Math.round(listUsd * 1e6) / 1e6, discount, cost_usd: usd, payer: pay.from, settlement: settled ? "settled" : "dry-run", ...(settled ? { tx_hash: settled.tx } : {}), model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) }, settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
+    }
+    if (u.pathname === "/v1/stats") return json(res, 200, usageStats(readLedger(ledgerPath()), nowMs(), settleReady().ok ? "live" : currentSettlement()));
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
       if (!target || !/^https?:\/\//.test(target)) return json(res, 400, { error: "pass ?url=<x402 endpoint>" });
       const t0 = performance.now();
       const mc0 = modelCalls.length;
-      const pr = await probe(target);
+      const q = await quoteCheck(target, c, self);
       // V6 at probe time: a null/sink payTo is BLOCKed before any spend: no payment asked, no data or model call
-      if (pr.ok && v6({ payTo: pr.payTo_raw, asset: pr.terms.asset }).band === "BLOCK") {
-        const r = await check(target, { probe: pr });
-        return json(res, 200, { band: r.decision.verdict.band, vow_fired: r.decision.verdict.vow_fired ?? null, vows_fired: r.decision.vows.filter((v) => v.fired).map((v) => v.vow), reason: r.decision.verdict.citations[0]?.quote, cost_usd: 0, model_calls: modelCalls.length - mc0, receipt_id: r.receipt.receipt_hash, receipt: r.receipt, receipt_verify_url: receiptVerifyUrl(self, r.receipt), settlement: "dry-run", ms: Math.round(performance.now() - t0) }, { "x-receipt-verify": receiptVerifyUrl(self, r.receipt) });
-      }
-      // Cached SKU: a census payee or a cold payee fetched in the last 72 h. Cold SKU: anyone else, fetched live from Surf.
-      const terms = pr.ok ? pr.terms : null;
-      const payee = terms?.payee ?? "unknown";
-      const cp = c.payees.find((x) => x.payee === payee);
-      const coldLive = providerMode() === "live";
-      const cachedCold = !cp && terms ? coldCacheHit(payee) : false;
-      const sku: "cached" | "cold" = cp || cachedCold || !terms || !coldLive ? "cached" : "cold";
-      const price = sku === "cold" ? num("FIANGSHI_PRICE_CHECK_COLD", 0.15) : num("FIANGSHI_PRICE_CHECK", 0.05);
-      const desc = sku === "cold" ? "Fiangshi counterparty check (cold: live on-chain fetch)" : "Fiangshi counterparty check";
+      if (q.kind === "null_payee") return json(res, 200, { ...q.body, model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) }, { "x-receipt-verify": q.body.receipt_verify_url });
+      const desc = q.sku === "cold" ? "Fiangshi counterparty check (cold: live on-chain fetch)" : "Fiangshi counterparty check";
       const resource = `${self}/v1/check?url=${encodeURIComponent(target)}`;
-      const pay = requirePayment(req, res, resource, price, desc);
+      const pay = requirePayment(req, res, resource, q.price, desc);
       if (!pay) return;
-      const terms402 = paymentRequired(resource, price, pay.requirement.payTo, desc);
+      const terms402 = paymentRequired(resource, q.price, pay.requirement.payTo, desc);
       if (!(await verifyLive(pay, res, { body: terms402.body, header: terms402.header }))) return;
-      let s = c.signals.get(payee) ?? emptySignals(payee);
-      let cold: Record<string, unknown> | null = null;
-      if (!cp && terms) {
-        if (!coldLive && !cachedCold) cold = { ok: false, reason: "unavailable", detail: `cold checks need live providers (this server runs in ${providerMode()} mode)`, surf_calls: 0 };
-        else {
-          const r = await coldSignals(payee, terms.network, c, coldFetcher);
-          if (r.ok) s = r.signals;
-          const { signals: _omit, ...meta } = r as Record<string, unknown>;
-          cold = meta;
-        }
-      }
-      const full = await evaluateFull(terms, s, c.funderLabels, cp?.service?.trim() || null, { url: target, catalogName: cp?.service ?? null, labelName: null });
-      const d = full.decision;
-      // policy v5: the record's own collection time decides the stale cap (census record, or the cold fetch just made)
-      const asOf = cp ? cp.as_of : ((cold?.fetched_at as string | undefined) ?? new Date(nowMs()).toISOString());
-      const v5 = v5Fields(d, asOf, nowMs(), staleHours());
-      const coldNote = cold && cold.ok === false ? [{ signal: "cold_check", quote: `${String(cold.reason)}: ${String(cold.detail)}` }] : [];
+      const ev = await evaluateQuoted(q, c);
       const settled = await settleLive(pay, res);
       if (settled === false) return;
-      const receipt = appendReceipt({
-        payee,
-        url: target,
-        terms_hash: terms?.terms_hash ?? hashOf({ url: target, probe_error: pr.ok ? null : pr.error }),
-        price: terms?.price ?? null,
-        band: v5.band,
-        score: d.verdict.score,
-        vow_fired: d.verdict.vow_fired ?? null,
-        evidence: [...d.verdict.citations, ...coldNote],
-        model: { verdict: d.modelRawBand, extractor: full.extraction ? (full.extraction.claims ? "dolphin" : "dolphin:failed") : "none", degraded: d.verdict.degraded },
-        snapshot_id: cp ? hashOf({ census: "w90", at: c.at }) : hashOf({ cold: payee, fetched_at: (cold?.fetched_at as string | undefined) ?? null }),
-        checked_at: new Date().toISOString(),
-        settlement: settled ? "settled" : currentSettlement(),
-        ...(settled ? { tx_hash: settled.tx, chain: "eip155:8453" as const } : {}),
-        enrichment: full.enrichment,
-        ...v5.fields,
-      });
-      return json(res, 200, {
-        band: v5.band,
-        band_cap: v5.cap.band_cap,
-        verdict_confidence: v5.cap.verdict_confidence,
-        policy_version: v5.fields.policy_version,
-        ...freshness(asOf),
-        score: d.verdict.score,
-        vow_fired: d.verdict.vow_fired ?? null,
-        vows_fired: d.vows.filter((v) => v.fired).map((v) => v.vow),
-        vows: d.vows.filter((v) => v.fired).map((v) => ({ vow: v.vow, band: v.band, reason: v.reason, ...(v.flags ? { flags: v.flags } : {}) })),
-        model: { serv: d.modelRawBand, degraded: d.verdict.degraded },
-        enrichment: full.enrichment,
-        in_census: Boolean(cp),
-        sku,
-        cold,
-        probe: pr.ok ? { price: pr.terms.price, payee: pr.terms.payee } : { error: pr.error },
-        cost_usd: price,
-        payer: pay.from,
-        settlement: settled ? "settled" : "dry-run",
-        ...(settled ? { tx_hash: settled.tx } : {}),
-        model_calls: modelCalls.length - mc0,
-        receipt_id: receipt.receipt_hash,
-        receipt,
-        receipt_verify_url: receiptVerifyUrl(self, receipt),
-        ms: Math.round(performance.now() - t0),
-      }, { ...(settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) }), "x-receipt-verify": receiptVerifyUrl(self, receipt) });
+      const out = sealQuoted(ev, c, self, settled, q.price, pay.from);
+      return json(res, 200, { ...out, model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) }, { ...(settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) }), "x-receipt-verify": out.receipt_verify_url });
     }
     return json(res, 404, { error: "not found" });
   } catch (e) {

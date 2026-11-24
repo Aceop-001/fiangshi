@@ -234,7 +234,7 @@ describe("HTTP API", () => {
     expect(cli).toContain('<a href="/cli" aria-current="page">CLI and skill</a>');
     expect(cli).toContain('<p class="crumbs"><a href="/docs">Docs</a>');
     expect(cli).toContain('class="pv" href="/connect"');
-    expect(cli).toContain('class="nx" href="/architecture"');
+    expect(cli).toContain('class="nx" href="/pricing"'); // reading order: CLI, then Pricing (2026-11-24), then Architecture
     expect(cli).not.toMatch(/<script/i);
   });
   it("the hero is the check panel alone: no clock, no poster, no dragon, no images", async () => {

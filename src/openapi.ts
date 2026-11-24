@@ -17,7 +17,7 @@ const obj = (properties: Record<string, object>, required: string[] = [], additi
 
 export const RECEIPT_FIELDS = [
   "payee", "url", "terms_hash", "price", "band", "score", "vow_fired", "evidence", "model", "snapshot_id", "checked_at", "prev_hash", "receipt_hash",
-  "settlement", "tx_hash", "enrichment", "chain", "chain_id", "policy_version", "as_of", "band_cap", "band_basis",
+  "settlement", "tx_hash", "fee_usd", "enrichment", "chain", "chain_id", "policy_version", "as_of", "band_cap", "band_basis",
 ] as const;
 
 const receipt = obj(
@@ -37,6 +37,7 @@ const receipt = obj(
     receipt_hash: { ...hex64, description: "sha256 of the canonical JSON of every other field" },
     settlement: { anyOf: [{ enum: ["dry-run", "settled"] }, { type: "string", pattern: "^kite:.+" }] },
     tx_hash: { type: "string", pattern: "^0x[0-9a-fA-F]{64}$", description: "with settlement \"settled\": the Base transaction that moved the payment" },
+    fee_usd: { type: "number", minimum: 0, description: "what the agent was charged for this check, in USD (the seller's own price is `price`)" },
     enrichment: obj({ status: { enum: ["complete", "incomplete", "skipped"] }, reason: nullable(str) }, ["status", "reason"]),
     chain: { const: "eip155:8453" },
     chain_id: hex64,
@@ -125,6 +126,14 @@ export function openapi(serverUrl: string) {
           responses: { "200": json(ref("CheckResult")), ...x402, "400": json(obj({ error: str }, ["error"], true), "Missing or invalid url") },
         },
       },
+      "/v1/batch": {
+        get: {
+          summary: "Up to 10 checks under one x402 payment, 20% off their summed prices; one receipt per check, null payees free",
+          parameters: [{ name: "url", in: "query", required: true, style: "form", explode: true, schema: { type: "array", minItems: 1, maxItems: 10, uniqueItems: true, items: { type: "string", format: "uri" } } }, ...payHeaders],
+          responses: { "200": json(ref("BatchResult")), ...x402, "400": json(obj({ error: str }, ["error"], true), "No url, more than 10, a duplicate, or not http(s)") },
+        },
+      },
+      "/v1/stats": { get: { summary: "Checks served and USD settled in the last 24 h, from sealed receipts (free)", responses: { "200": json(ref("Stats")) } } },
       "/v1/payee/{address}": {
         get: {
           summary: "Paid census record for one payee ($0.02)",
@@ -147,6 +156,15 @@ export function openapi(serverUrl: string) {
       "/v1/badge/{file}": { get: { summary: "An SVG badge coloured by the payee's band", parameters: [{ name: "file", in: "path", required: true, schema: { type: "string", pattern: "^0x[0-9a-fA-F]{40}\\.svg$" } }], responses: { "200": { description: "SVG", content: { "image/svg+xml": { schema: str } } } } } },
       "/": { get: { summary: "The site (static HTML, no script)", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
       "/check": { get: { summary: "The free check as a page", parameters: [{ name: "url", in: "query", required: false, schema: str }], responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } }, "400": { description: "HTML: no url, or not an http(s) url", content: { "text/html": { schema: str } } } } } },
+      "/docs": { get: { summary: "Documentation home", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/judges": { get: { summary: "For judges", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/guide": { get: { summary: "Guide", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/connect": { get: { summary: "Connect your AI", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/cli": { get: { summary: "CLI and agent skill", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/pricing": { get: { summary: "Pricing", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/architecture": { get: { summary: "Architecture", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/report": { get: { summary: "Test report", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
+      "/legal": { get: { summary: "Legal", responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } } } } },
       "/receipt/{id}": { get: { summary: "A receipt as a page, with its verification", parameters: [idParam], responses: { "200": { description: "HTML", content: { "text/html": { schema: str } } }, "404": { description: "HTML", content: { "text/html": { schema: str } } } } } },
     },
     components: {
@@ -164,6 +182,8 @@ export function openapi(serverUrl: string) {
           ["census_at", "payees_total", "payees_stale", "bands", "payees"],
         ),
         Preview: { type: "object", description: "One schema on every path; `class` is VERDICT, NO_RECORD, PAYMENT_TERMS_UNPARSEABLE or UNVERIFIED_ENDPOINT", properties: { url: str, verdict: str, class: str, model_calls: { const: 0 } } },
+        BatchResult: obj({ items: { type: "array", items: { type: "object" } }, count: int, list_price_usd: num, discount: num, cost_usd: num, payer: nullable(str), settlement: { enum: ["dry-run", "settled"] }, tx_hash: str, model_calls: int, ms: int, mode: str, provenance: str }, ["items", "count", "cost_usd", "settlement"]),
+        Stats: obj({ window_hours: int, counted_since: str, checks_served_24h: int, paid_checks_24h: int, settled_checks_24h: int, usd_settled_24h: num, usd_charged_dry_run_24h: num, free_previews_24h: int, settlement_mode: str, settled_tx: { type: "array", items: str }, note: str, mode: str, provenance: str }, ["checks_served_24h", "usd_settled_24h", "settlement_mode"]),
         CheckResult: { type: "object", properties: { band, score: num, settlement: { enum: ["dry-run", "settled"] }, tx_hash: str, receipt_id: hex64, receipt: ref("Receipt"), receipt_verify_url: str, cost_usd: num, model_calls: int, payer: nullable(str) }, required: ["band", "settlement", "receipt_id", "receipt"] },
       },
     },

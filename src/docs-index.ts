@@ -5,7 +5,7 @@
 export type DocGroup = "Get started" | "How it works" | "Policies";
 
 export interface DocPage {
-  kind: "guide" | "connect" | "cli" | "architecture" | "report" | "legal";
+  kind: "guide" | "connect" | "cli" | "pricing" | "architecture" | "report" | "legal";
   path: string;
   file: string;
   /** short label in the sidebar, nav and footer */
@@ -50,6 +50,16 @@ export const DOC_PAGES: DocPage[] = [
     blurb: "A command line for agents with verdict exit codes, and a skill that teaches agents to ask first.",
     description: "The Fiangshi CLI for agents and scripts, its exit codes, and the Fiangshi agent skill.",
     fallback: "CLI and agent skill",
+  },
+  {
+    kind: "pricing",
+    path: "/pricing",
+    file: "PRICING.md",
+    label: "Pricing",
+    group: "Get started",
+    blurb: "Free routes, the paid checks and their prices, and the batch plan for agents.",
+    description: "Fiangshi pricing: free routes, $0.05 cached and $0.15 cold checks, and batches of up to ten under one x402 payment.",
+    fallback: "Pricing",
   },
   {
     kind: "architecture",

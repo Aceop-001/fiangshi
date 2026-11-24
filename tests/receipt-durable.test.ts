@@ -160,8 +160,15 @@ describe("the live ledger can survive", () => {
     const next = appendReceipt(body(6), fresh);
     expect(next.prev_hash).toBe(ids[1]);
   });
-  it("/health says ephemeral without a mirror and durable with one", async () => {
-    expect((await get("/health")).body.ledger_durability).toBe("ephemeral: receipts are verifiable from their payload, not by id");
+  it("/health says exactly what is durable without a mirror, and durable with one", async () => {
+    const h = (await get("/health")).body;
+    // census receipts are durable; live ones are not without a store, and /health says both, with counts
+    expect(h.ledger_durability).toMatch(/^census receipts: durable, rebuilt from committed data and verifiable by id\. Live check receipts: reset on redeploy until a receipt store is set/);
+    expect(h.receipts_stored.census).toBeGreaterThan(1900);
+    expect(h.receipts_stored.store_total).toBeNull();
+    const st = (await get("/v1/stats")).body;
+    expect(st.lifetime).toMatchObject({ source: null });
+    expect(st.lifetime.reason).toMatch(/no receipt store is set/);
     const mirror = tmp();
     process.env.FIANGSHI_LEDGER_MIRROR = mirror;
     expect(ledgerDurability(join(dataDir, "ledger.jsonl"))).toMatch(new RegExp(`^durable: ${mirror.replace(/\\/g, "\\\\")}, \\d+ entries$`));

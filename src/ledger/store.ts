@@ -28,6 +28,8 @@ export async function restoreFromGithub(): Promise<Head | null> {
 }
 /** tests only */
 export const setRemoteHead = (h: Head | null) => (remoteHead = h);
+/** The store's HEAD as read when this process started (lifetime totals before this process), or null. */
+export const storedHead = (): Head | null => remoteHead;
 /** What the first receipt in this process's ledger links to: the store's HEAD read at start, else genesis. */
 export const ledgerBaseHash = (): string => remoteHead?.receipt_hash ?? "genesis";
 
@@ -86,7 +88,18 @@ export function appendReceipt(body: ReceiptBody, path = ledgerPath()): Receipt {
   const r = sealReceipt({ ...body, chain_id: epoch.chain_id }, lastHash(path));
   appendFileSync(path, JSON.stringify(r) + "\n", "utf8");
   mirrorLine(JSON.stringify(r));
-  void storeReceipt(r, JSON.stringify(r), { receipt_hash: r.receipt_hash, chain_id: epoch.chain_id, started_at: epoch.started_at, count: (remoteHead?.count ?? 0) + readLedger(path).length });
+  const local = readLedger(path) as Receipt[];
+  const paid = local.filter((x) => (x.fee_usd ?? 0) > 0);
+  const settled = paid.filter((x) => x.settlement === "settled" && x.tx_hash);
+  void storeReceipt(r, JSON.stringify(r), {
+    receipt_hash: r.receipt_hash,
+    chain_id: epoch.chain_id,
+    started_at: epoch.started_at,
+    count: (remoteHead?.count ?? 0) + local.length,
+    paid: (remoteHead?.paid ?? 0) + paid.length,
+    settled: (remoteHead?.settled ?? 0) + settled.length,
+    usd_settled: Math.round(((remoteHead?.usd_settled ?? 0) + settled.reduce((a, x) => a + (x.fee_usd ?? 0), 0)) * 1e6) / 1e6,
+  });
   return r;
 }
 
@@ -185,6 +198,7 @@ export function ledgerDurability(path = ledgerPath()): string {
   const gh = storeStatus();
   if (gh) return gh;
   const dir = mirrorDir();
-  if (!dir) return "ephemeral: receipts are verifiable from their payload, not by id";
+  // census receipts are always durable (rebuilt from committed data); only receipts from live paid checks can be lost
+  if (!dir) return "census receipts: durable, rebuilt from committed data and verifiable by id. Live check receipts: reset on redeploy until a receipt store is set (FIANGSHI_RECEIPTS_REPO); each stays verifiable from its own payload";
   return `durable: ${dir}, ${readLedger(path).length} entries${restored?.refused ? ` (${restored.refused} refused on restore)` : ""}`;
 }

@@ -32,6 +32,10 @@ export interface Head {
   chain_id: string | null;
   started_at: string;
   count: number;
+  /** running totals since the store began (2026-11-24): receipts with a fee, settled ones, and USD settled */
+  paid?: number;
+  settled?: number;
+  usd_settled?: number;
 }
 
 type Fetch = typeof fetch;

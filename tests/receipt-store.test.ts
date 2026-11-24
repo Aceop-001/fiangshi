@@ -124,6 +124,13 @@ describe("durable receipts on a GitHub repository", () => {
     expect(r.body.verify.valid).toBe(false);
     files.set(p, orig);
   });
+  it("lifetime totals survive the redeploy: the store's HEAD plus this process", async () => {
+    const st = (await getJson("/v1/stats")).body;
+    expect(st.lifetime).toMatchObject({ source: "durable receipt store github.com/test/receipts", receipts: 3, paid_checks: 0, settled_checks: 0, usd_settled: 0 });
+    const h = (await getJson("/health")).body;
+    expect(h.receipts_stored.store_total).toBe(3);
+    expect(JSON.parse(files.get("receipts/HEAD.json")!.text)).toMatchObject({ count: 3, paid: 0, settled: 0, usd_settled: 0 });
+  });
   it("an unknown id is a 404; /health says the ledger is durable", async () => {
     expect((await getJson(`/v1/receipts/${"f".repeat(64)}`)).status).toBe(404);
     expect(ledgerDurability()).toMatch(/^durable: receipts committed to github\.com\/test\/receipts/);

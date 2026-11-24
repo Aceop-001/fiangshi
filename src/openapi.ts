@@ -172,7 +172,7 @@ export function openapi(serverUrl: string) {
         Receipt: receipt,
         Verify: verify,
         PaymentRequired: paymentRequired,
-        Health: obj({ ok: bool, census_payees: int, census_at: str, settlement: str, ledger_durability: str, mode: str, provenance: str }, ["ok", "census_payees", "census_at", "settlement", "ledger_durability"]),
+        Health: obj({ ok: bool, census_payees: int, census_at: str, settlement: str, ledger_durability: str, receipts_stored: obj({ census: int, live_this_process: int, store_total: nullable(int) }, ["census", "live_this_process", "store_total"]), mode: str, provenance: str }, ["ok", "census_payees", "census_at", "settlement", "ledger_durability", "receipts_stored"]),
         CensusStatus: obj(
           { census_at: str, served_at: str, records_total: int, records_stale: int, stale_limit_hours: num, allow_issued: int, allow_served: int, allow_capped: int, refresh_interval_hours: num, next_refresh_at: str, overdue: bool, last_run: nullable(obj({ at: str, kind: str, credits_spent: nullable(num), payees_refreshed: int, payees_failed: int }, ["at", "kind", "credits_spent", "payees_refreshed", "payees_failed"])), note: str, mode: str, provenance: str },
           ["census_at", "records_total", "records_stale", "next_refresh_at", "last_run"],
@@ -183,7 +183,7 @@ export function openapi(serverUrl: string) {
         ),
         Preview: { type: "object", description: "One schema on every path; `class` is VERDICT, NO_RECORD, PAYMENT_TERMS_UNPARSEABLE or UNVERIFIED_ENDPOINT", properties: { url: str, verdict: str, class: str, model_calls: { const: 0 } } },
         BatchResult: obj({ items: { type: "array", items: { type: "object" } }, count: int, list_price_usd: num, discount: num, cost_usd: num, payer: nullable(str), settlement: { enum: ["dry-run", "settled"] }, tx_hash: str, model_calls: int, ms: int, mode: str, provenance: str }, ["items", "count", "cost_usd", "settlement"]),
-        Stats: obj({ window_hours: int, counted_since: str, checks_served_24h: int, paid_checks_24h: int, settled_checks_24h: int, usd_settled_24h: num, usd_charged_dry_run_24h: num, free_previews_24h: int, settlement_mode: str, settled_tx: { type: "array", items: str }, note: str, mode: str, provenance: str }, ["checks_served_24h", "usd_settled_24h", "settlement_mode"]),
+        Stats: obj({ window_hours: int, counted_since: str, checks_served_24h: int, paid_checks_24h: int, settled_checks_24h: int, usd_settled_24h: num, usd_charged_dry_run_24h: num, free_previews_24h: int, settlement_mode: str, lifetime: { type: "object" }, settled_tx: { type: "array", items: str }, note: str, mode: str, provenance: str }, ["checks_served_24h", "usd_settled_24h", "settlement_mode"]),
         CheckResult: { type: "object", properties: { band, score: num, settlement: { enum: ["dry-run", "settled"] }, tx_hash: str, receipt_id: hex64, receipt: ref("Receipt"), receipt_verify_url: str, cost_usd: num, model_calls: int, payer: nullable(str) }, required: ["band", "settlement", "receipt_id", "receipt"] },
       },
     },

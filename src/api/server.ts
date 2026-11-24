@@ -53,7 +53,7 @@ import { Receipt } from "../core/types.js";
 import { censusStatus, readRuns } from "../census-status.js";
 import { openapi } from "../openapi.js";
 import { countPreview, usageStats } from "../stats.js";
-import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror } from "../ledger/store.js";
+import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror, storedHead } from "../ledger/store.js";
 import { fetchStoredReceipt, githubStoreOn, receiptsRepo } from "../ledger/github.js";
 
 /** Static brand images the pages use (img-src 'self'). */
@@ -454,7 +454,19 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       return void res.end(JSON.stringify(openapi(self), null, 2));
     }
     if (u.pathname === "/v1/census/status") return json(res, 200, censusStatus(c, readRuns(), nowMs()));
-    if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: settleReady().ok ? "live: CDP x402 facilitator (payer -> payTo, Fiangshi never holds funds)" : currentSettlement(), ledger_durability: ledgerDurability() });
+    if (u.pathname === "/health") {
+      const live = readLedger(ledgerPath()).length;
+      return json(res, 200, {
+        ok: true,
+        census_payees: c.payees.length,
+        census_at: c.at,
+        settlement: settleReady().ok ? "live: CDP x402 facilitator (payer -> payTo, Fiangshi never holds funds)" : currentSettlement(),
+        ledger_durability: ledgerDurability(),
+        // counted, never claimed: census receipts are rebuilt from committed data; live ones are this process's ledger, plus
+        // the durable store's total when one is set (null when none is)
+        receipts_stored: { census: c.receipts.size, live_this_process: live, store_total: githubStoreOn() ? (storedHead()?.count ?? 0) + live : null },
+      });
+    }
     if (u.pathname === "/v1/index.json")
       return json(res, 200, {
         census_at: c.at,
@@ -549,7 +561,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const items = quotes.map((q) => (q.kind === "null_payee" ? { url: q.target, ...q.body } : { url: q.target, ...sealQuoted(evs.get(q.target)!, c, self, settled, Math.round(q.price * (1 - discount) * 1e6) / 1e6, pay.from) }));
       return json(res, 200, { items, count: items.length, list_price_usd: Math.round(listUsd * 1e6) / 1e6, discount, cost_usd: usd, payer: pay.from, settlement: settled ? "settled" : "dry-run", ...(settled ? { tx_hash: settled.tx } : {}), model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) }, settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
-    if (u.pathname === "/v1/stats") return json(res, 200, usageStats(readLedger(ledgerPath()), nowMs(), settleReady().ok ? "live" : currentSettlement()));
+    if (u.pathname === "/v1/stats") return json(res, 200, usageStats(readLedger(ledgerPath()), nowMs(), settleReady().ok ? "live" : currentSettlement(), githubStoreOn() ? { head: storedHead(), repo: receiptsRepo()! } : null));
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
       if (!target || !/^https?:\/\//.test(target)) return json(res, 400, { error: "pass ?url=<x402 endpoint>" });

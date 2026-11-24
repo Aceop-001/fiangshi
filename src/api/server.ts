@@ -6,6 +6,7 @@
  *   GET /docs                   the documentation home; /guide /connect /cli /architecture /report /legal render docs/*.md
  *   GET /v1/preview?url=        free JSON · unpaid probe, null-payee gate, census answer (the MCP server's free tool)
  *   GET /health                 free
+ *   GET /openapi.json           free · OpenAPI 3.1 description of every route
  *   GET /v1/index.json          free · every census payee with band, score, receipt id
  *   GET /v1/census/status       free · freshness now, the next planned refresh, what the last refresh did
  *   GET /v1/payee/:addr         $0.02 · x402 402 without X-PAYMENT; census record + receipt id with it
@@ -15,7 +16,8 @@
  *   GET /v1/receipts/:id        free · the stored receipt plus its verify result
  *   GET /v1/verify?id=|receipt= free · recompute the hash (and chain link); receipt = base64url JSON
  *   GET /v1/badge/:addr.svg     free · colour by band
- * Settlement is "dry-run": X-PAYMENT is validated structurally, nothing is settled, no tx hash is invented.
+ * Settlement is "dry-run" by default: the payment is validated structurally, nothing is settled, no tx hash is invented.
+ * With FIANGSHI_SETTLE=live the CDP x402 facilitator verifies and settles it (src/adapters/facilitator.ts).
  * Usage: npm run dev  (127.0.0.1:8787; PORT / HOST, or --port N, to override)
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
@@ -47,6 +49,7 @@ import { verifyReceipt } from "../core/receipt.js";
 import { v6 } from "../core/v6.js";
 import { Receipt } from "../core/types.js";
 import { censusStatus, readRuns } from "../census-status.js";
+import { openapi } from "../openapi.js";
 import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror } from "../ledger/store.js";
 import { fetchStoredReceipt, githubStoreOn, receiptsRepo } from "../ledger/github.js";
 
@@ -343,6 +346,11 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       }
       const cp = c.payees.find((x) => x.payee === pr.terms.payee);
       return json(res, 200, cp ? censusAnswer(input, terms, c, cp, paid) : noRecordAnswer(input, terms, c, paid));
+    }
+    if (u.pathname === "/openapi.json") {
+      // raw, not through json(): OpenAPI allows only x- extensions at the root, so no mode/provenance keys here
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "max-age=300", "access-control-allow-origin": "*", "x-fiangshi-mode": providerMode() });
+      return void res.end(JSON.stringify(openapi(self), null, 2));
     }
     if (u.pathname === "/v1/census/status") return json(res, 200, censusStatus(c, readRuns(), nowMs()));
     if (u.pathname === "/health") return json(res, 200, { ok: true, census_payees: c.payees.length, census_at: c.at, settlement: settleReady().ok ? "live: CDP x402 facilitator (payer -> payTo, Fiangshi never holds funds)" : currentSettlement(), ledger_durability: ledgerDurability() });

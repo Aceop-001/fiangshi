@@ -79,6 +79,19 @@ export async function exportStatic(out = OUT, domain = DOMAIN): Promise<{ pages:
     );
   }
 
+  // /health on the static site (2026-11-24): what this build holds, said as a build, never as live status. GitHub Pages
+  // serves health.html at /health (200, no redirect); health.json is the same for machines. Live status: the API's /health.
+  const live = JSON.parse((await get("/health")).body.toString("utf8")) as { census_at: string; census_payees: number };
+  const builtAt = new Date().toISOString();
+  const health = { ok: true, kind: "static site build (GitHub Pages, rebuilt hourly)", built_at: builtAt, census_at: live.census_at, census_payees: live.census_payees, pages, live_api_health: `https://api.${domain}/health`, note: "This file is written when the site is built. For the API's live status, settlement mode and ledger durability, see live_api_health." };
+  writeFileSync(join(out, "health.json"), JSON.stringify(health, null, 2) + "\n");
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  writeFileSync(
+    join(out, "health.html"),
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fiangshi · health</title><meta name="robots" content="noindex"></head><body style="font:16px/1.5 ui-monospace,Consolas,monospace;max-width:760px;margin:40px auto;padding:0 16px;background:#000;color:#f2f2f2"><h1 style="font-size:20px">ok · static site build</h1><pre>${esc(JSON.stringify(health, null, 2))}</pre><p>Live API status: <a style="color:#ff4b41" href="https://api.${domain}/health">api.${domain}/health</a> · <a style="color:#ff4b41" href="/health.json">health.json</a></p></body></html>\n`,
+  );
+  files += 2;
+
   const nf = await get("/this-page-does-not-exist");
   writeFileSync(join(out, "404.html"), nf.body);
   writeFileSync(join(out, "CNAME"), `${domain}\n`);

@@ -1,0 +1,20 @@
+# Keeps the free Render instance warm (2026-11-24). Render's free tier sleeps after 15 minutes without traffic, and the
+# first request after that waited ~23 s. A GET of /health every 10 minutes keeps it awake. GitHub runs scheduled
+# workflows on a best-effort clock, so a delayed run can still let it sleep; a paid instance is the only guarantee.
+# Read-only: it fetches one public URL, spends nothing, commits nothing.
+name: keepalive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: GET api.fiangshi.xyz/health
+        run: curl -sS -o /dev/null --max-time 90 -w "status %{http_code} in %{time_total}s\n" https://api.fiangshi.xyz/health

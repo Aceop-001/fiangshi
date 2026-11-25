@@ -76,7 +76,8 @@ A sealed receipt cannot be edited: that is what makes receipts verifiable. A cor
 
 ### What Fiangshi stores
 
-- One receipt per check: the URL checked, the payee wallet, the price asked, a hash of the payment terms, the verdict, the quoted evidence and the time. Receipts are appended to a ledger. On the hosted API that ledger is ephemeral: it resets when the server is redeployed, so an id can stop resolving. A receipt never depends on it: keep the receipt (or its verify URL) and it verifies from its own payload at any time.
+- One receipt per check: the URL checked, the payee wallet, the price asked, a hash of the payment terms, the verdict, the quoted evidence, the time, the fee charged and, for a settled payment, its transaction hash. Receipts are appended to a ledger. A receipt never depends on it: keep the receipt (or its verify URL) and it verifies from its own payload at any time.
+- **Receipts are published.** Since 25 Nov 2026 the hosted API commits every receipt from a live check to a **public** repository, github.com/Aceop-001/fiangshi-receipts, so they survive redeploys and anyone can verify them without trusting this server. That publishes which endpoint URLs were checked, the verdict, the time and the fee. A receipt names no payer and no IP address, but a settled receipt's transaction hash is public on Base, and the transaction shows the wallet that paid. If you do not want a check of yours published, do not use the paid check on the hosted API; run Fiangshi yourself, where the receipt store is off unless you set it.
 - Cached model replies about a payee, so the same question is not paid for twice.
 
 The software does not store the paying wallet address, your IP address or any identifier for you, and it keeps no request log. The company that hosts a given copy may keep its own server logs.

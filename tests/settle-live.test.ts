@@ -98,6 +98,32 @@ describe("CDP JWT", () => {
   });
 });
 
+describe("/health settlement_check: every piece named, no value shown", () => {
+  it("ready: tolerant of a stray space or capital in the switch", async () => {
+    process.env.FIANGSHI_SETTLE = " Live ";
+    const h = (await get("/health")).body;
+    expect(h.settlement_check).toEqual({ requested: "live", cdp_api_key_id: "set", cdp_api_key_secret: "set (Ed25519, 64 bytes)", ready: true });
+    expect(h.settlement).toMatch(/^live: CDP x402 facilitator/);
+    expect(JSON.stringify(h)).not.toContain(SECRET);
+    expect(JSON.stringify(h)).not.toContain(KEY_ID);
+  });
+  it("says which piece is wrong: missing id, a PEM key, a bad switch value", async () => {
+    delete process.env.CDP_API_KEY_ID;
+    let h = (await get("/health")).body;
+    expect([h.settlement, h.settlement_check.cdp_api_key_id, h.settlement_check.ready]).toEqual(["dry-run", "missing", false]);
+    process.env.CDP_API_KEY_ID = KEY_ID;
+    process.env.CDP_API_KEY_SECRET = "-----BEGIN EC PRIVATE KEY-----\nabc\n-----END EC PRIVATE KEY-----";
+    h = (await get("/health")).body;
+    expect(h.settlement_check.cdp_api_key_secret).toMatch(/^wrong kind: a PEM key/);
+    expect(h.settlement_check.why).toMatch(/not an Ed25519 secret/);
+    expect(JSON.stringify(h)).not.toContain("BEGIN EC PRIVATE KEY");
+    process.env.CDP_API_KEY_SECRET = SECRET;
+    process.env.FIANGSHI_SETTLE = "yes";
+    h = (await get("/health")).body;
+    expect(h.settlement_check.requested).toBe('unrecognised value (3 chars; use "live")');
+  });
+});
+
 describe("FIANGSHI_SETTLE=live", () => {
   it("a v2 PAYMENT-SIGNATURE is verified, the check runs, the payment settles, and the receipt says so", async () => {
     const { r402, r } = await paid();

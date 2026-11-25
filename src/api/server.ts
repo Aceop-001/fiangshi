@@ -36,7 +36,7 @@ import { probe } from "../adapters/probe.js";
 import { modelCalls } from "../adapters/serv.js";
 import { decodeReceiptParam, receiptVerifyUrl } from "../receipt-url.js";
 import { paymentRequired, paymentResponse, sellerPayTo, verifyXPayment, currentSettlement, type Requirement } from "../adapters/x402.js";
-import { facilitatorSettle, facilitatorVerify, isTxHash, settleMode, settleReady } from "../adapters/facilitator.js";
+import { facilitatorSettle, facilitatorVerify, isTxHash, settleCheck, settleMode, settleReady } from "../adapters/facilitator.js";
 import { check, emptySignals, evaluateFull } from "../check.js";
 import { POLICY_V4, POLICY_VERSION, bandFromBasis, v5Fields } from "../core/cap.js";
 import { censusAnswer, freshness, noRecordAnswer, noVerdictAnswer, nullPayeeAnswer, type PaidStatus } from "../preview.js";
@@ -461,6 +461,8 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
         census_payees: c.payees.length,
         census_at: c.at,
         settlement: settleReady().ok ? "live: CDP x402 facilitator (payer -> payTo, Fiangshi never holds funds)" : currentSettlement(),
+        // each settlement piece present or not (never a value), so a misconfigured live switch is visible, not silent
+        settlement_check: settleCheck(),
         ledger_durability: ledgerDurability(),
         // counted, never claimed: census receipts are rebuilt from committed data; live ones are this process's ledger, plus
         // the durable store's total when one is set (null when none is)

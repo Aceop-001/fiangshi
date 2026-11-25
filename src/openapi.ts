@@ -172,7 +172,7 @@ export function openapi(serverUrl: string) {
         Receipt: receipt,
         Verify: verify,
         PaymentRequired: paymentRequired,
-        Health: obj({ ok: bool, census_payees: int, census_at: str, settlement: str, ledger_durability: str, receipts_stored: obj({ census: int, live_this_process: int, store_total: nullable(int) }, ["census", "live_this_process", "store_total"]), mode: str, provenance: str }, ["ok", "census_payees", "census_at", "settlement", "ledger_durability", "receipts_stored"]),
+        Health: obj({ ok: bool, census_payees: int, census_at: str, settlement: str, settlement_check: { type: "object", description: "each live-settlement setting present or not, never a value" }, ledger_durability: str, receipts_stored: obj({ census: int, live_this_process: int, store_total: nullable(int) }, ["census", "live_this_process", "store_total"]), mode: str, provenance: str }, ["ok", "census_payees", "census_at", "settlement", "ledger_durability", "receipts_stored"]),
         CensusStatus: obj(
           { census_at: str, served_at: str, records_total: int, records_stale: int, stale_limit_hours: num, allow_issued: int, allow_served: int, allow_capped: int, refresh_interval_hours: num, next_refresh_at: str, overdue: bool, last_run: nullable(obj({ at: str, kind: str, credits_spent: nullable(num), payees_refreshed: int, payees_failed: int }, ["at", "kind", "credits_spent", "payees_refreshed", "payees_failed"])), note: str, mode: str, provenance: str },
           ["census_at", "records_total", "records_stale", "next_refresh_at", "last_run"],

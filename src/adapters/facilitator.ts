@@ -17,13 +17,37 @@ export const CDP_HOST = "api.cdp.coinbase.com";
 const BASE_PATH = "/platform/v2/x402";
 
 export type SettleMode = "dry-run" | "live";
-export const settleMode = (): SettleMode => (env("FIANGSHI_SETTLE") === "live" ? "live" : "dry-run");
-const keyId = () => env("CDP_API_KEY_ID") || null;
-const keySecret = () => env("CDP_API_KEY_SECRET") || null;
-/** live settlement needs the flag and both key parts; anything less stays dry-run and says why */
+// values pasted into a dashboard often carry a stray space or capital: "Live " still means live
+export const settleMode = (): SettleMode => (env("FIANGSHI_SETTLE").trim().toLowerCase() === "live" ? "live" : "dry-run");
+const keyId = () => env("CDP_API_KEY_ID").trim() || null;
+const keySecret = () => env("CDP_API_KEY_SECRET").trim() || null;
+
+/** The secret's shape, never its value: an Ed25519 CDP secret is base64 of 64 bytes. */
+export function secretShape(secret: string | null): "missing" | "ok" | "pem" | "wrong length" {
+  if (!secret) return "missing";
+  if (/BEGIN [A-Z ]*PRIVATE KEY/.test(secret)) return "pem";
+  return Buffer.from(secret, "base64").length === 64 ? "ok" : "wrong length";
+}
+
+/** What /health reports about settlement: each piece present or not, never a value. */
+export function settleCheck() {
+  const raw = env("FIANGSHI_SETTLE").trim().toLowerCase();
+  const shape = secretShape(keySecret());
+  const ready = settleReady();
+  return {
+    requested: raw === "live" ? "live" : raw === "" || raw === "dry-run" ? "dry-run" : `unrecognised value (${raw.length} chars; use "live")`,
+    cdp_api_key_id: keyId() ? "set" : "missing",
+    cdp_api_key_secret: shape === "ok" ? "set (Ed25519, 64 bytes)" : shape === "missing" ? "missing" : shape === "pem" ? "wrong kind: a PEM key (legacy ECDSA); create a Secret API Key with the Ed25519 algorithm" : "wrong format: not base64 of 64 bytes (the Ed25519 secret as shown once in the CDP portal)",
+    ready: ready.ok,
+    ...(ready.ok ? {} : { why: ready.why }),
+  };
+}
+
+/** live settlement needs the flag and both key parts, the secret in Ed25519 form; anything less stays dry-run and says why */
 export function settleReady(): { ok: true } | { ok: false; why: string } {
   if (settleMode() !== "live") return { ok: false, why: "FIANGSHI_SETTLE is not live" };
   if (!keyId() || !keySecret()) return { ok: false, why: "FIANGSHI_SETTLE=live but CDP_API_KEY_ID / CDP_API_KEY_SECRET are not set" };
+  if (secretShape(keySecret()) !== "ok") return { ok: false, why: "CDP_API_KEY_SECRET is not an Ed25519 secret (base64 of 64 bytes)" };
   return { ok: true };
 }
 

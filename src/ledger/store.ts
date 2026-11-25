@@ -12,19 +12,42 @@ import { dirname, join } from "node:path";
 import { dataDir, env } from "../config.js";
 import { sealReceipt, verifyReceipt, type ReceiptBody } from "../core/receipt.js";
 import type { Receipt } from "../core/types.js";
-import { fetchHead, githubStoreOn, storeReceipt, storeStatus, type Head } from "./github.js";
+import { fetchHead, fetchStoredReceipt, githubStoreOn, storeReceipt, storeStatus, type Head } from "./github.js";
 
 /** The newest receipt in the GitHub store when this process started (null without a store, or an empty one). */
 let remoteHead: Head | null = null;
 /** On start, before serving: read the store's HEAD so a fresh process continues the same chain. Never throws. */
-export async function restoreFromGithub(): Promise<Head | null> {
+export async function restoreFromGithub(maxReceipts = 500): Promise<Head | null> {
   if (!githubStoreOn()) return null;
   try {
     remoteHead = await fetchHead();
   } catch (e) {
     console.error(`receipt store: HEAD not read (${(e as Error).message}); a new epoch starts`);
   }
+  storedHistory = remoteHead ? await walkBack(remoteHead.receipt_hash, maxReceipts) : [];
   return remoteHead;
+}
+
+/** Receipts read back from the store at start, newest first: the history this process did not seal itself. */
+let storedHistory: Receipt[] = [];
+export const storedReceipts = (): Receipt[] => storedHistory;
+/** tests only */
+export const setStoredReceipts = (r: Receipt[]) => (storedHistory = r);
+
+/**
+ * Walk the stored chain back from `id` through prev_hash, at most `max` receipts. Each stored file is checked against its
+ * own name (its id is its hash) before it is used; a gap or a mismatch ends the walk there. Never throws.
+ */
+async function walkBack(id: string, max: number): Promise<Receipt[]> {
+  const out: Receipt[] = [];
+  let cur = id;
+  while (cur !== "genesis" && out.length < max) {
+    const got = await fetchStoredReceipt(cur).catch(() => null);
+    if (!got || got.receipt.receipt_hash !== cur || !verifyReceipt(got.receipt).ok) break;
+    out.push(got.receipt);
+    cur = got.receipt.prev_hash;
+  }
+  return out;
 }
 /** tests only */
 export const setRemoteHead = (h: Head | null) => (remoteHead = h);

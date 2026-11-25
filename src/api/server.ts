@@ -53,7 +53,7 @@ import { Receipt } from "../core/types.js";
 import { censusStatus, readRuns } from "../census-status.js";
 import { openapi } from "../openapi.js";
 import { countPreview, usageStats } from "../stats.js";
-import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror, storedHead } from "../ledger/store.js";
+import { appendReceipt, currentEpoch, ledgerBaseHash, ledgerDurability, ledgerPath, readLedger, restoreFromGithub, restoreFromMirror, storedHead, storedReceipts } from "../ledger/store.js";
 import { fetchStoredReceipt, githubStoreOn, receiptsRepo } from "../ledger/github.js";
 
 /** Static brand images the pages use (img-src 'self'). */
@@ -563,7 +563,7 @@ export async function handle(req: IncomingMessage, res: ServerResponse): Promise
       const items = quotes.map((q) => (q.kind === "null_payee" ? { url: q.target, ...q.body } : { url: q.target, ...sealQuoted(evs.get(q.target)!, c, self, settled, Math.round(q.price * (1 - discount) * 1e6) / 1e6, pay.from) }));
       return json(res, 200, { items, count: items.length, list_price_usd: Math.round(listUsd * 1e6) / 1e6, discount, cost_usd: usd, payer: pay.from, settlement: settled ? "settled" : "dry-run", ...(settled ? { tx_hash: settled.tx } : {}), model_calls: modelCalls.length - mc0, ms: Math.round(performance.now() - t0) }, settled ? { "payment-response": settled.header, "x-payment-response": settled.header } : { "x-payment-response": paymentResponse(pay.requirement.network, pay.from) });
     }
-    if (u.pathname === "/v1/stats") return json(res, 200, usageStats(readLedger(ledgerPath()), nowMs(), settleReady().ok ? "live" : currentSettlement(), githubStoreOn() ? { head: storedHead(), repo: receiptsRepo()! } : null));
+    if (u.pathname === "/v1/stats") return json(res, 200, usageStats(readLedger(ledgerPath()), nowMs(), settleReady().ok ? "live" : currentSettlement(), githubStoreOn() ? { head: storedHead(), repo: receiptsRepo()!, history: storedReceipts() } : null));
     if (u.pathname === "/v1/check") {
       const target = u.searchParams.get("url");
       if (!target || !/^https?:\/\//.test(target)) return json(res, 400, { error: "pass ?url=<x402 endpoint>" });

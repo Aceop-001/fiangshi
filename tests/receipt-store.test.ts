@@ -127,6 +127,8 @@ describe("durable receipts on a GitHub repository", () => {
   it("lifetime totals survive the redeploy: the store's HEAD plus this process", async () => {
     const st = (await getJson("/v1/stats")).body;
     expect(st.lifetime).toMatchObject({ source: "durable receipt store github.com/test/receipts", receipts: 3, paid_checks: 0, settled_checks: 0, usd_settled: 0 });
+    // the restarted process read receipts 1 and 2 back from the store: the 24 h window holds all three, not just its own
+    expect(st.checks_served_24h).toBe(3);
     const h = (await getJson("/health")).body;
     expect(h.receipts_stored.store_total).toBe(3);
     expect(JSON.parse(files.get("receipts/HEAD.json")!.text)).toMatchObject({ count: 3, paid: 0, settled: 0, usd_settled: 0 });

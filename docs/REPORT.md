@@ -20,6 +20,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
 | paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies; settlement dry-run | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
 | freshness | every census record carries its own `as_of`; data older than 72 h caps ALLOW at REVIEW (policy `2026-11-13.5`); the static site rebuilds hourly so its pages cap stale records too (F26) | `artifacts/refresh.md`, gate G16, `.github/workflows/pages.yml` |
+| independent verification | Argus Agent Test Lab, record [`argus-seal-0032`](https://github.com/igor-vii/Argus-Agent-Test-Lab/blob/main/attestations/records/0032-fiangshi-census-receipt-anchoring-aceop-001-fiangshi-1d19e40.seal.json) (24 Nov): a $0.00 third-party check of the census receipts at commit `1d19e40` (no paid call, no funds moved). 11 MATCH, 0 DIVERGENCE, verdict SEAL: every receipt hash recomputed, the chain walked offline from git, the Bitrefill and cleave.fi cases classified as frozen beforehand. Live-check receipts were not covered (the receipt store was not on; recorded as documented, not a match). Anyone can re-check it: `git clone https://github.com/igor-vii/Argus-Agent-Test-Lab && node tools/registry/verify-registry.mjs` | [issue #1](https://github.com/Aceop-001/fiangshi/issues/1) |
 
 ## How we test
 

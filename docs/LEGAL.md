@@ -30,7 +30,7 @@ Fiangshi does not hold funds, private keys or credentials. It does not sign or s
 
 ### 5. Paid routes
 
-Some API routes quote a price in a 402 response, using the x402 protocol. In this build settlement is a dry run: the payment header is checked for structure, and nothing is charged or settled. If an operator turns on real settlement, the price of a route is the amount quoted in its 402 response at the time of the request.
+Some API routes quote a price in a 402 response, using the x402 protocol. Settlement is a dry run unless the operator turns on live settlement; `GET /health` says which mode is on. In dry-run, the payment header is checked for structure and nothing is charged or settled. With live settlement (on at api.fiangshi.xyz since 25 Nov 2026), the price of a route is the amount quoted in its 402 response at the time of the request: the Coinbase CDP x402 facilitator verifies your signed authorization and moves that amount from your wallet straight to the operator's wallet. Fiangshi never holds your funds, and a payment that does not settle is not answered.
 
 ### 6. Fair use
 

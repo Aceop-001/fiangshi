@@ -167,6 +167,12 @@ describe("FIANGSHI_SETTLE=live", () => {
     expect(r.body.error).toMatch(/CDP_API_KEY/);
     expect(calls).toEqual([]);
   });
+  it("/v1/preview states the real settlement mode, never a fixed one", async () => {
+    const u = `/v1/preview?url=${encodeURIComponent(PAID_URL)}`;
+    expect((await get(u)).body.paid_check_status).toMatch(/settlement is live \(Coinbase CDP x402 facilitator/);
+    process.env.FIANGSHI_SETTLE = "";
+    expect((await get(u)).body.paid_check_status).toMatch(/settlement is dry-run$/);
+  });
   it("dry-run (the default) never contacts the facilitator and says dry-run", async () => {
     process.env.FIANGSHI_SETTLE = "";
     const { r } = await paid();

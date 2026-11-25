@@ -6,6 +6,7 @@
  * `cost_usd` (always a number), the data's age and staleness, whether the paid check is actually available, and
  * `unknowns`: what Fiangshi could not check for this answer. Saying what is unknown is part of the answer.
  */
+import { settleReady } from "./adapters/facilitator.js";
 import { nowMs, staleHours } from "./config.js";
 import { POLICY_VERSION, staleCap, type BandCap } from "./core/cap.js";
 import { VOW_NAMES } from "./core/types.js";
@@ -72,7 +73,7 @@ export function freshness(asOf: string, now = new Date(nowMs())): { data_as_of: 
 export type PaidStatus = { ok: true; url: string } | { ok: false; why: string };
 const paidFields = (p: PaidStatus) =>
   p.ok
-    ? { paid_check: p.url, paid_check_status: "enabled: x402 payment in USDC on Base (eip155:8453), $0.05 for a census payee, $0.15 for a cold lookup; settlement is dry-run" }
+    ? { paid_check: p.url, paid_check_status: `enabled: x402 payment in USDC on Base (eip155:8453), $0.05 for a census payee, $0.15 for a cold lookup; ${settleReady().ok ? "settlement is live (Coinbase CDP x402 facilitator; Fiangshi never holds funds)" : "settlement is dry-run"}` }
     : { paid_check: null, paid_check_status: `disabled: ${p.why}` };
 
 /** The one staleness line. Built in one place so it can never appear twice or in two wordings. */

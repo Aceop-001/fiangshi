@@ -165,7 +165,7 @@ Send the same request again with an `X-PAYMENT` header. Its value is the base64 
 }
 ```
 
-> Settlement is a dry run in this build. The header is checked for structure: addresses, amount, time window, nonce and signature length. The signature is not verified, nothing is settled and no transaction is sent. The signature above is a placeholder, not a real one.
+> Settlement is a dry run by default, as in this local example: the header is checked for structure (addresses, amount, time window, nonce and signature length), the signature is not verified, nothing is settled and no transaction is sent. The signature above is a placeholder, not a real one. With `FIANGSHI_SETTLE=live` (on at api.fiangshi.xyz since 25 Nov) the Coinbase CDP x402 facilitator verifies the signature before the check and settles the payer's transfer after it; the receipt then carries `settlement: "settled"` and the tx hash.
 
 The verdict (evidence list shortened here):
 

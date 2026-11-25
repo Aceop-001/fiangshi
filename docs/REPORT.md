@@ -18,7 +18,7 @@ The lab history, the per-commit test and gate counts, and the last measured stat
 | census cost | 484 credits billed for the 20 Nov refresh of 1,923 payees, labels reused (the 17 Nov refresh cost 540; the 13 Nov refresh cost 620; the 9 Nov census of 800 cost 252) | `fixtures/audit/balances.json` |
 | warm check | 251 ms median | `artifacts/demo-stats.json` |
 | cold check | 10.8 s, 8 credits, then 237 ms from cache | `artifacts/cold-live.md` |
-| paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies; settlement dry-run | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
+| paid check, live | `api.fiangshi.xyz` answers 402 (Base USDC, $0.05, paid to the operator wallet); with a test payment header: ALLOW 88.33 on Bitrefill, SERV and Dolphin both answered, 3.6 s, receipt verifies. Settlement live since 25 Nov: one real $0.05 payment settled through the CDP facilitator, tx [`0x90b91981…9696`](https://basescan.org/tx/0x90b919810c9c3a3b6707a1847261d00609018ca42bd15ff9a2fcd10867af9696) (F28) | `docs/GUIDE.md` (captured 402), `tests/guide-examples.test.ts` |
 | freshness | every census record carries its own `as_of`; data older than 72 h caps ALLOW at REVIEW (policy `2026-11-13.5`); the static site rebuilds hourly so its pages cap stale records too (F26) | `artifacts/refresh.md`, gate G16, `.github/workflows/pages.yml` |
 | independent verification | Argus Agent Test Lab, record [`argus-seal-0032`](https://github.com/igor-vii/Argus-Agent-Test-Lab/blob/main/attestations/records/0032-fiangshi-census-receipt-anchoring-aceop-001-fiangshi-1d19e40.seal.json) (24 Nov): a $0.00 third-party check of the census receipts at commit `1d19e40` (no paid call, no funds moved). 11 MATCH, 0 DIVERGENCE, verdict SEAL: every receipt hash recomputed, the chain walked offline from git, the Bitrefill and cleave.fi cases classified as frozen beforehand. Live-check receipts were not covered (the receipt store was not on; recorded as documented, not a match). Anyone can re-check it: `git clone https://github.com/igor-vii/Argus-Agent-Test-Lab && node tools/registry/verify-registry.mjs` | [issue #1](https://github.com/Aceop-001/fiangshi/issues/1) |
 
@@ -55,7 +55,7 @@ A fifth check runs once per release: a fresh copy of the repository with no keys
 
 ### Real payments on Base mainnet (buyer side, 15 Nov)
 
-Fiangshi's own fee stays a dry run. To test the other side, a demo agent run from Claude Code asked Fiangshi about each seller first and then paid the allowed ones in real USDC on Base mainnet (chain 8453, USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), from four small test wallets used one after another.
+Fiangshi's own fee stayed a dry run until 25 Nov (F28). To test the other side, a demo agent run from Claude Code asked Fiangshi about each seller first and then paid the allowed ones in real USDC on Base mainnet (chain 8453, USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), from four small test wallets used one after another.
 
 **Paid, after a check.** Each wallet paid twit.sh $0.006 and CoinMarketCap $0.010. The twit.sh payments are on chain; each hash below was looked up on Base and returned `status: success`, 0.006 USDC from the test wallet to the seller (`0x9dba414637c611a16bea6f0796bfcbcbdc410df8`):
 
@@ -300,6 +300,13 @@ Each entry has the same four parts. **Seen** is what went wrong. **Cause** is wh
 - **Fix.** A third refresh (`sample-census-r4`, labels seeded from 17 Nov) re-collected all 1,922 payees for 484 credits by balance (888 → 404, cap 560). The 150 set-aside payees were collected in groups of 12, never re-sending a failed address set, with 0 timeouts (the original list is kept as `excluded_first_pass` in the checkpoint). The per-chunk cost limit went from 10 to 20 credits for the resumed run, so one billed timeout no longer stops it; the floor of 328 credits still bounded the whole spend.
 - **Proof.** `/v1/index.json` serves census `2026-11-20T03:52Z` with 159 ALLOW / 1,243 REVIEW / 521 BLOCK and 1 stale record (the zero address, carried over). `artifacts/refresh.md` has the credit readings and the movement against the 17 Nov snapshot (1,704 payees unchanged, 121 of the 160 ALLOWs kept). The next refresh is due before 23 Nov 03:52 UTC.
 
+### F28. Receipts and settlement were built but switched off (25 Nov)
+
+- **Seen.** `/health` read `settlement: "dry-run"` and live check receipts reset on every redeploy (`store_total: null`), although durable receipts and live settlement had shipped on 24 Nov. A judge reading `/health` saw a service that could not keep a receipt or take a payment.
+- **Cause.** Both are off until the operator sets them, by design: `FIANGSHI_RECEIPTS_REPO` and `FIANGSHI_RECEIPTS_TOKEN` for the receipt store, `FIANGSHI_SETTLE=live` with the CDP API key for settlement. On the way, `/health` could not say which setting was missing: the keys were set but the switch never reached the service, and it read "dry-run" with no reason. `/health` now names each piece (`settlement_check`), never a value, and tolerates a stray space or capital.
+- **Fix.** The receipt store points at the public repo github.com/Aceop-001/fiangshi-receipts. Live settlement uses the Coinbase CDP x402 facilitator: it verified the payer's signature before the check and submitted the payer's transfer after it. Fiangshi never signed, sent or held anything.
+- **Proof.** A dry-run receipt (`34160e4a…`) created at 03:50 UTC came back after a redeploy (new process 03:55 UTC) from `source: "store"`, valid, with `chain_linkage: verified`. Then one real payment: [`0x90b919810c9c3a3b6707a1847261d00609018ca42bd15ff9a2fcd10867af9696`](https://basescan.org/tx/0x90b919810c9c3a3b6707a1847261d00609018ca42bd15ff9a2fcd10867af9696), Base block 61,948,758, 2026-11-25 04:15:27 UTC, status Success, 0.05 USDC from a burner wallet (`0x0C3e…B8F1`) to the payTo `0x0FdE…6007`, submitted by the facilitator. Its receipt `682a85d7f78c…` reads `settlement: "settled"` with that tx hash, is committed to the receipt store, and links to the dry-run receipt before it across the redeploy. `/v1/stats`: settled_checks_24h 1, usd_settled_24h 0.05, lifetime from the store. The payer is the operator's own test wallet: this proves the path, not a customer.
+
 ## Rule changes, each one measured
 
 Every rule change was simulated on the census before it was applied, and its effect was recorded.
@@ -340,7 +347,7 @@ These are open, and they are not hidden anywhere else either.
 - **The first funder of an old wallet drifts with the window** (F20). Not fixed in this pass, because it needs a rubric change.
 - **The census goes stale on 23 Nov around 03:52 UTC.** After 72 hours every ALLOW serves as REVIEW until the next refresh. That is the cap working, not a fault.
 - **The public API's ledger is ephemeral.** No mirror is configured on Render's free tier, so ids are forgotten on redeploy; receipts stay verifiable from their payload.
-- **No real payment yet.** Settlement is a dry run until the owner pays from their own wallet. Fiangshi will not do it for them.
+- **No customer payment yet.** Live settlement works: one real $0.05 payment settled on 25 Nov (F28). It came from the operator's own burner wallet, so it proves the payment path end to end, not demand. No outside agent has paid for a check.
 - **3 real control sellers in the lab, not 10.** The census only had a few sellers that pass every rule with complete data.
 - **The age, history and identity rules have no live case.** They are tested on fixtures and tables only.
 - **Codex, Cursor, VS Code and Gemini CLI setups were not run here.** They follow each tool's documented format. Claude Code, Grok CLI and Hermes commands were checked against their `--help`.

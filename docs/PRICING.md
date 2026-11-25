@@ -29,4 +29,6 @@ The 402 always quotes the price that applies to your request, so your agent pays
 
 ## Settlement
 
+**Live since 25 Nov 2026.** The first settled check: $0.05 USDC on Base, tx [`0x90b91981…9696`](https://basescan.org/tx/0x90b919810c9c3a3b6707a1847261d00609018ca42bd15ff9a2fcd10867af9696) (2026-11-25 04:15 UTC, from the operator's own test wallet; see the [test report](REPORT.md), F28).
+
 Payments are verified and settled by the Coinbase CDP x402 facilitator when the operator turns live settlement on (`FIANGSHI_SETTLE=live`); a settled answer's receipt then carries `settlement: "settled"` and the Base transaction hash. Until then the service runs in dry-run: payments are checked for structure and nothing is charged. `GET /health` says which mode is on, and `GET /v1/stats` counts only payments that actually settled.

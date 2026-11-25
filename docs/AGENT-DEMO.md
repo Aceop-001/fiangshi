@@ -38,7 +38,7 @@ curl -s "https://api.fiangshi.xyz/v1/preview?url=https://x402.twit.sh/tweets/sea
 The run was the last of five on 15 Nov, across four test wallets. In total the agent made 11 real payments worth 0.090 USDC; the details, every verified transaction and the one bug found live are in the [test report](https://fiangshi.xyz/report).
 
 - **The bug.** In one earlier run the agent retried a request after it had already sent the payment, and paid one seller twice (0.026 USDC spent where 0.016 was due). The fix: the payment step is never retried. Any error after the payment header is sent ends the call ("may have settled, not retrying"), and the balance is read before and after every payment. The next run spent exactly 0.016. This is F25 in the report.
-- **What Fiangshi did.** It answered four questions. It never held, signed or moved the money: the agent paid from its own wallet. Fiangshi's own $0.05 fee is still a dry run.
+- **What Fiangshi did.** It answered four questions. It never held, signed or moved the money: the agent paid from its own wallet. Fiangshi's own $0.05 fee was still a dry run then (it settles for real since 25 Nov).
 
 ## Run it yourself
 
